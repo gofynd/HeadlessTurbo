@@ -115,7 +115,6 @@ const handler = async (event, res) => {
     console.error("Handler error:", error);
     res.statusCode = 500;
     res.setHeader("Content-Type", "text/plain");
-    res.end("Internal Server Error");
   }
 };
 

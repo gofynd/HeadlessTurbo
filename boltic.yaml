@@ -1,5 +1,5 @@
 # boltic.yaml
-app: "Headless-turbo"
+app: "headless-react-starter"
 region: "asia-south1"
 handler: "handler.handler"
 language: "nodejs/20"
