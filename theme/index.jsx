@@ -1,4 +1,4 @@
-import FPIClient from "fdk-store";
+import FPIClient from "@gofynd/fdk-store-gql";
 import { globalDataResolver, pageDataResolver } from "./helper/lib";
 import {
   wrapFpiWithSWR,
