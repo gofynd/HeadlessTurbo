@@ -1,6 +1,11 @@
 // handler.js
-const { readFileSync, existsSync } = require("fs");
-const { join, extname, resolve } = require("path");
+import { readFileSync, existsSync } from "fs";
+import { join, extname, resolve } from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // MIME types for different file extensions
 const mimeTypes = {
@@ -118,4 +123,4 @@ const handler = async (event, res) => {
   }
 };
 
-module.exports = { handler };
+export { handler };

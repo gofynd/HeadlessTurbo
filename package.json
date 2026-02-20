@@ -3,6 +3,7 @@
   "version": "2.2.1",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "license": "ISC",
   "scripts": {
     "build": "npm run clean && webpack --mode production",
