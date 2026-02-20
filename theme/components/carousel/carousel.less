@@ -6,6 +6,8 @@
 
 .carouselContent {
   overflow: hidden;
+  width: 100%;
+  position: relative;
 }
 
 .carouselTrack {
@@ -24,6 +26,14 @@
 .carouselItem {
   min-width: 0;
   flex: 0 0 100%;
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+
+  & > * {
+    width: 100%;
+    flex: 1;
+  }
 }
 
 .carouselItemHorizontal {

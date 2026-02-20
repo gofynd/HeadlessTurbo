@@ -28,12 +28,18 @@ const useLoginPassword = ({ fpi }) => {
       isRedirection: true,
     };
     signIn(payload)
-      .then(() => { })
+      .then(() => {})
       .catch((err) => {
         if (isRunningOnClient() && err?.details?.meta?.is_deleted) {
-          navigate("/auth/account-locked" + (location.search ? location.search : ""));
+          navigate(
+            "/auth/account-locked" + (location.search ? location.search : ""),
+          );
         }
-        setPasswordError({ message: translateDynamicLabel(err?.message, t) || t("resource.common.error_message") });
+        setPasswordError({
+          message:
+            translateDynamicLabel(err?.message, t) ||
+            t("resource.common.error_message"),
+        });
       });
   };
   return {

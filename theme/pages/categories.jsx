@@ -1,143 +1,85 @@
-import React, { useCallback, useMemo } from "react";
-
-import { SectionRenderer } from "fdk-core/components";
-import { useGlobalStore } from "fdk-core/utils";
-import { useLocation } from "react-router-dom";
-import { sanitizeHTMLTag, isRunningOnClient } from "../helper/utils";
-import { useGlobalTranslation } from "fdk-core/utils";
+import React, { useMemo } from "react";
+import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
 import { useThemeConfig } from "../helper/hooks";
+import Loader from "../components/loader/loader";
+import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
+import useSeoMeta from "../helper/hooks/useSeoMeta";
+import CategoriesSection from "../sections/categories";
+import { CATEGORIES_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
 
 function Categories({ fpi }) {
-  const page = useGlobalStore(fpi.getters.PAGE) || {};
   const { t } = useGlobalTranslation("translation");
-  const THEME = useGlobalStore(fpi.getters.THEME);
-  const CONFIGURATION = useGlobalStore(fpi.getters.CONFIGURATION);
-  const location = useLocation();
-  const mode = THEME?.config?.list.find(
-    (f) => f.name === THEME?.config?.current
-  );
-  const globalConfig = mode?.global_config?.custom?.props;
-  const { sections = [] } = page || {};
+  const page = useGlobalStore(fpi.getters.PAGE) || {};
+  const { globalConfig } = useThemeConfig({ fpi, page: "categories" });
   const seoData = page?.seo || {};
-  const { globalConfig: themeGlobalConfig } = useThemeConfig({ fpi });
+  const { error, isLoading } = page || {};
+  const fallbackTitle =
+    CATEGORIES_PAGE_DUMMY_SECTIONS.categories.props?.heading?.value ||
+    t("resource.common.page_titles.categories");
+  const fallbackDescription =
+    CATEGORIES_PAGE_DUMMY_SECTIONS.categories.props?.description?.value || "";
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: seoData });
 
-  const brandName = sanitizeHTMLTag(
-    themeGlobalConfig?.brand_name ||
-      themeGlobalConfig?.site_name ||
-      CONFIGURATION?.application?.name ||
-      CONFIGURATION?.app?.name ||
-      CONFIGURATION?.application?.meta?.name
-  );
-
-  const domainUrl = useMemo(() => {
-    const domain =
-      CONFIGURATION?.application?.domains?.find((d) => d.is_primary)?.name ||
-      "";
-    const sanitizedDomain = sanitizeHTMLTag(domain);
-
-    if (sanitizedDomain) {
-      return /^https?:\/\//i.test(sanitizedDomain)
-        ? sanitizedDomain
-        : `https://${sanitizedDomain}`;
-    }
-
-    if (isRunningOnClient()) {
-      return window.location.origin;
-    }
-
-    return "";
-  }, [CONFIGURATION?.application?.domains]);
-
-  const absoluteUrl = useCallback(
-    (url = "") => {
-      if (!url) return "";
-      const sanitizedUrl = sanitizeHTMLTag(url);
-      if (/^https?:\/\//i.test(sanitizedUrl)) return sanitizedUrl;
-      if (!domainUrl) return sanitizedUrl;
-      const normalizedPath = sanitizedUrl.startsWith("/")
-        ? sanitizedUrl
-        : `/${sanitizedUrl}`;
-      return `${domainUrl}${normalizedPath}`;
-    },
-    [domainUrl]
-  );
-
-  const categoriesSection = useMemo(() => {
-    return (
-      sections?.find((section) => section?.name === "categories") ||
-      sections?.[0] ||
-      {}
+  const title = useMemo(() => {
+    const raw = sanitizeHTMLTag(
+      seoData?.title || fallbackTitle || t("resource.common.page_titles.categories")
     );
-  }, [sections]);
+    if (raw && brandName) return `${raw} | ${brandName}`;
+    return raw || brandName || "";
+  }, [seoData?.title, brandName, fallbackTitle, t]);
 
-  const sectionHeading = sanitizeHTMLTag(
-    categoriesSection?.props?.heading?.value || ""
-  );
-  const sectionDescription = sanitizeHTMLTag(
-    categoriesSection?.props?.description?.value || ""
-  );
-
-  const pageTitle = useMemo(() => {
-    const rawTitle = sanitizeHTMLTag(
-      seoData?.title ||
-        sectionHeading ||
-        t("resource.common.page_titles.categories")
-    );
-    if (rawTitle && brandName) return `${rawTitle} | ${brandName}`;
-    return rawTitle || brandName || "";
-  }, [seoData?.title, brandName, sectionHeading, t]);
-
-  const canonicalUrl = useMemo(() => {
-    const preferredPath = seoData?.canonical_url || location?.pathname || "";
-    return absoluteUrl(preferredPath);
-  }, [absoluteUrl, seoData?.canonical_url, location?.pathname]);
-
-  const pageUrl = canonicalUrl || absoluteUrl(location?.pathname);
   const description = useMemo(() => {
-    const value = sanitizeHTMLTag(
-      seoData?.description ||
-        sectionDescription ||
-        t("resource.categories.categories_description")
+    const raw = sanitizeHTMLTag(
+      seoData?.description || fallbackDescription || t("resource.categories.categories_description")
     );
-    return value.replace(/\s+/g, " ").trim();
-  }, [seoData?.description, sectionDescription, t]);
+    const normalized = raw.replace(/\s+/g, " ").trim();
+    return normalized || seoDescription;
+  }, [seoData?.description, fallbackDescription, t, seoDescription]);
 
-  const socialImage = useMemo(() => {
-    const rawImage =
-      seoData?.image ||
-      seoData?.image_url ||
-      CONFIGURATION?.application?.logo?.secure_url ||
-      "";
-    return absoluteUrl(rawImage);
-  }, [
-    absoluteUrl,
-    seoData?.image,
-    seoData?.image_url,
-    CONFIGURATION?.application?.logo?.secure_url,
-  ]);
+  if (error) {
+    return (
+      <>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
+      </>
+    );
+  }
 
   return (
-    page?.value === "categories" && (
-      <>
-        {getHelmet({
-          title: pageTitle,
-          description,
-          image: socialImage,
-          canonicalUrl,
-          url: pageUrl,
-          siteName: brandName,
-          ogType: "website",
-        })}
-        <SectionRenderer
-          sections={sections}
+    <>
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        ogType: "website",
+      })}
+      <div className="margin0auto basePageContainer">
+        <h1 className="visually-hidden">{title}</h1>
+        <CategoriesSection
           fpi={fpi}
+          props={CATEGORIES_PAGE_DUMMY_SECTIONS.categories.props}
+          blocks={CATEGORIES_PAGE_DUMMY_SECTIONS.categories.blocks}
           globalConfig={globalConfig}
         />
-      </>
-    )
+        {isLoading && <Loader />}
+      </div>
+    </>
   );
 }
+
+export const settings = JSON.stringify({
+  props: [],
+});
 
 export const sections = JSON.stringify([
   {

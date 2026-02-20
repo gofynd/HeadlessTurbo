@@ -1,17 +1,48 @@
-import React, { useMemo } from "react";
+import React, { useMemo, Suspense } from "react";
 import { motion } from "framer-motion";
-import { useGlobalStore } from "fdk-core/utils";
-import { SectionRenderer } from "fdk-core/components";
+import { useGlobalTranslation } from "../../hooks";
 import ProfileRoot from "../../components/profile/profile-root";
 import { useThemeConfig } from "../../helper/hooks";
-import { useGlobalTranslation } from "fdk-core/utils";
 import Breadcrumb from "../../components/breadcrumb/breadcrumb";
+import Loader from "../../components/loader/loader";
+import { SectionRenderer } from "fdk-core/components";
+import {
+  SHIPMENT_DETAILS_LEFT_SECTIONS,
+  SHIPMENT_DETAILS_RIGHT_SECTIONS,
+  SHIPMENT_DETAILS_SECTIONS_CONFIG,
+} from "../../config/shipment-details-sections";
 
+/**
+ * Shipment details page layout.
+ * Follows home.jsx pattern: config-driven sections, no theme engine (PAGE) dependency.
+ */
 function ProfileMyOrderShipmentPage({ fpi }) {
   const { t } = useGlobalTranslation("translation");
-  const page = useGlobalStore(fpi.getters.PAGE) || {};
-  const { globalConfig } = useThemeConfig({ fpi });
-  const { sections = [] } = page || {};
+  const { globalConfig } = useThemeConfig({ fpi, page: "shipment-details" });
+
+  const configuredLeftSections = useMemo(() => {
+    return SHIPMENT_DETAILS_LEFT_SECTIONS.map((sectionName) => {
+      const sectionConfig = SHIPMENT_DETAILS_SECTIONS_CONFIG[sectionName] || {};
+      return {
+        name: sectionName,
+        props: sectionConfig.props || {},
+        blocks: sectionConfig.blocks || [],
+        preset: sectionConfig.preset ?? null,
+      };
+    });
+  }, []);
+
+  const configuredRightSections = useMemo(() => {
+    return SHIPMENT_DETAILS_RIGHT_SECTIONS.map((sectionName) => {
+      const sectionConfig = SHIPMENT_DETAILS_SECTIONS_CONFIG[sectionName] || {};
+      return {
+        name: sectionName,
+        props: sectionConfig.props || {},
+        blocks: sectionConfig.blocks || [],
+        preset: sectionConfig.preset ?? null,
+      };
+    });
+  }, []);
 
   const orderInfoLabel = useMemo(() => {
     const translated = t("resource.order.order_information");
@@ -28,47 +59,40 @@ function ProfileMyOrderShipmentPage({ fpi }) {
       { label: t("resource.common.my_orders"), link: "/profile/orders" },
       { label: orderInfoLabel },
     ],
-    [t, orderInfoLabel]
-  );
-
-  const leftSections = sections.filter(
-    (section) => (section.canvas?.value || section.canvas) === "left_side"
-  );
-  const rightSections = sections.filter(
-    (section) => (section.canvas?.value || section.canvas) === "right_side"
+    [t, orderInfoLabel],
   );
 
   return (
-    page?.value === "shipment-details" && (
-      <ProfileRoot
-        fpi={fpi}
-        leftSections={leftSections}
-        rightSections={rightSections}
-        globalConfig={globalConfig}
+    <ProfileRoot
+      fpi={fpi}
+      leftSections={configuredLeftSections}
+      rightSections={configuredRightSections}
+      globalConfig={globalConfig}
+    >
+      <Breadcrumb breadcrumb={breadcrumbItems} />
+      <motion.div
+        key="shipment-details"
+        variants={{
+          hidden: { opacity: 0 },
+          visible: { opacity: 1, transition: { duration: 0.5 } },
+        }}
+        initial="hidden"
+        animate="visible"
+        className="basePageContainer margin0auto"
       >
-        <Breadcrumb breadcrumb={breadcrumbItems} />
-        <motion.div
-          key={page?.value}
-          variants={{
-            hidden: { opacity: 0 },
-            visible: { opacity: 1, transition: { duration: 0.5 } },
-          }}
-          initial="hidden"
-          animate="visible"
-          className="basePageContainer margin0auto"
-        >
-          {leftSections.length > 0 && (
+        {configuredLeftSections.length > 0 && (
+          <Suspense fallback={<Loader />}>
             <SectionRenderer
-              sections={leftSections}
+              sections={configuredLeftSections}
               fpi={fpi}
+              globalConfig={globalConfig}
               blocks={[]}
               preset={{}}
-              globalConfig={globalConfig}
             />
-          )}
-        </motion.div>
-      </ProfileRoot>
-    )
+          </Suspense>
+        )}
+      </motion.div>
+    </ProfileRoot>
   );
 }
 

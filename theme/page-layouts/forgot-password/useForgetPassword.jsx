@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAccounts } from "../../helper/hooks";
 import { useGlobalTranslation } from "fdk-core/utils";
 import { translateDynamicLabel } from "../../helper/utils";
+import { getApplicationID } from "../../helper/getAppCredentials";
 import { VERIFY_FORGOT_OTP_MOBILE } from "../../queries/authQuery";
 import { useSnackbar } from "../../helper/hooks";
 
@@ -58,7 +59,7 @@ const useForgetPassword = ({ fpi }) => {
   };
 
   const handleSubmitMobileResetPassword = ({ otp, password }) => {
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
     fpi
       .executeGQL(VERIFY_FORGOT_OTP_MOBILE, {
         platform: id,

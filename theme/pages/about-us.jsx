@@ -1,24 +1,26 @@
 import React, { useMemo } from "react";
 import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
-import { SectionRenderer } from "fdk-core/components";
-import { getHelmet } from "../providers/global-provider";
+import { useThemeConfig } from "../helper/hooks";
+import Loader from "../components/loader/loader";
 import { sanitizeHTMLTag } from "../helper/utils";
+import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
+import RawHtml from "../sections/raw-html";
+import { ABOUT_US_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
 
 function AboutUsPage({ fpi }) {
   const { t } = useGlobalTranslation("translation");
   const page = useGlobalStore(fpi.getters.PAGE) || {};
-  const THEME = useGlobalStore(fpi.getters.THEME);
-
-  const mode = THEME?.config?.list.find(
-    (f) => f.name === THEME?.config?.current
-  );
-  const globalConfig = mode?.global_config?.custom?.props;
-  const { sections = [] } = page || {};
-
+  const { globalConfig } = useThemeConfig({ fpi, page: "about-us" });
   const seoData = page?.seo || {};
-  const { brandName, canonicalUrl, pageUrl, description: seoDescription, socialImage } =
-    useSeoMeta({ fpi, seo: seoData });
+  const { error, isLoading } = page || {};
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: seoData });
 
   const title = useMemo(() => {
     const raw = sanitizeHTMLTag(
@@ -32,31 +34,47 @@ function AboutUsPage({ fpi }) {
     const raw = sanitizeHTMLTag(
       seoData?.description || t("resource.about_us.seo_description")
     );
-    return raw.replace(/\s+/g, " ").trim() || seoDescription;
+    const normalized = raw.replace(/\s+/g, " ").trim();
+    return normalized || seoDescription;
   }, [seoData?.description, t, seoDescription]);
 
+  if (error) {
+    return (
+      <>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
+      </>
+    );
+  }
 
   return (
-    page?.value === "about-us" && (
-      <>
-        {getHelmet({
-          title,
-          description,
-          image: socialImage,
-          canonicalUrl,
-          url: pageUrl,
-          siteName: brandName,
-          ogType: "website",
-        })}
-        <SectionRenderer
-          sections={sections}
+    <>
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        ogType: "website",
+      })}
+      <div className="margin0auto basePageContainer">
+        <h1 className="visually-hidden">{title}</h1>
+        <RawHtml
           fpi={fpi}
+          props={ABOUT_US_PAGE_DUMMY_SECTIONS.rawHtml.props}
+          blocks={ABOUT_US_PAGE_DUMMY_SECTIONS.rawHtml.blocks}
           globalConfig={globalConfig}
         />
-      </>
-    )
+        {isLoading && <Loader />}
+      </div>
+    </>
   );
 }
+
+export const settings = JSON.stringify({
+  props: [],
+});
 
 export const sections = JSON.stringify([
   {

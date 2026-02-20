@@ -1,20 +1,26 @@
-import React from "react";
-import { useGlobalStore } from "fdk-core/utils";
+import React, { useMemo } from "react";
+import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
 import { useThemeConfig } from "../helper/hooks";
-import { SectionRenderer } from "fdk-core/components";
-import { useGlobalTranslation } from "fdk-core/utils";
-import useSeoMeta from "../helper/hooks/useSeoMeta";
-import { useMemo } from "react";
+import Loader from "../components/loader/loader";
 import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
+import useSeoMeta from "../helper/hooks/useSeoMeta";
+import OrderTrackingDetailsSection from "../sections/order-tracking-details";
+import { ORDER_TRACKING_DETAILS_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
 
 function OrderTrackingDetails({ fpi }) {
-  const page = useGlobalStore(fpi.getters.PAGE) || {};
-  const { globalConfig } = useThemeConfig({ fpi });
-  const { sections = [] } = page || {};
   const { t } = useGlobalTranslation("translation");
-  const { brandName, canonicalUrl, pageUrl, description: seoDescription, socialImage } =
-    useSeoMeta({ fpi, seo: {} });
+  const page = useGlobalStore(fpi.getters.PAGE) || {};
+  const { globalConfig } = useThemeConfig({ fpi, page: "order-tracking-details" });
+  const seoData = page?.seo || {};
+  const { error, isLoading } = page || {};
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: seoData });
 
   const title = useMemo(() => {
     const base = brandName ? `Track Order | ${brandName}` : "Track Order";
@@ -27,28 +33,45 @@ function OrderTrackingDetails({ fpi }) {
       sanitizeHTMLTag(base).replace(/\s+/g, " ").trim() || seoDescription
     );
   }, [t, seoDescription]);
-  return (
-    page?.value === "order-tracking-details" && (
+
+  if (error) {
+    return (
       <>
-        {getHelmet({
-          title,
-          description,
-          image: socialImage,
-          canonicalUrl,
-          url: pageUrl,
-          siteName: brandName,
-          robots: "noindex, nofollow",
-          ogType: "website",
-        })}
-        <SectionRenderer
-          sections={sections}
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        robots: "noindex, nofollow",
+        ogType: "website",
+      })}
+      <div className="margin0auto basePageContainer">
+        <h1 className="visually-hidden">{title}</h1>
+        <OrderTrackingDetailsSection
           fpi={fpi}
+          props={ORDER_TRACKING_DETAILS_PAGE_DUMMY_SECTIONS.orderTrackingDetails.props}
+          blocks={ORDER_TRACKING_DETAILS_PAGE_DUMMY_SECTIONS.orderTrackingDetails.blocks}
           globalConfig={globalConfig}
         />
-      </>
-    )
+        {isLoading && <Loader />}
+      </div>
+    </>
   );
 }
+
+export const settings = JSON.stringify({
+  props: [],
+});
 
 export const sections = JSON.stringify([
   {

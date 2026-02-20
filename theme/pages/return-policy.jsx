@@ -1,58 +1,54 @@
 import React, { useMemo } from "react";
-import { useFPI, useGlobalStore } from "fdk-core/utils";
-import ScrollToTop from "../components/scroll-to-top/scroll-to-top";
-import useSeoMeta from "../helper/hooks/useSeoMeta";
+import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
+import { useThemeConfig } from "../helper/hooks";
+import Loader from "../components/loader/loader";
 import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
-import LegalPagesTemplate from "../components/legal-doc-templates/legal-pages-template";
-import { useThemeConfig } from "../helper/hooks";
-import { SectionRenderer } from "fdk-core/components";
+import useSeoMeta from "../helper/hooks/useSeoMeta";
+import ReturnPolicy from "../sections/return-policy";
+import { RETURN_POLICY_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
 
-function ReturnPolicy({ fpi }) {
+function ReturnPolicyPage({ fpi }) {
+  const { t } = useGlobalTranslation("translation");
   const page = useGlobalStore(fpi.getters.PAGE) || {};
-  const { globalConfig } = useThemeConfig({ fpi });
-  const { sections = [] } = page || {};
-  const { returns } = useGlobalStore(fpi?.getters?.LEGAL_DATA);
-
-  const { brandName, canonicalUrl, pageUrl, description: seoDescription, socialImage } =
-    useSeoMeta({ fpi, seo: {} });
-
-  const { heading, description } = useMemo(() => {
-    const html = returns || "";
-    const headingMatch = html.match(/<(h1|h2)[^>]*>([\s\S]*?)<\/\1>/i);
-    const headingText = sanitizeHTMLTag(headingMatch?.[2] || "");
-
-    const bodyWithoutHeading = headingMatch
-      ? html.replace(headingMatch[0], "")
-      : html;
-    const plainText = bodyWithoutHeading
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    return {
-      heading: headingText,
-      description:
-        sanitizeHTMLTag(plainText).replace(/\s+/g, " ").trim() ||
-        seoDescription,
-    };
-  }, [returns, seoDescription]);
+  const { globalConfig } = useThemeConfig({ fpi, page: "return-policy" });
+  const seoData = page?.seo || {};
+  const { error, isLoading } = page || {};
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: seoData });
 
   const title = useMemo(() => {
-    const baseTitle = heading || "Return Policy";
-    if (baseTitle && brandName) return `${baseTitle} | ${brandName}`;
-    return baseTitle || brandName || "";
-  }, [heading, brandName]);
+    const raw = sanitizeHTMLTag(
+      seoData?.title ||
+        t("resource.common.page_titles.return_policy") ||
+        "Return Policy"
+    );
+    if (raw && brandName) return `${raw} | ${brandName}`;
+    return raw || brandName || "";
+  }, [seoData?.title, brandName, t]);
+
+  const description = useMemo(() => {
+    const raw = sanitizeHTMLTag(seoData?.description || "");
+    const normalized = raw.replace(/\s+/g, " ").trim();
+    return normalized || seoDescription;
+  }, [seoData?.description, seoDescription]);
+
+  if (error) {
+    return (
+      <>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
+      </>
+    );
+  }
 
   return (
     <>
-      {page?.value === "return-policy" && (
-        <SectionRenderer
-          sections={sections}
-          fpi={fpi}
-          globalConfig={globalConfig}
-        />
-      )}
       {getHelmet({
         title,
         description,
@@ -62,9 +58,23 @@ function ReturnPolicy({ fpi }) {
         siteName: brandName,
         ogType: "website",
       })}
+      <div className="margin0auto basePageContainer">
+        <h1 className="visually-hidden">{title}</h1>
+        <ReturnPolicy
+          fpi={fpi}
+          props={RETURN_POLICY_PAGE_DUMMY_SECTIONS.returnPolicy.props}
+          blocks={RETURN_POLICY_PAGE_DUMMY_SECTIONS.returnPolicy.blocks}
+          globalConfig={globalConfig}
+        />
+        {isLoading && <Loader />}
+      </div>
     </>
   );
 }
+
+export const settings = JSON.stringify({
+  props: [],
+});
 
 export const sections = JSON.stringify([
   {
@@ -73,4 +83,5 @@ export const sections = JSON.stringify([
     },
   },
 ]);
-export default ReturnPolicy;
+
+export default ReturnPolicyPage;

@@ -1,7 +1,12 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
 import { set, useForm } from "react-hook-form";
+import { useThemeConfig } from "../helper/hooks";
+import { getHelmet } from "../providers/global-provider";
+import useSeoMeta from "../helper/hooks/useSeoMeta";
+import { sanitizeHTMLTag } from "../helper/utils";
+import Loader from "../components/loader/loader";
 import EmptyState from "../components/empty-state/empty-state";
 import { GET_SHIPMENT_CUSTOMER_DETAILS } from "../queries/shipmentQuery";
 import {
@@ -78,6 +83,27 @@ function Refund({ fpi }) {
   const [isRefundOptionsEmpty, setIsRefundOptionsEmpty] = useState(false);
   const { refundOptions, isRefundModesResolved, isRefundModesLoading } =
     useRefundManagement(fpi, { enabled: shouldCheckRefundModes });
+
+  const page = useGlobalStore(fpi.getters.PAGE) || {};
+  useThemeConfig({ fpi, page: "refund-order" });
+  const seoData = page?.seo || {};
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: seoData });
+  const title = useMemo(() => {
+    const base =
+      (seoData?.title?.value ?? seoData?.title) ||
+      (brandName ? `Refund | ${brandName}` : "Refund");
+    return sanitizeHTMLTag(base);
+  }, [seoData?.title, brandName]);
+  const description = useMemo(() => {
+    const base = seoData?.description?.value ?? seoData?.description ?? "";
+    return sanitizeHTMLTag(base).replace(/\s+/g, " ").trim() || seoDescription;
+  }, [seoData?.description, seoDescription]);
 
   const { email, phone } = supportInfo?.contact ?? {};
   const { email: emailArray = [], active: emailActive = false } = email ?? {};
@@ -420,6 +446,15 @@ function Refund({ fpi }) {
     hasBankOrUpi,
   ]);
 
+  if (page?.error) {
+    return (
+      <>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(page.error, null, 4)}</pre>
+      </>
+    );
+  }
+
   if (!orderId || !shipmentId) {
     return (
       <EmptyState
@@ -467,12 +502,25 @@ function Refund({ fpi }) {
   }
 
   return (
-    <div className={styles.wrapper}>
-      <div
-        className={`${styles.container} ${isBeneficiaryAdded ? styles.beneficiaryContainer : ""}`}
-      >
-        {isBeneficiaryAdded ? (
-          <BeneficiarySuccess
+    <>
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        robots: "noindex, nofollow",
+        ogType: "website",
+      })}
+      <div className="basePageContainer margin0auto">
+        <h1 className="visually-hidden">{title}</h1>
+        <div className={styles.wrapper}>
+          <div
+            className={`${styles.container} ${isBeneficiaryAdded ? styles.beneficiaryContainer : ""}`}
+          >
+            {isBeneficiaryAdded ? (
+              <BeneficiarySuccess
             refundAmount={refundAmount}
             currencySymbol={currencySymbol}
             orderId={orderId}
@@ -567,7 +615,10 @@ function Refund({ fpi }) {
           )}
         </>
       )}
-    </div>
+        </div>
+      </div>
+      {page?.isLoading && <Loader />}
+    </>
   );
 }
 
@@ -1263,5 +1314,10 @@ function BeneficiaryForm({
     </div>
   );
 }
+
+export const settings = JSON.stringify({ props: [] });
+export const sections = JSON.stringify([
+  { attributes: { page: "refund-order" } },
+]);
 
 export default Refund;

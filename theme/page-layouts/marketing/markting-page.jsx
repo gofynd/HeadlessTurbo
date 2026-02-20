@@ -5,16 +5,20 @@ import { GET_PAGE } from "../../queries/marketingQuery";
 import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
 import { getHelmet } from "../../providers/global-provider";
 import EmptyState from "../../components/empty-state/empty-state";
+import Loader from "../../components/loader/loader";
 import styles from "./marketing-page.less";
 import useSeoMeta from "../../helper/hooks/useSeoMeta";
 import { sanitizeHTMLTag } from "../../helper/utils";
+import { useThemeConfig } from "../../helper/hooks";
 
 function MarketingPage({ fpi, defaultSlug }) {
   const { t } = useGlobalTranslation("translation");
   let { slug } = useParams();
   if (defaultSlug) slug = defaultSlug;
   const containerRef = useRef(null);
+  const page = useGlobalStore(fpi.getters.PAGE) || {};
   const customPage = useGlobalStore(fpi.getters.CUSTOM_PAGE) || {};
+  const { globalConfig } = useThemeConfig({ fpi, page: "page" });
   const [pageNotFound, setPageNotFound] = useState(false);
   const {
     content = [],
@@ -23,8 +27,14 @@ function MarketingPage({ fpi, defaultSlug }) {
     published,
     slug: pageSlug,
   } = customPage || {};
-  const { brandName, canonicalUrl, pageUrl, description: seoDescription, socialImage } =
-    useSeoMeta({ fpi, seo });
+  const { error, isLoading } = page || {};
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo });
 
   const title = useMemo(() => {
     const raw = sanitizeHTMLTag(seo?.title || slug || pageSlug || "");
@@ -51,7 +61,7 @@ function MarketingPage({ fpi, defaultSlug }) {
       .catch(() => {
         setPageNotFound(true);
       });
-  }, [slug]);
+  }, [slug, pageSlug, fpi]);
 
   const renderContent = useMemo(() => {
     const renderData = content?.find((item) => item?.type === type);
@@ -70,6 +80,15 @@ function MarketingPage({ fpi, defaultSlug }) {
     }
     return null;
   }, [content, type]);
+
+  if (error) {
+    return (
+      <>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
+      </>
+    );
+  }
 
   if (pageNotFound || !published) {
     return <EmptyState title={t("resource.common.page_not_found")} />;
@@ -90,15 +109,30 @@ function MarketingPage({ fpi, defaultSlug }) {
         id={`custom-page-${slug}`}
         className={`${styles.marketingPage} basePageContainer margin0auto`}
       >
+        <h1 className="visually-hidden">{title}</h1>
         {renderContent}
+        {isLoading && <Loader />}
       </div>
     </>
   );
 }
 
-MarketingPage.serverFetch = async ({ router, fpi, id }) => {
+MarketingPage.serverFetch = async ({ router, fpi }) => {
   const { slug } = router?.params ?? {};
   const pageResponse = await fpi.executeGQL(GET_PAGE, { slug });
   return pageResponse;
 };
+
+export const settings = JSON.stringify({
+  props: [],
+});
+
+export const sections = JSON.stringify([
+  {
+    attributes: {
+      page: "page",
+    },
+  },
+]);
+
 export default MarketingPage;

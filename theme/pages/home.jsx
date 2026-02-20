@@ -1,89 +1,59 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { SectionRenderer } from "fdk-core/components";
+import React, { useMemo, useEffect } from "react";
 import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
 import { useThemeConfig } from "../helper/hooks";
 import Loader from "../components/loader/loader";
-import InfiniteLoader from "../components/infinite-loader/infinite-loader";
 import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
+import HeroImage from "../sections/hero-image";
+import FeaturedCollection from "../sections/featured-collection";
+import ImageSlideshow from "../sections/image-slideshow";
+import MediaWithText from "../sections/media-with-text";
+import Testimonials from "../sections/testimonials";
+import { HOME_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { globalDataResolver } from "../helper/lib";
 
-function Home({ numberOfSections, fpi }) {
+function Home({ fpi }) {
   const { t } = useGlobalTranslation("translation");
   const page = useGlobalStore(fpi.getters.PAGE) || {};
-  const { isEdit = false } = useGlobalStore(fpi.getters.CUSTOM_VALUE);
-  const { globalConfig, pageConfig } = useThemeConfig({ fpi, page: "home" });
-  const seoData = page?.seo || {};
-  const { sections = [], error, isLoading } = page || {};
-  const initialSectionsCount = globalConfig?.initial_sections_count || 3;
+  const { globalConfig } = useThemeConfig({ fpi, page: "home" });
 
-  const [visibleCount, setVisibleCount] = useState(initialSectionsCount);
-  const { brandName, canonicalUrl, pageUrl, description: seoDescription, socialImage } =
-    useSeoMeta({ fpi, seo: seoData });
+  // Ensure global data (currencies, countries, etc.) is loaded on homepage via Storefront GraphQL
+  useEffect(() => {
+    const creds = typeof window !== "undefined" && (window.APP_DATA || window.__APP_CREDENTIALS__);
+    if (fpi && creds?.applicationID && creds?.applicationToken) {
+      globalDataResolver({
+        fpi,
+        applicationID: creds.applicationID,
+        applicationToken: creds.applicationToken,
+        preferStorefrontGraphql: true,
+      });
+    }
+  }, [fpi]);
+  const seoData = page?.seo || {};
+  const { error, isLoading } = page || {};
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: seoData });
 
   const title = useMemo(() => {
     const baseTitle = sanitizeHTMLTag(
-      seoData?.title || brandName || t("resource.common.page_titles.home")
+      seoData?.title || brandName || t("resource.common.page_titles.home"),
     );
     return baseTitle ? `${baseTitle} - Official Online Store` : "";
   }, [seoData?.title, brandName, t]);
 
-  const renderSections = useMemo(
-    () => (isEdit ? sections : sections?.slice(0, visibleCount)),
-    [sections, visibleCount]
-  );
   const description = useMemo(() => {
     const raw = sanitizeHTMLTag(
-      seoData?.description || t("resource.common.home_seo_description")
+      seoData?.description || t("resource.common.home_seo_description"),
     );
     const normalized = raw.replace(/\s+/g, " ").trim();
     return normalized || seoDescription;
   }, [seoData?.description, t, seoDescription]);
-
-  useEffect(() => {
-    // Skip on server-side
-    if (typeof window === "undefined") return;
-
-    const showAllSections = () => {
-      setVisibleCount(sections.length);
-      window?.removeEventListener("scroll", handleScroll);
-      // Mark that home sections have been loaded in this session
-      try {
-        sessionStorage.setItem("home_sections_loaded", "true");
-      } catch (e) {
-        // Ignore sessionStorage errors (e.g., private browsing)
-      }
-    };
-
-    const handleScroll = () => {
-      showAllSections();
-    };
-
-    // Check if home sections were loaded before in this session (handles SPA back navigation)
-    let hasLoadedBefore = false;
-    try {
-      hasLoadedBefore =
-        sessionStorage.getItem("home_sections_loaded") === "true";
-    } catch (e) {
-      // Ignore sessionStorage errors
-    }
-
-    // Check if user has already scrolled
-    const hasScrolled = window.scrollY > 0;
-
-    if (hasLoadedBefore || hasScrolled) {
-      // Immediately show all sections on return visit or if already scrolled
-      showAllSections();
-      return;
-    }
-
-    // Add scroll listener for first visit
-    window?.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window?.removeEventListener("scroll", handleScroll);
-    };
-  }, [sections]);
 
   if (error) {
     return (
@@ -107,13 +77,35 @@ function Home({ numberOfSections, fpi }) {
       })}
       <div className="margin0auto basePageContainer">
         <h1 className="visually-hidden">{title}</h1>
-        {page?.value === "home" && (
-          <SectionRenderer
-            sections={renderSections || sections}
-            fpi={fpi}
-            globalConfig={globalConfig}
-          />
-        )}
+        <HeroImage
+          fpi={fpi}
+          props={HOME_PAGE_DUMMY_SECTIONS.heroImage.props}
+          blocks={HOME_PAGE_DUMMY_SECTIONS.heroImage.blocks}
+          globalConfig={globalConfig}
+        />
+        <FeaturedCollection
+          fpi={fpi}
+          props={HOME_PAGE_DUMMY_SECTIONS.featuredCollection.props}
+          globalConfig={globalConfig}
+        />
+        <ImageSlideshow
+          fpi={fpi}
+          props={HOME_PAGE_DUMMY_SECTIONS.imageSlideshow.props}
+          blocks={HOME_PAGE_DUMMY_SECTIONS.imageSlideshow.blocks}
+          globalConfig={globalConfig}
+        />
+        <MediaWithText
+          fpi={fpi}
+          props={HOME_PAGE_DUMMY_SECTIONS.mediaWithText.props}
+          blocks={HOME_PAGE_DUMMY_SECTIONS.mediaWithText.blocks}
+          globalConfig={globalConfig}
+        />
+        <Testimonials
+          fpi={fpi}
+          props={HOME_PAGE_DUMMY_SECTIONS.testimonials.props}
+          blocks={HOME_PAGE_DUMMY_SECTIONS.testimonials.blocks}
+          globalConfig={globalConfig}
+        />
         {isLoading && <Loader />}
       </div>
     </>

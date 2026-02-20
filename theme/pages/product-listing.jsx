@@ -1,25 +1,32 @@
 import React, { useMemo } from "react";
-import { SectionRenderer } from "fdk-core/components";
 import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
 import { useSearchParams } from "react-router-dom";
 import { useThemeConfig } from "../helper/hooks";
-import { getHelmet } from "../providers/global-provider";
+import Loader from "../components/loader/loader";
 import { sanitizeHTMLTag } from "../helper/utils";
+import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
+import ProductListingSection from "../sections/product-listing";
+import { PLP_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
 
-const ProductListing = ({ fpi }) => {
+function ProductListing({ fpi }) {
   const { t } = useGlobalTranslation("translation");
   const page = useGlobalStore(fpi.getters.PAGE) || {};
-  const { globalConfig } = useThemeConfig({ fpi });
-  const { sections = [] } = page || {};
+  const { globalConfig } = useThemeConfig({ fpi, page: "product-listing" });
   const seoData = page?.seo || {};
+  const { error, isLoading } = page || {};
   const [searchParams] = useSearchParams();
   const department = searchParams.get("department") || "";
   const brand = searchParams.get("brand") || "";
   const category = searchParams.get("category") || "";
-  const { brandName, canonicalUrl, pageUrl, description: seoDescription, socialImage } =
-    useSeoMeta({ fpi, seo: seoData });
-  console.log("brand", brand);
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: seoData });
+
   const title = useMemo(() => {
     const seoTitle = sanitizeHTMLTag(seoData?.title);
 
@@ -45,33 +52,48 @@ const ProductListing = ({ fpi }) => {
 
   const description = useMemo(() => {
     const raw = sanitizeHTMLTag(
-      seoData?.description || t("resource.product.seo_description")
+      seoData?.description || t("resource.product.seo_description"),
     );
     const normalized = raw.replace(/\s+/g, " ").trim();
     return normalized || seoDescription;
   }, [seoData?.description, t, seoDescription]);
 
-  return (
-    page?.value === "product-listing" && (
+  if (error) {
+    return (
       <>
-        {getHelmet({
-          title,
-          description,
-          image: socialImage,
-          canonicalUrl,
-          url: pageUrl,
-          siteName: brandName,
-          ogType: "website",
-        })}
-        <SectionRenderer
-          sections={sections}
-          fpi={fpi}
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        ogType: "website",
+      })}
+      <div className="margin0auto basePageContainer">
+        <h1 className="visually-hidden">{title}</h1>
+        <ProductListingSection
+          props={PLP_PAGE_DUMMY_SECTIONS.productListing.props}
+          blocks={PLP_PAGE_DUMMY_SECTIONS.productListing.blocks}
           globalConfig={globalConfig}
         />
-      </>
-    )
+        {isLoading && <Loader />}
+      </div>
+    </>
   );
-};
+}
+
+export const settings = JSON.stringify({
+  props: [],
+});
 
 export const sections = JSON.stringify([
   {

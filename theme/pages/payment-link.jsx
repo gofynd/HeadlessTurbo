@@ -8,13 +8,28 @@ import styles from "../styles/payment-link.less";
 import GatewayIcon from "../assets/images/trust-gateway.png";
 import LinkExpired from "../components/payment-link/link-expired";
 import PaymentLinkLoader from "../components/payment-link/payment-link-loader";
-import { currencyFormat } from "../helper/utils";
+import { currencyFormat, sanitizeHTMLTag } from "../helper/utils";
 import CountDown from "../components/payment-link/countDown";
+import { useThemeConfig } from "../helper/hooks";
+import { getHelmet } from "../providers/global-provider";
+import useSeoMeta from "../helper/hooks/useSeoMeta";
+import { Helmet } from "react-helmet-async";
 
 function PaymentLink({ fpi }) {
   const { t } = useGlobalTranslation("translation");
-  const bagData = useGlobalStore(fpi?.getters?.CART_ITEMS) || {};
+  const page = useGlobalStore(fpi.getters.PAGE) || {};
+  useThemeConfig({ fpi, page: "payment-link" });
+  const seoData = page?.seo || {};
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: seoData });
+  const { error, isLoading: pageLoading } = page || {};
 
+  const bagData = useGlobalStore(fpi?.getters?.CART_ITEMS) || {};
   const CONFIGURATION = useGlobalStore(fpi.getters.CONFIGURATION);
   const [showPayment, setShowPayment] = useState(false);
   const [linkExpired, setLinkExpired] = useState(false);
@@ -33,7 +48,18 @@ function PaymentLink({ fpi }) {
     [bagData?.currency?.symbol]
   );
 
-  // Memoize all non-changing objects/functions
+  const title = useMemo(() => {
+    const base =
+      (seoData?.title?.value ?? seoData?.title) ||
+      (brandName ? `Payment | ${brandName}` : "Payment");
+    return sanitizeHTMLTag(base);
+  }, [seoData?.title, brandName]);
+
+  const description = useMemo(() => {
+    const base = seoData?.description?.value ?? seoData?.description ?? "";
+    return sanitizeHTMLTag(base).replace(/\s+/g, " ").trim() || seoDescription;
+  }, [seoData?.description, seoDescription]);
+
   const memoizedPayment = useMemo(() => payment, [payment]);
   const memoizedLoader = useCallback(() => <Loader />, []);
 
@@ -49,12 +75,38 @@ function PaymentLink({ fpi }) {
     fetchData();
   }, [fpi]);
 
+  if (error) {
+    return (
+      <>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
+      </>
+    );
+  }
+
+  if (pageLoading) {
+    return <Loader />;
+  }
+
   if (isApiLoading) {
     return <PaymentLinkLoader />;
   }
 
   return (
     <>
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        ogType: "website",
+      })}
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      <h1 className="visually-hidden">{title}</h1>
       {paymentLinkData?.external_order_id && !linkExpired ? (
         <div
           className={`${styles.mainContainer} basePageContainer margin0auto`}
@@ -121,5 +173,6 @@ function PaymentLink({ fpi }) {
   );
 }
 
+export const settings = JSON.stringify({ props: [] });
 export const sections = JSON.stringify([]);
 export default PaymentLink;

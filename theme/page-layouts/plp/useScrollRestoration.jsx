@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import { isRunningOnClient } from "../../helper/utils";
 
 /**
- * Custom hook to handle scroll restoration for PLP infinite scroll
- * Prevents auto-scroll to top when returning from PDP
+ * FPPT-3012: Scroll restoration for PLP and Collection infinite scroll.
+ * Prevents auto-scroll to top when returning from PDP (used by both PLP and Collection pages).
  */
 const useScrollRestoration = (scrollStateKey, isInfiniteScroll = false) => {
   const hasNavigationState = useRef(false);

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router-dom";
 import {
   CART_DETAILS,
   CART_UPDATE,
@@ -29,19 +29,20 @@ import { translateDynamicLabel } from "../../helper/utils";
 function generateCartItemKey(item, index = 0) {
   const itemIndex = item?.article?.item_index ?? index;
   const storeUid = item?.article?.store?.uid ?? "";
-  
+
   // Primary: Use the key from API if available
   if (item?.key) {
     return `${item.key}_${storeUid}_${itemIndex}`;
   }
-  
+
   // Fallback: Construct key from product and article data
   if (item?.product?.uid && item?.article?.size) {
-    const fulfillmentSlug = item?.article?.fulfillment_option?.slug || "standard-delivery";
+    const fulfillmentSlug =
+      item?.article?.fulfillment_option?.slug || "standard-delivery";
     const fallbackKey = `${item.product.uid}_${item.article.size}_${fulfillmentSlug}`;
     return `${fallbackKey}_${storeUid}_${itemIndex}`;
   }
-  
+
   // Last resort: Use index-based key to ensure item is always included
   return `item_${index}_${storeUid}_${itemIndex}`;
 }
@@ -59,11 +60,12 @@ export function fetchCartDetails(fpi, payload = {}) {
 const useCart = (fpi, isActive = true) => {
   const { t } = useGlobalTranslation("translation");
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const CART = useGlobalStore(fpi.getters.CART);
   const appFeatures = useGlobalStore(fpi.getters.APP_FEATURES);
   const buybox = appFeatures?.buybox;
   const { i18nDetails, countryDetails, deliveryLocationStr } = useInternational(
-    { fpi }
+    { fpi },
   );
   const isLoggedIn = useGlobalStore(fpi.getters.LOGGED_IN);
   const page = useGlobalStore(fpi.getters.PAGE) || {};
@@ -76,10 +78,8 @@ const useCart = (fpi, isActive = true) => {
   const [isCartUpdating, setIsCartUpdating] = useState(false);
   const [modeLoading, setIsModeLoading] = useState(false);
   const [applyRewardResponse, setApplyRewardResponse] = useState(null);
-  const [currentCartId, setCurrentCartId] = useState(null); 
+  const [currentCartId, setCurrentCartId] = useState(null);
   const [isRewardApplied, setIsRewardApplied] = useState(false); // ← NEW
-  
-
 
   const { buy_now_cart_items, cart_items, cart_items_count } = CART || {};
   const {
@@ -128,16 +128,29 @@ const useCart = (fpi, isActive = true) => {
 
   useEffect(() => {
     if (isActive) {
+      // Always fetch cart details when navigating to cart page to ensure fresh data
       // Only show full loading state on initial load (no cart items yet)
       // For subsequent refetches (e.g., after pincode change), keep showing existing cart
       // This prevents the "flash of empty cart" issue after login
       const hasExistingCartData = items && items.length > 0;
-      if (!hasExistingCartData) {
-        setIsLoading(true);
+      const isCartPage =
+        location.pathname === "/cart/bag" || location.pathname === "/cart/bag/";
+
+      // Always fetch on cart page to ensure we have the latest data after adding items
+      if (isCartPage || !hasExistingCartData) {
+        if (!hasExistingCartData) {
+          setIsLoading(true);
+        }
+        fetchCartDetails(fpi, { buyNow }).then(() => setIsLoading(false));
       }
-      fetchCartDetails(fpi, { buyNow }).then(() => setIsLoading(false));
     }
-  }, [fpi, i18nDetails?.currency?.code, deliveryLocationStr]);
+  }, [
+    fpi,
+    i18nDetails?.currency?.code,
+    deliveryLocationStr,
+    location.pathname,
+    buyNow,
+  ]);
 
   const isAnonymous = appFeatures?.landing_page?.continue_as_guest;
   const isGstInput =
@@ -174,51 +187,53 @@ const useCart = (fpi, isActive = true) => {
 
   const isOutOfStock = useMemo(() => {
     const outofstock = items?.find(
-      (item) => item?.availability?.out_of_stock === true
+      (item) => item?.availability?.out_of_stock === true,
     );
     return !!outofstock;
   }, [items]);
 
   const isNotServicable = useMemo(() => {
     const notservicable = items?.find(
-      (item) => item?.availability?.deliverable === false
+      (item) => item?.availability?.deliverable === false,
     );
     return !!notservicable;
   }, [items]);
 
   const currencySymbol = useMemo(
     () => cart_items?.currency?.symbol || "₹",
-    [cart_items]
+    [cart_items],
   );
-   
-  
+
   const onApplyLoyaltyPoints = async (isChecked, showToast = true) => {
     setIsLoyaltyLoading(true);
     setIsCartUpdating(true);
-  
+
     const payload = {
       includeItems: true,
       includeBreakup: true,
       cartId: cartId,
       redeemPoints: { redeem_points: isChecked },
     };
-  
+
     try {
       const res = await fpi.executeGQL(APPLY_REWARD_POINTS, payload, {
         skipStoreUpdate: false,
       });
-  
+
       const data = res?.data?.applyLoyaltyPoints;
       setApplyRewardResponse(data);
-  
+
       if (data?.success) {
         setIsRewardApplied(isChecked);
-  
+
         const toastKey = `loyaltyToastShown_${cartId}`;
-  
+
         if (isChecked) {
           if (showToast && !localStorage.getItem(toastKey)) {
-            showSnackbar(data.message || "Reward points applied successfully", "success");
+            showSnackbar(
+              data.message || "Reward points applied successfully",
+              "success",
+            );
             localStorage.setItem(toastKey, "true");
           }
         } else {
@@ -227,7 +242,7 @@ const useCart = (fpi, isActive = true) => {
           }
           localStorage.removeItem(toastKey);
         }
-  
+
         await fetchCartDetails(fpi);
       } else {
         let errorMsg = "Could not update reward points";
@@ -246,8 +261,7 @@ const useCart = (fpi, isActive = true) => {
       setIsLoyaltyLoading(false);
     }
   };
-  
-  
+
   function updateCartItems(
     event,
     itemDetails,
@@ -257,13 +271,13 @@ const useCart = (fpi, isActive = true) => {
     operation,
     moveToWishList = false,
     isSizeUpdate = false,
-    foSlug = ""
+    foSlug = "",
   ) {
     if (event) {
       event.stopPropagation();
     }
     setIsCartUpdating(true);
-  
+
     try {
       const payload = {
         b: true,
@@ -287,7 +301,7 @@ const useCart = (fpi, isActive = true) => {
           operation,
         },
       };
-  
+
       return fpi
         .executeGQL(CART_UPDATE, payload, { skipStoreUpdate: false })
         .then((res) => {
@@ -301,27 +315,26 @@ const useCart = (fpi, isActive = true) => {
               showSnackbar(
                 translateDynamicLabel(updateResponse?.message, t) ||
                   t("resource.cart.cart_update_success"),
-                "success"
+                "success",
               );
             }
-        
+
             await fetchCartDetails(fpi, { buyNow });
 
             if (isRewardApplied) {
-              await onApplyLoyaltyPoints(true, false); 
+              await onApplyLoyaltyPoints(true, false);
             }
-        
           } else if (!isSizeUpdate) {
             showSnackbar(
               translateDynamicLabel(updateResponse?.message, t) ||
                 t("resource.cart.cart_update_success"),
-              "error"
+              "error",
             );
           }
 
           return updateResponse;
         })
-        
+
         .catch((error) => {
           console.error(error);
         })
@@ -333,7 +346,7 @@ const useCart = (fpi, isActive = true) => {
       setIsCartUpdating(false);
     }
   }
-  
+
   function gotoCheckout() {
     if (cart_items?.id) {
       // Get selected address ID from global store if available
@@ -378,7 +391,7 @@ const useCart = (fpi, isActive = true) => {
         0,
         index,
         "remove_item",
-        moveToWishList
+        moveToWishList,
       ).finally(() => {
         setIsRemoving(false);
         setIsCartUpdating(false);
@@ -408,8 +421,6 @@ const useCart = (fpi, isActive = true) => {
   };
 
   const [isLoyaltyLoading, setIsLoyaltyLoading] = useState(false);
-
-
 
   function onOpenPromoModal() {
     setIsPromoModalOpen(true);

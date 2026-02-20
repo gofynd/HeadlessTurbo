@@ -1,23 +1,30 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
-import { useGlobalStore } from "fdk-core/utils";
+import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
 import { isLoggedIn } from "../helper/auth-guard";
-import { useGlobalTranslation } from "fdk-core/utils";
 import { useThemeConfig } from "../helper/hooks";
 import ProfileRoot from "../components/profile/profile-root";
-import ProfileDetailsPage from "../page-layouts/profile/profile-details-page";
-import useSeoMeta from "../helper/hooks/useSeoMeta";
+import Loader from "../components/loader/loader";
 import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
+import useSeoMeta from "../helper/hooks/useSeoMeta";
+import ProfileDetailsFormSection from "../sections/profile-details-form";
+import { PROFILE_DETAILS_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
 import { Helmet } from "react-helmet-async";
 
 function ProfileDetails({ fpi }) {
-    const { t } = useGlobalTranslation("translation");
+  const { t } = useGlobalTranslation("translation");
   const page = useGlobalStore(fpi.getters.PAGE) || {};
-  const { globalConfig } = useThemeConfig({ fpi });
-  const { sections = [] } = page || {};
-  const { brandName, canonicalUrl, pageUrl, description: seoDescription, socialImage } =
-    useSeoMeta({ fpi, seo: {} });
+  const { globalConfig } = useThemeConfig({ fpi, page: "profile-details" });
+  const seoData = page?.seo || {};
+  const { error, isLoading } = page || {};
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: page?.seo || {} });
 
   const title = useMemo(() => {
     const base = brandName ? `My Account | ${brandName}` : "My Account";
@@ -31,54 +38,88 @@ function ProfileDetails({ fpi }) {
     );
   }, [t, seoDescription]);
 
-  // Filter sections by canvas
-  const leftSections = sections.filter(
-    (section) => (section.canvas?.value || section.canvas) === "left_side"
-  );
-  const rightSections = sections.filter(
-    (section) => (section.canvas?.value || section.canvas) === "right_side"
+  const leftSections = useMemo(
+    () => [
+      {
+        name: "profile-details-form",
+        props: PROFILE_DETAILS_PAGE_DUMMY_SECTIONS.profileDetailsForm.props,
+        blocks: [],
+      },
+    ],
+    []
   );
 
-  return (
-    page?.value === "profile-details" && (
+  const rightSections = useMemo(
+    () => [
+      {
+        name: "profile-navigation-menu",
+        props: PROFILE_DETAILS_PAGE_DUMMY_SECTIONS.profileNavigationMenu.props,
+        blocks: [],
+      },
+    ],
+    []
+  );
+
+  if (error) {
+    return (
       <>
-        {getHelmet({
-          title,
-          description,
-          image: socialImage,
-          canonicalUrl,
-          url: pageUrl,
-          siteName: brandName,
-          ogType: "website",
-        })}
-        <Helmet>
-          <meta name="robots" content="noindex, nofollow" />
-        </Helmet>
-        <ProfileRoot
-          fpi={fpi}
-          leftSections={leftSections}
-          rightSections={rightSections}
-          globalConfig={globalConfig}
-        >
-          <motion.div
-            key={page?.value}
-            variants={{
-              hidden: { opacity: 0 },
-              visible: { opacity: 1, transition: { duration: 0.5 } },
-            }}
-            initial="hidden"
-            animate="visible"
-            style={{ height: "100%" }}
-          >
-            <ProfileDetailsPage fpi={fpi} />
-          </motion.div>
-        </ProfileRoot>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
       </>
-    )
+    );
+  }
+
+  return (
+    <>
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        ogType: "website",
+      })}
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      <ProfileRoot
+        fpi={fpi}
+        leftSections={leftSections}
+        rightSections={rightSections}
+        globalConfig={globalConfig}
+      >
+        <motion.div
+          key="profile-details"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { duration: 0.5 } },
+          }}
+          initial="hidden"
+          animate="visible"
+          style={{ height: "100%" }}
+        >
+          <div className="margin0auto basePageContainer">
+            <h1 className="visually-hidden">{title}</h1>
+            <ProfileDetailsFormSection
+              fpi={fpi}
+              props={PROFILE_DETAILS_PAGE_DUMMY_SECTIONS.profileDetailsForm.props}
+              blocks={PROFILE_DETAILS_PAGE_DUMMY_SECTIONS.profileDetailsForm.blocks}
+              globalConfig={globalConfig}
+            />
+          </div>
+        </motion.div>
+      </ProfileRoot>
+      {isLoading && <Loader />}
+    </>
   );
 }
 
 ProfileDetails.authGuard = isLoggedIn;
+
+export const settings = JSON.stringify({
+  props: [],
+});
 
 export const sections = JSON.stringify([
   {

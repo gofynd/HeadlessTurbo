@@ -11,6 +11,7 @@ import "@gofynd/theme-template/components/product-card/product-card.css";
 import placeholderBanner from "../assets/images/placeholder/featured-collection-banner.png";
 import placeholderProduct from "../assets/images/placeholder/featured-collection-product.png";
 import useAddToCartModal from "../page-layouts/plp/useAddToCartModal";
+import { storefrontGraphql } from "../helper/storefront-graphql";
 import {
   useViewport,
   useAccounts,
@@ -31,15 +32,15 @@ import {
 } from "../components/carousel";
 
 const Modal = React.lazy(
-  () => import("@gofynd/theme-template/components/core/modal/modal")
+  () => import("@gofynd/theme-template/components/core/modal/modal"),
 );
 const AddToCart = React.lazy(
   () =>
-    import("@gofynd/theme-template/page-layouts/plp/Components/add-to-cart/add-to-cart")
+    import("@gofynd/theme-template/page-layouts/plp/Components/add-to-cart/add-to-cart"),
 );
 const SizeGuide = React.lazy(
   () =>
-    import("@gofynd/theme-template/page-layouts/plp/Components/size-guide/size-guide")
+    import("@gofynd/theme-template/page-layouts/plp/Components/size-guide/size-guide"),
 );
 
 export function Component({ props, globalConfig }) {
@@ -96,7 +97,7 @@ export function Component({ props, globalConfig }) {
   const itemCountMobile = Number(item_count_mobile?.value ?? 1);
 
   const [isLoading, setIsLoading] = useState(
-    !!collection?.value ? true : false
+    !!collection?.value ? true : false,
   );
 
   const showAddToCart =
@@ -132,7 +133,7 @@ export function Component({ props, globalConfig }) {
   useEffect(() => {
     const mqDesktop = window.matchMedia("(min-width: 780px)");
     const mqTablet = window.matchMedia(
-      "(min-width: 480px) and (max-width: 779px)"
+      "(min-width: 480px) and (max-width: 779px)",
     );
     const update = () => {
       if (mqDesktop.matches) setBreakpoint("desktop");
@@ -247,7 +248,7 @@ export function Component({ props, globalConfig }) {
       ],
       rtl: isRTL,
     }),
-    [imagesForScrollView.length]
+    [imagesForScrollView.length],
   );
 
   useEffect(() => {
@@ -260,11 +261,25 @@ export function Component({ props, globalConfig }) {
             first: 20,
             pageNo: 1,
           };
-          fpi.executeGQL(FEATURED_COLLECTION, payload).then((res) => {
+          const creds =
+            typeof window !== "undefined" &&
+            (window.APP_DATA || window.__APP_CREDENTIALS__);
+          const queryPromise =
+            creds?.applicationID && creds?.applicationToken
+              ? storefrontGraphql({
+                  query: FEATURED_COLLECTION,
+                  variables: payload,
+                  applicationId: creds.applicationID,
+                  applicationToken: creds.applicationToken,
+                  domain: "",
+                })
+              : fpi.executeGQL(FEATURED_COLLECTION, payload);
+
+          queryPromise.then((res) => {
             setIsLoading(false);
             return fpi.custom.setValue(
               `featuredCollectionData-${collection?.value}`,
-              res
+              res,
             );
           });
         }
@@ -840,7 +855,7 @@ export function Component({ props, globalConfig }) {
                       handleWishlistToggle={() => {}}
                       handleAddToCart={() => {}}
                     />
-                  )
+                  ),
                 )}
               </div>
               {show_view_all?.value && (
@@ -929,7 +944,7 @@ export function Component({ props, globalConfig }) {
                       handleWishlistToggle={() => {}}
                       handleAddToCart={() => {}}
                     />
-                  )
+                  ),
                 )}
               </div>
               {show_view_all?.value && (
@@ -1004,7 +1019,7 @@ export function Component({ props, globalConfig }) {
                       handleWishlistToggle={() => {}}
                       handleAddToCart={() => {}}
                     />
-                  )
+                  ),
                 )}
               </div>
             </div>
@@ -1506,7 +1521,7 @@ Component.serverFetch = async ({ fpi, props, id }) => {
       fpi.custom.setValue("featuredCollectionSsrFteched", true);
       return fpi.custom.setValue(
         `featuredCollectionData-${props.collection.value}`,
-        res
+        res,
       );
     });
   } catch (err) {

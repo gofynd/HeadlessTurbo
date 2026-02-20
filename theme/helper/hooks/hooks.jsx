@@ -40,7 +40,7 @@ const getSnackbarDuration = (message = "") => {
 
   const extraTime = Math.max(
     0,
-    ((message?.length || 0) - threshold) * extraTimePerChar
+    ((message?.length || 0) - threshold) * extraTimePerChar,
   );
 
   return baseTime + extraTime;
@@ -127,7 +127,7 @@ export const useRichText = (htmlContent) => {
   };
 
   const [clientMarkedContent, setClientMarkedContent] = useState(() =>
-    renderMarkdown(htmlContent)
+    renderMarkdown(htmlContent),
   );
 
   useEffect(() => {

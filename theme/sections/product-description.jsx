@@ -59,10 +59,10 @@ import BundleItems from "../page-layouts/pdp/components/bundle/bundle-items/bund
 // import SizeGuide from "../page-layouts/pdp/size-guide/size-guide";
 // import MoreOffers from "../page-layouts/pdp/components/offers/more-offers";
 const SizeGuide = lazy(
-  () => import("../page-layouts/pdp/size-guide/size-guide")
+  () => import("../page-layouts/pdp/size-guide/size-guide"),
 );
 const MoreOffers = lazy(
-  () => import("../page-layouts/pdp/components/offers/more-offers")
+  () => import("../page-layouts/pdp/components/offers/more-offers"),
 );
 
 export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
@@ -93,7 +93,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
   const [searchParams] = useSearchParams();
 
   const isPDP = /^(?:\/[a-zA-Z-]+)?\/product\/[^/]+\/?$/i.test(
-    location.pathname
+    location.pathname,
   );
   const slug = isPDP ? params?.slug : product?.value;
   const size = isPDP ? searchParams?.get("size") : "";
@@ -229,7 +229,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
       cartItemsKey.some((item, index) => {
         const itemKeyWithoutItemIndex = item.substring(
           0,
-          item.lastIndexOf("_")
+          item.lastIndexOf("_"),
         );
 
         if (itemKeyWithoutItemIndex === selectedItemKey) {
@@ -288,7 +288,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
     disable_cart,
     show_quantity_control,
     limited_stock_quantity: limitedStockQuantity = 11,
-  } = globalConfig;
+  } = globalConfig || {};
 
   const priceDataBySize = productPriceBySlug?.price;
   const isSizeSelectionBlock = (block) =>
@@ -314,7 +314,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
           currencyFormat(
             productPriceBySlug?.price_per_piece[key],
             "",
-            formatLocale(locale, countryCode, true)
+            formatLocale(locale, countryCode, true),
           ) || ""
         );
       }
@@ -323,7 +323,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
         currencyFormat(
           price?.[key],
           price?.currency_symbol,
-          formatLocale(locale, countryCode, true)
+          formatLocale(locale, countryCode, true),
         ) || ""
       );
     }
@@ -332,7 +332,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
         currencyFormat(
           priceDataDefault?.[key]?.min,
           priceDataDefault?.[key]?.currency_symbol,
-          formatLocale(locale, countryCode, true)
+          formatLocale(locale, countryCode, true),
         ) || ""
       );
     }
@@ -342,13 +342,13 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
             currencyFormat(
               priceDataDefault?.[key]?.min,
               "",
-              formatLocale(locale, countryCode, true)
+              formatLocale(locale, countryCode, true),
             ) || ""
           } - ${currencyFormat(priceDataDefault?.[key]?.max, "", formatLocale(locale, countryCode, true)) || ""}`
         : currencyFormat(
             priceDataDefault?.[key]?.max,
             priceDataDefault?.[key]?.currency_symbol,
-            formatLocale(locale, countryCode, true)
+            formatLocale(locale, countryCode, true),
           ) || "";
     }
   };
@@ -494,7 +494,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
     itemSize,
     quantity,
     itemIndex,
-    operation
+    operation,
   ) => {
     let totalQuantity = (itemDetails?.quantity || 0) + quantity;
 
@@ -507,7 +507,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
         totalQuantity = maxCartQuantity;
         showSnackbar(
           `${t("resource.product.max_quantity")} ${maxCartQuantity}.`,
-          "error"
+          "error",
         );
       }
 
@@ -516,7 +516,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
           totalQuantity = minCartQuantity;
           showSnackbar(
             `${t("resource.product.min_quantity")} ${minCartQuantity}.`,
-            "error"
+            "error",
           );
         } else if (itemDetails?.quantity > minCartQuantity) {
           totalQuantity = minCartQuantity;
@@ -533,7 +533,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
         itemSize,
         totalQuantity,
         itemIndex,
-        "update_item"
+        "update_item",
       );
     }
   };
@@ -1056,7 +1056,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                                             }`}
                                             onClick={() =>
                                               setShowSizeDropdown(
-                                                !showSizeDropdown
+                                                !showSizeDropdown,
                                               )
                                             }
                                             disabled={!sizes?.sizes?.length}
@@ -1067,14 +1067,14 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                                                 selectedSize
                                                   ? `${t("resource.common.size")} : ${selectedSize}`
                                                   : t(
-                                                      "resource.common.select_size_caps"
+                                                      "resource.common.select_size_caps",
                                                     )
                                               }
                                             >
                                               {selectedSize
                                                 ? `${t("resource.common.size")}  : ${selectedSize}`
                                                 : t(
-                                                    "resource.common.select_size_caps"
+                                                    "resource.common.select_size_caps",
                                                   )}
                                             </p>
                                             <ArrowDownIcon
@@ -1142,7 +1142,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                                               currentSize.value,
                                               -incrementDecrementUnit,
                                               singleItemDetails?.itemIndex,
-                                              "update_item"
+                                              "update_item",
                                             )
                                           }
                                           onIncrementClick={(e) =>
@@ -1152,7 +1152,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                                               currentSize.value,
                                               incrementDecrementUnit,
                                               singleItemDetails?.itemIndex,
-                                              "update_item"
+                                              "update_item",
                                             )
                                           }
                                           onQtyChange={(evt, currentNum) =>
@@ -1162,7 +1162,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                                               currentSize.value,
                                               currentNum,
                                               singleItemDetails?.itemIndex,
-                                              "edit_item"
+                                              "edit_item",
                                             )
                                           }
                                           maxCartQuantity={
@@ -1185,14 +1185,17 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                                           addProductForCheckout(
                                             e,
                                             selectedSize,
-                                            false
+                                            false,
                                           );
                                           setIsLaodingCart(true);
                                           setTimeout(() => {
                                             setIsLaodingCart(false);
                                           }, 1000);
                                         }}
-                                        disabled={isLoadingCart || is_serviceable === false}
+                                        disabled={
+                                          isLoadingCart ||
+                                          is_serviceable === false
+                                        }
                                       >
                                         <CartIcon className={styles.cartIcon} />
                                         {t("resource.common.add_to_cart")}
@@ -1227,14 +1230,17 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                                           addProductForCheckout(
                                             e,
                                             selectedSize,
-                                            true
+                                            true,
                                           );
                                           setIsLaodingCart(true);
                                           setTimeout(() => {
                                             setIsLaodingCart(false);
                                           }, 500);
                                         }}
-                                        disabled={isLoadingCart || is_serviceable === false}
+                                        disabled={
+                                          isLoadingCart ||
+                                          is_serviceable === false
+                                        }
                                         startIcon={
                                           <BuyNowIcon
                                             className={styles.buyNow__icon}
@@ -1258,14 +1264,17 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                                         addProductForCheckout(
                                           e,
                                           selectedSize,
-                                          true
+                                          true,
                                         );
                                         setIsLaodingCart(true);
                                         setTimeout(() => {
                                           setIsLaodingCart(false);
                                         }, 500);
                                       }}
-                                      disabled={isLoadingCart || is_serviceable === false}
+                                      disabled={
+                                        isLoadingCart ||
+                                        is_serviceable === false
+                                      }
                                       startIcon={
                                         <BuyNowIcon
                                           className={styles.buyNow__icon}
@@ -1284,10 +1293,10 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                                 <p className={styles.limitedQuantity}>
                                   {getBlockConfigValue(
                                     block,
-                                    "limited_stock_label"
+                                    "limited_stock_label",
                                   ).replace(
                                     /\{\{qty\}\}/g,
-                                    productPriceBySlug?.quantity
+                                    productPriceBySlug?.quantity,
                                   )}
                                 </p>
                               )}
@@ -1324,7 +1333,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                             <FDKLink
                               to={getBlockConfigValue(
                                 block,
-                                "custom_button_link"
+                                "custom_button_link",
                               )}
                             >
                               <button
@@ -1333,24 +1342,24 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                               >
                                 {getBlockConfigValue(
                                   block,
-                                  "custom_button_icon"
+                                  "custom_button_icon",
                                 ) && (
                                   <FyImage
                                     customClass={styles.customIcon}
                                     src={getBlockConfigValue(
                                       block,
-                                      "custom_button_icon"
+                                      "custom_button_icon",
                                     )}
                                     globalConfig={globalConfig}
                                     alt={`${getBlockConfigValue(
                                       block,
-                                      "custom_button_text"
+                                      "custom_button_text",
                                     )} icon`}
                                   />
                                 )}
                                 {getBlockConfigValue(
                                   block,
-                                  "custom_button_text"
+                                  "custom_button_text",
                                 )}
                               </button>
                             </FDKLink>
@@ -1397,7 +1406,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                                 isCrossBorderOrder={isCrossBorderOrder}
                                 showLogo={getBlockConfigValue(
                                   block,
-                                  "show_logo"
+                                  "show_logo",
                                 )}
                                 availableFOCount={availableFOCount}
                               />
@@ -1446,7 +1455,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                                       productPriceBySlug?.return_config?.unit
                                         ? productPriceBySlug.return_config.unit.replace(
                                             /\b\w/g,
-                                            (ch) => ch.toUpperCase()
+                                            (ch) => ch.toUpperCase(),
                                           )
                                         : ""
                                     } ${t("resource.facets.return")}`
@@ -1460,7 +1469,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                                   selectedSize && (
                                     <li className={styles.b2}>
                                       {t(
-                                        "resource.product.no_return_available_message"
+                                        "resource.product.no_return_available_message",
                                       )}
                                     </li>
                                   )}
@@ -1701,7 +1710,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
               maxCartQuantity,
             }}
           />,
-          document?.getElementById("sticky-add-to-cart")
+          document?.getElementById("sticky-add-to-cart"),
         )}
       {showMoreOffers && (
         <Suspense>
@@ -2255,7 +2264,7 @@ Component.serverFetch = async ({ fpi, router, props }) => {
       if (sizes.length > 0) {
         const isMto = product?.custom_order?.is_custom_order || false;
         const firstAvailableSize = sizes.find(
-          (sizeOption) => sizeOption.quantity > 0 || isMto
+          (sizeOption) => sizeOption.quantity > 0 || isMto,
         );
         sizeToSelect = firstAvailableSize || sizes[0];
 

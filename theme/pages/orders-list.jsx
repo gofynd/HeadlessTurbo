@@ -1,21 +1,30 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
-import { SectionRenderer } from "fdk-core/components";
 import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
-import { useLocation } from "react-router-dom";
 import { isLoggedIn } from "../helper/auth-guard";
-import { useSeoMeta, useThemeConfig } from "../helper/hooks";
+import { useThemeConfig } from "../helper/hooks";
 import ProfileRoot from "../components/profile/profile-root";
-import "@gofynd/theme-template/components/profile-navigation/profile-navigation.css";
+import Loader from "../components/loader/loader";
 import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
+import useSeoMeta from "../helper/hooks/useSeoMeta";
+import ProfileOrdersSection from "../sections/profile-orders";
+import { ORDERS_LIST_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import "@gofynd/theme-template/components/profile-navigation/profile-navigation.css";
 
 function OrdersList({ fpi }) {
   const { t } = useGlobalTranslation("translation");
-  const location = useLocation();
-
-  const { brandName, canonicalUrl, pageUrl, description: seoDescription, socialImage } =
-    useSeoMeta({ fpi, seo: {} });
+  const page = useGlobalStore(fpi.getters.PAGE) || {};
+  const { globalConfig } = useThemeConfig({ fpi, page: "orders-list" });
+  const seoData = page?.seo || {};
+  const { error, isLoading } = page || {};
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: {} });
 
   const title = useMemo(() => {
     const base = brandName ? `My Account | ${brandName}` : "My Account";
@@ -29,63 +38,85 @@ function OrdersList({ fpi }) {
     );
   }, [t, seoDescription]);
 
-  const page = useGlobalStore(fpi.getters.PAGE) || {};
-  const { globalConfig } = useThemeConfig({ fpi });
-  const { sections = [] } = page || {};
-  // Filter sections by canvas
-  const leftSections = sections.filter(
-    (section) => (section.canvas?.value || section.canvas) === "left_side"
-  );
-  const rightSections = sections.filter(
-    (section) => (section.canvas?.value || section.canvas) === "right_side"
+  const leftSections = useMemo(
+    () => [
+      {
+        name: "profile-orders",
+        props: ORDERS_LIST_PAGE_DUMMY_SECTIONS.profileOrders.props,
+        blocks: [],
+      },
+    ],
+    []
   );
 
-  return (
-    page?.value === "orders-list" && (
+  const rightSections = useMemo(
+    () => [
+      {
+        name: "profile-navigation-menu",
+        props: ORDERS_LIST_PAGE_DUMMY_SECTIONS.profileNavigationMenu.props,
+        blocks: [],
+      },
+    ],
+    []
+  );
+
+  if (error) {
+    return (
       <>
-        {getHelmet({
-          title,
-          description,
-          image: socialImage,
-          canonicalUrl,
-          url: pageUrl,
-          siteName: brandName,
-          robots: "noindex, nofollow",
-          ogType: "website",
-        })}
-        <ProfileRoot
-          fpi={fpi}
-          leftSections={leftSections}
-          rightSections={rightSections}
-          globalConfig={globalConfig}
-        >
-          <motion.div
-            key={page?.value}
-            variants={{
-              hidden: { opacity: 0 },
-              visible: { opacity: 1, transition: { duration: 0.5 } },
-            }}
-            initial="hidden"
-            animate="visible"
-            className="basePageContainer margin0auto"
-          >
-            {leftSections.length > 0 && (
-              <SectionRenderer
-                fpi={fpi}
-                sections={leftSections}
-                blocks={[]}
-                preset={{}}
-                globalConfig={globalConfig}
-              />
-            )}
-          </motion.div>
-        </ProfileRoot>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
       </>
-    )
+    );
+  }
+
+  return (
+    <>
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        robots: "noindex, nofollow",
+        ogType: "website",
+      })}
+      <ProfileRoot
+        fpi={fpi}
+        leftSections={leftSections}
+        rightSections={rightSections}
+        globalConfig={globalConfig}
+      >
+        <motion.div
+          key="orders-list"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { duration: 0.5 } },
+          }}
+          initial="hidden"
+          animate="visible"
+          className="basePageContainer margin0auto"
+        >
+          <h1 className="visually-hidden">{title}</h1>
+          <ProfileOrdersSection
+            fpi={fpi}
+            props={ORDERS_LIST_PAGE_DUMMY_SECTIONS.profileOrders.props}
+            blocks={ORDERS_LIST_PAGE_DUMMY_SECTIONS.profileOrders.blocks}
+            globalConfig={globalConfig}
+          />
+        </motion.div>
+      </ProfileRoot>
+      {isLoading && <Loader />}
+    </>
   );
 }
 
 OrdersList.authGuard = isLoggedIn;
+
+export const settings = JSON.stringify({
+  props: [],
+});
+
 export const sections = JSON.stringify([
   {
     canvas: {

@@ -37,7 +37,7 @@ export function Component({ props = {}, blocks = [], globalConfig = {} }) {
 
   const title = useMemo(() => {
     const raw = sanitizeHTMLTag(
-      seo?.title || listingProps?.title || "Collection"
+      seo?.title || listingProps?.title || "Collection",
     );
     if (raw && brandName) return `${raw} | ${brandName}`;
     return raw || brandName || "";
@@ -45,7 +45,7 @@ export function Component({ props = {}, blocks = [], globalConfig = {} }) {
 
   const description = useMemo(() => {
     const raw = sanitizeHTMLTag(
-      seo?.description || listingProps?.description || ""
+      seo?.description || listingProps?.description || "",
     );
     const normalized = raw.replace(/\s+/g, " ").trim();
     return normalized || seoDescription;
@@ -138,7 +138,7 @@ export const settings = {
         },
       ],
       info: "t:resource.sections.collections_listing.loading_options_info",
-      default: "pagination",
+      default: "infinite",
       label: "t:resource.common.loading_options",
     },
     {
@@ -405,7 +405,7 @@ Component.serverFetch = async ({ fpi, router, props }) => {
         ? value.map((v) => decodeURIComponent(v)).join("||")
         : decodeURIComponent(value);
       const existingParam = filterParams.find((param) =>
-        param.startsWith(`${key}:`)
+        param.startsWith(`${key}:`),
       );
       if (existingParam) {
         const updatedParam = `${existingParam}||${decodedValue}`;
@@ -437,7 +437,7 @@ Component.serverFetch = async ({ fpi, router, props }) => {
       const url = new URL(BASE_URL);
       url.searchParams.append(
         "page_id",
-        payload?.pageNo === 1 || !payload?.pageNo ? "*" : payload?.pageNo - 1
+        payload?.pageNo === 1 || !payload?.pageNo ? "*" : payload?.pageNo - 1,
       );
       url.searchParams.append("page_size", "12");
 
@@ -484,7 +484,7 @@ Component.serverFetch = async ({ fpi, router, props }) => {
           if (!collection || !collectionItems) {
             console.warn(
               "⚠️ SSR warning: collection or items missing",
-              res?.data
+              res?.data,
             );
           }
 

@@ -301,7 +301,7 @@
           "settings": {
             "props": {
               "product_number": true,
-              "loading_options": "pagination",
+              "loading_options": "infinite",
               "back_top": true,
               "in_new_tab": false,
               "hide_brand": false,
@@ -2385,7 +2385,7 @@
               },
               "loading_options": {
                 "type": "select",
-                "value": "pagination"
+                "value": "infinite"
               },
               "back_top": {
                 "type": "checkbox",

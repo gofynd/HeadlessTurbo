@@ -7,9 +7,10 @@ import {
   VERIFY_EMAIL,
 } from "../../queries/emailQuery";
 import { useGlobalStore } from "fdk-core/utils";
+import { getApplicationID } from "../../helper/getAppCredentials";
 
 export const useEmail = ({ fpi }) => {
-  const { emails, user = {} } = useGlobalStore(fpi.getters.USER_DATA);
+  const { emails, user = {} } = useGlobalStore(fpi.getters.USER_DATA) || {};
   const [emailData, setEmailData] = useState([]);
 
   useEffect(() => {
@@ -17,7 +18,7 @@ export const useEmail = ({ fpi }) => {
   }, [emails, user?.emails]);
 
   const sendVerificationLinkToEmail = (email) => {
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
 
     const payload = {
       platform: id,
@@ -68,7 +69,7 @@ export const useEmail = ({ fpi }) => {
   };
 
   const addEmail = (email) => {
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
 
     const payload = {
       platform: id,
@@ -86,7 +87,7 @@ export const useEmail = ({ fpi }) => {
   };
 
   const deleteEmail = (data) => {
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
 
     const payload = {
       ...data,

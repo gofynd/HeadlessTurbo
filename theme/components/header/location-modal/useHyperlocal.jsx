@@ -33,7 +33,7 @@ const useHyperlocal = (fpi) => {
         fpi.custom.setValue(`selectedAddress`, value);
       }
       setIsAddressLoading(false);
-    }
+    },
   );
 
   /**
@@ -117,7 +117,7 @@ const useHyperlocal = (fpi) => {
   const isLoggedIn = useGlobalStore(fpi?.getters?.LOGGED_IN);
   const { address = [] } = useGlobalStore(fpi?.getters?.ADDRESS) || {};
 
-  const { is_delivery_promise: isDeliveryPromise } = globalConfig;
+  const { is_delivery_promise: isDeliveryPromise } = globalConfig || {};
   const { deliveryTat, isServicibilityError } = serviceabilityInfo;
 
   const fetchDeliveryPromise = () => {
@@ -136,7 +136,7 @@ const useHyperlocal = (fpi) => {
           deliveryTat: data?.deliveryPromise?.promise,
           isServicibilityError: false,
         });
-         fpi.custom.setValue("is_serviceable", true);
+        fpi.custom.setValue("is_serviceable", true);
         return data;
       })
       .catch((error) => {
@@ -182,7 +182,7 @@ const useHyperlocal = (fpi) => {
       },
       {
         country: countryDetails.iso2,
-      }
+      },
     );
 
     return fpi
@@ -256,7 +256,7 @@ const useHyperlocal = (fpi) => {
 
     if (isServiceability && !!address?.length && !selectedAddress) {
       const defaultAddress = address.find(
-        (address) => address.is_default_address
+        (address) => address.is_default_address,
       );
       if (defaultAddress && defaultAddress.geo_location) {
         handleLocationUpdate(defaultAddress);
@@ -274,7 +274,7 @@ const useHyperlocal = (fpi) => {
     isServiceabilityModalOpen,
     deliveryAddress: useMemo(
       () => getAddressStr(selectedAddress),
-      [selectedAddress]
+      [selectedAddress],
     ),
     openServiceabilityModal,
     closeServiceabilityModal,

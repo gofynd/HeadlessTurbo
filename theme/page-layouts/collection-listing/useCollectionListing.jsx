@@ -134,7 +134,7 @@ const useCollectionListing = ({ fpi, slug, props }) => {
       },
       { label: collectionName },
     ],
-    [collectionName]
+    [collectionName],
   );
 
   const isClient = useMemo(() => isRunningOnClient(), []);
@@ -172,7 +172,7 @@ const useCollectionListing = ({ fpi, slug, props }) => {
 
       const resetableFilterKeys =
         Array.from(searchParams?.keys?.() ?? [])?.filter?.(
-          (i) => !["q", "sort_on", "page_no"].includes(i)
+          (i) => !["q", "sort_on", "page_no"].includes(i),
         ) ?? [];
       setIsResetFilterDisable(!resetableFilterKeys?.length);
     }
@@ -192,7 +192,7 @@ const useCollectionListing = ({ fpi, slug, props }) => {
 
       // Check if the key already exists in the filterParams
       const existingParam = filterParams.find((param) =>
-        param.startsWith(`${key}:`)
+        param.startsWith(`${key}:`),
       );
 
       if (existingParam) {
@@ -218,7 +218,7 @@ const useCollectionListing = ({ fpi, slug, props }) => {
       const url = new URL(BASE_URL);
       url.searchParams.append(
         "page_id",
-        payload?.pageNo === 1 || !payload?.pageNo ? "*" : payload?.pageNo - 1
+        payload?.pageNo === 1 || !payload?.pageNo ? "*" : payload?.pageNo - 1,
       );
       url.searchParams.append("page_size", payload?.first);
 
@@ -278,7 +278,7 @@ const useCollectionListing = ({ fpi, slug, props }) => {
           }
           fpi.custom.setValue(
             "customCollectionList",
-            res?.data?.collectionItems
+            res?.data?.collectionItems,
           );
           fpi.custom.setValue("customCollection", res?.data?.collection);
           if (append) {
@@ -347,7 +347,7 @@ const useCollectionListing = ({ fpi, slug, props }) => {
     navigate?.(
       location?.pathname +
         (searchParams?.toString() ? `?${searchParams.toString()}` : ""),
-      { replace: true }
+      { replace: true },
     );
   };
 
@@ -364,7 +364,7 @@ const useCollectionListing = ({ fpi, slug, props }) => {
     navigate?.(
       location?.pathname +
         (searchParams?.toString() ? `?${searchParams.toString()}` : ""),
-      { replace: true }
+      { replace: true },
     );
   };
 
@@ -379,7 +379,7 @@ const useCollectionListing = ({ fpi, slug, props }) => {
     navigate?.(
       location?.pathname +
         (searchParams?.toString() ? `?${searchParams.toString()}` : ""),
-      { replace: true }
+      { replace: true },
     );
   }
 
@@ -491,7 +491,7 @@ const useCollectionListing = ({ fpi, slug, props }) => {
       const selectedValues = curr?.values?.filter(
         (filter) =>
           searchParams?.getAll(curr?.key?.name).includes(filter?.value) ||
-          filter?.is_selected
+          filter?.is_selected,
       );
 
       if (selectedValues.length > 0) {

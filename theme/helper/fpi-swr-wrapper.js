@@ -368,7 +368,6 @@ export function wrapFpiWithSWR(fpi, config = {}) {
     };
 
     // STALE-WHILE-REVALIDATE LOGIC:
-
     // 1. If we have cached data
     if (cached) {
       const isStale = now - cached.timestamp > options.staleTime;

@@ -39,9 +39,8 @@ export function Component({ props, blocks = [], preset, globalConfig }) {
   const fpi = useFPI();
   const { t } = useGlobalTranslation("translation");
   const { pathname, search } = useLocation();
-  const { first_name, last_name, profile_pic_url, user } = useGlobalStore(
-    fpi.getters.USER_DATA
-  );
+  const { first_name, last_name, profile_pic_url, user } =
+    useGlobalStore(fpi.getters.USER_DATA) || {};
   const { signOut } = useAccounts({ fpi });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 

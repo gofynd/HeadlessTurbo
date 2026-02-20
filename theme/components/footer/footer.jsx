@@ -52,7 +52,7 @@ function Footer({ fpi }) {
   const processFooterDescription = useMemo(() => {
     const originalContent =
       typeof globalConfig?.footer_description === "string"
-        ? globalConfig.footer_description
+        ? globalConfig?.footer_description
         : "";
 
     if (!originalContent)
@@ -130,7 +130,7 @@ function Footer({ fpi }) {
     : fallbackFooterLogo;
 
   const isSocialLinks = Object.values(contactInfo?.social_links ?? {}).some(
-    (value) => value?.link?.trim?.()?.length > 0
+    (value) => value?.link?.trim?.()?.length > 0,
   );
 
   function hasOne() {
@@ -146,8 +146,11 @@ function Footer({ fpi }) {
   const isFooterHidden = useMemo(() => {
     const regex =
       /^\/refund\/order\/([^/]+)\/shipment\/([^/]+)$|^\/cart\/bag\/?$|^\/cart\/checkout\/?$/;
-       const reattemptShipmentRegex = /^\/reattempt\/shipment\/[^/]+$/;
-    return regex.test(location?.pathname) || reattemptShipmentRegex.test(location?.pathname);
+    const reattemptShipmentRegex = /^\/reattempt\/shipment\/[^/]+$/;
+    return (
+      regex.test(location?.pathname) ||
+      reattemptShipmentRegex.test(location?.pathname)
+    );
   }, [location?.pathname]);
 
   const toggleKey = (key, value) => {
@@ -177,7 +180,10 @@ function Footer({ fpi }) {
                   >
                     {getLogo?.length > 0 && (
                       <div className={`fx-footer-logo ${styles.logo}`}>
-                        <div className={styles.logoShell} style={footerLogoStyle}>
+                        <div
+                          className={styles.logoShell}
+                          style={footerLogoStyle}
+                        >
                           <img
                             src={getLogo}
                             loading="lazy"
@@ -198,7 +204,7 @@ function Footer({ fpi }) {
                               key={`footer-style-${index}`}
                               dangerouslySetInnerHTML={{ __html: css }}
                             />
-                          )
+                          ),
                         )}
 
                         <div
@@ -303,7 +309,7 @@ function Footer({ fpi }) {
                                 <p>{subItem.display} </p>
                               )}
                             </li>
-                          ) : null
+                          ) : null,
                         )}
                       </ul>
                     </div>

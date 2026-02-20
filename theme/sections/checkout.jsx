@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { useGlobalStore, useGlobalTranslation, useFPI } from "fdk-core/utils";
+import { useGlobalStore, useGlobalTranslation, useFPI } from "../hooks";
 
 import SinglePageShipment from "@gofynd/theme-template/page-layouts/single-checkout/shipment/single-page-shipment";
 import SingleAddress from "@gofynd/theme-template/page-layouts/single-checkout/address/single-address";
@@ -33,7 +33,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
   const { shipments } = useGlobalStore(fpi.getters.SHIPMENTS) || {};
   const isLoggedIn = useGlobalStore(fpi.getters.LOGGED_IN);
   const { buybox, fulfillment_option } = useGlobalStore(
-    fpi.getters.APP_FEATURES
+    fpi.getters.APP_FEATURES,
   );
   const breakupValues = bagData?.breakup_values?.display || [];
   const [showShipment, setShowShipment] = useState(false);
@@ -85,7 +85,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
   const navigateRef = useRef(navigate);
   const currencySymbol = useMemo(
     () => bagData?.currency?.symbol || "₹",
-    [bagData]
+    [bagData],
   );
 
   // Keep refs in sync with state
@@ -148,7 +148,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
         } catch (error) {
           console.error(
             "Error handling browser back navigation on step 0:",
-            error
+            error,
           );
         }
         return;
@@ -393,7 +393,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
         window.history.replaceState(
           { step: currentStepIdx },
           "",
-          window.location.href
+          window.location.href,
         );
         previousStepIdx.current = currentStepIdx;
       } else if (currentStepIdx === 0) {
@@ -412,7 +412,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
   const { isShipmentLoading, isCartValid, ...address } = useAddress(
     showShipmentHandler,
     showPaymentHandler,
-    fpi
+    fpi,
   );
 
   const { onFailedGetCartShipmentDetails } = address;
@@ -434,9 +434,9 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
 
   const addressId = useMemo(() => {
     return address?.getDefaultAddress?.find(
-      ({ is_default_address }) => is_default_address
+      ({ is_default_address }) => is_default_address,
     )?.id;
-  }, [address.getDefaultAddress]);
+  }, [address?.getDefaultAddress]);
 
   const redirectPaymentOptions = () => {
     setIsLoading(true);
@@ -585,7 +585,7 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                   totalValue={priceFormatCurrencySymbol(
                     payment?.getCurrencySymbol,
                     payment?.getTotalValue(),
-                    formatLocale(locale, countryCode, true)
+                    formatLocale(locale, countryCode, true),
                   )}
                   onPriceDetailsClick={onPriceDetailsClick}
                   isCartValid={isCartValid}
@@ -669,6 +669,10 @@ export function Component({ props = {}, globalConfig = {}, blocks = [] }) {
                   )}
               </>
             );
+
+          case "checkout_buttons":
+            // Cart-only block; no-op on checkout to avoid "Invalid block" when config includes it.
+            return <React.Fragment key={key} />;
 
           default:
             return <div key={key}>Invalid block</div>;

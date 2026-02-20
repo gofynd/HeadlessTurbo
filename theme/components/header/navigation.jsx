@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef, act } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+  act,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FDKLink } from "fdk-core/components";
 import { convertActionToUrl, useGlobalTranslation } from "fdk-core/utils";
@@ -293,23 +300,25 @@ function Navigation({
                                         }
                                         transition={{ duration: 0.3 }}
                                       >
-                                        {l2nav.sub_navigation.map((l3nav, l3Index) => (
-                                          <li
-                                            key={`${l3nav.display}_${l3Index}_${l2Index}_${index}`}
-                                            className={`${styles.l3NavigationList__item} b1 ${styles.fontBody}`}
-                                          >
-                                            <FDKLink
-                                              action={l3nav?.action}
-                                              className={`${styles["l3NavigationList__item--wrapper"]}`}
+                                        {l2nav.sub_navigation.map(
+                                          (l3nav, l3Index) => (
+                                            <li
+                                              key={`${l3nav.display}_${l3Index}_${l2Index}_${index}`}
+                                              className={`${styles.l3NavigationList__item} b1 ${styles.fontBody}`}
                                             >
-                                              <span
-                                                className={`${styles.menuItem} ${styles.flexAlignCenter}`}
+                                              <FDKLink
+                                                action={l3nav?.action}
+                                                className={`${styles["l3NavigationList__item--wrapper"]}`}
                                               >
-                                                <span>{l3nav.display}</span>
-                                              </span>
-                                            </FDKLink>
-                                          </li>
-                                        ))}
+                                                <span
+                                                  className={`${styles.menuItem} ${styles.flexAlignCenter}`}
+                                                >
+                                                  <span>{l3nav.display}</span>
+                                                </span>
+                                              </FDKLink>
+                                            </li>
+                                          ),
+                                        )}
                                       </motion.ul>
                                     )}
                                 </AnimatePresence>

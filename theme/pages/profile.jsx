@@ -1,21 +1,36 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
-import { useGlobalStore, useNavigate } from "fdk-core/utils";
+import { useGlobalStore, useNavigate, useGlobalTranslation } from "fdk-core/utils";
 import { isLoggedIn } from "../helper/auth-guard";
 import { useThemeConfig } from "../helper/hooks";
 import ProfileRoot from "../components/profile/profile-root";
+import Loader from "../components/loader/loader";
+import { sanitizeHTMLTag } from "../helper/utils";
+import { getHelmet } from "../providers/global-provider";
+import useSeoMeta from "../helper/hooks/useSeoMeta";
+import { PROFILE_PAGE_RIGHT_SECTIONS } from "../helper/dummy-data";
 import "@gofynd/theme-template/components/profile-navigation/profile-navigation.css";
 
 function Profile({ fpi }) {
+  const { t } = useGlobalTranslation("translation");
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const page = useGlobalStore(fpi.getters.PAGE) || {};
-  const { globalConfig } = useThemeConfig({ fpi });
-  const { sections = [] } = page || {};
+  const { globalConfig } = useThemeConfig({ fpi, page: "profile" });
+  const seoData = page?.seo || {};
+  const { brandName, canonicalUrl, pageUrl, description: seoDescription, socialImage } =
+    useSeoMeta({ fpi, seo: seoData });
+  const { error, isLoading } = page || {};
 
-  const rightSections = sections.filter(
-    (section) => (section.canvas?.value || section.canvas) === "Profile"
-  );
+  const title = useMemo(() => {
+    const base = (seoData?.title?.value ?? seoData?.title) || (brandName ? `My Account | ${brandName}` : "My Account");
+    return sanitizeHTMLTag(base);
+  }, [seoData?.title, seoData?.value, brandName]);
+
+  const description = useMemo(() => {
+    const base = (seoData?.description?.value ?? seoData?.description) || "";
+    return sanitizeHTMLTag(base).replace(/\s+/g, " ").trim() || seoDescription;
+  }, [seoData?.description, seoDescription]);
 
   useEffect(() => {
     if (pathname === "/profile") {
@@ -23,16 +38,44 @@ function Profile({ fpi }) {
     }
   }, [pathname, navigate]);
 
+  if (error) {
+    return (
+      <>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
+      </>
+    );
+  }
+
   return (
-    <ProfileRoot
-      fpi={fpi}
-      rightSections={rightSections}
-      globalConfig={globalConfig}
-    />
+    <>
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        robots: "noindex, nofollow",
+        ogType: "website",
+      })}
+      <ProfileRoot
+        fpi={fpi}
+        rightSections={PROFILE_PAGE_RIGHT_SECTIONS}
+        globalConfig={globalConfig}
+      >
+        <div className="margin0auto basePageContainer">
+          <h1 className="visually-hidden">{title}</h1>
+        </div>
+      </ProfileRoot>
+      {isLoading && <Loader />}
+    </>
   );
 }
 
 Profile.authGuard = isLoggedIn;
+
+export const settings = JSON.stringify({ props: [] });
 
 export const sections = JSON.stringify([
   {

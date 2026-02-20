@@ -30,7 +30,8 @@ export async function globalDataResolver({ fpi, applicationID }) {
 
       fpi.custom.setValue(
         "currencies",
-        data?.applicationConfiguration?.app_currencies?.supported_currency || []
+        data?.applicationConfiguration?.app_currencies?.supported_currency ||
+          [],
       );
 
       if (!countries.length) {
@@ -38,11 +39,11 @@ export async function globalDataResolver({ fpi, applicationID }) {
           countryCurrencies;
       } else {
         const countrySet = new Set(
-          countries.map((c) => c?.meta?.country_code).filter(Boolean)
+          countries.map((c) => c?.meta?.country_code).filter(Boolean),
         );
 
         countryCurrencies = countryCurrencies.filter((cc) =>
-          countrySet.has(cc?.iso2)
+          countrySet.has(cc?.iso2),
         );
 
         response.data.applicationConfiguration.country_currencies =
@@ -62,6 +63,7 @@ export async function pageDataResolver({ fpi, router, themeId }) {
   const state = fpi.store.getState();
   const pageValue = getPageSlug(router);
   if (!state?.auth?.user_data?.user_id) {
+    // Use simpler auth check query to avoid unnecessary errors when checking auth status
     fpi.executeGQL(USER_DATA_QUERY);
   }
   const APIs = [];
@@ -74,9 +76,30 @@ export async function pageDataResolver({ fpi, router, themeId }) {
     fpi.custom.setValue("isEdit", !filters); //store will save opposite of filter means orignal value of isEdit
   }
   const sectionPreviewHash = query?.sectionPreviewHash || "";
-  const company = parseInt(fpi.getters.THEME(state)?.company_id, 10);
+  const themeFromStore = fpi.getters.THEME(state) || {};
+  const company = parseInt(themeFromStore?.company_id, 10);
   const updatedState = fpi.store.getState();
+
+  // Resolve themeId if not provided - check store, query params, and window globals
+  const resolvedThemeId =
+    themeId ||
+    themeFromStore?._id ||
+    themeFromStore?.id ||
+    themeFromStore?.uid ||
+    themeFromStore?.theme_id ||
+    query?.themeId ||
+    (typeof window !== "undefined" &&
+      (window.APP_DATA?.themeId ||
+        window.APP_DATA?.theme_id ||
+        window.__APP_CREDENTIALS__?.themeId)) ||
+    null;
+
   if (pageValue && pageValue !== currentPageInStore) {
+    // Don't call API if themeId is still null - wait for it to be available
+    if (!resolvedThemeId) {
+      return Promise.all(APIs);
+    }
+
     // Extract URL parameters for dynamic variables
     let urlParams = {};
 
@@ -102,7 +125,7 @@ export async function pageDataResolver({ fpi, router, themeId }) {
     }
     urlParams = JSON.stringify(urlParams);
     const values = {
-      themeId,
+      themeId: resolvedThemeId,
       pageValue,
       filters: !updatedState.custom?.isEdit, //filters will be propogated with opposite of stored value od
       sectionPreviewHash,

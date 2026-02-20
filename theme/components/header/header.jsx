@@ -31,7 +31,7 @@ import Shimmer from "../shimmer/shimmer";
 import TruckIcon from "../../assets/images/truck.svg";
 
 const LocationModal = React.lazy(
-  () => import("./location-modal/location-modal")
+  () => import("./location-modal/location-modal"),
 );
 
 function Header({ fpi }) {
@@ -42,7 +42,7 @@ function Header({ fpi }) {
   const [searchParams] = useSearchParams();
   const CART_ITEMS = useGlobalStore(fpi?.getters?.CART);
   const { headerHeight = 0, currentStep = null } = useGlobalStore(
-    fpi.getters.CUSTOM_VALUE
+    fpi.getters.CUSTOM_VALUE,
   );
 
   const {
@@ -168,8 +168,9 @@ function Header({ fpi }) {
     // Prevent race condition: Only call CART_COUNT if cart items array doesn't exist.
     // If items array exists, CART_DETAILS was already called and will update Redux with full data.
     const hasCartItemsArray = Array.isArray(CART_ITEMS?.cart_items?.items);
-    const isCartPage = location.pathname === "/cart/bag/" || location.pathname === "/cart/bag";
-    
+    const isCartPage =
+      location.pathname === "/cart/bag/" || location.pathname === "/cart/bag";
+
     // Only fetch cart count if:
     // 1. Cart data is empty/null
     // 2. Items array doesn't exist (CART_DETAILS hasn't been called)
@@ -206,7 +207,7 @@ function Header({ fpi }) {
         const resizeObserver = new ResizeObserver(() => {
           fpi.custom.setValue(
             `headerHeight`,
-            header.getBoundingClientRect().height
+            header.getBoundingClientRect().height,
           );
         });
         resizeObserver.observe(header);
@@ -217,7 +218,7 @@ function Header({ fpi }) {
         const themeHeaderObserver = new ResizeObserver(() => {
           fpi.custom.setValue(
             `themeHeaderHeight`,
-            headerRef.current.getBoundingClientRect().height
+            headerRef.current.getBoundingClientRect().height,
           );
         });
         themeHeaderObserver.observe(headerRef.current);
@@ -234,6 +235,8 @@ function Header({ fpi }) {
   useEffect(() => {
     if (isRunningOnClient()) {
       const header = document?.querySelector(".fdk-theme-header");
+      if (!header) return;
+
       if (transparent_header && sticky_header && isValidSection) {
         header.style.position = "fixed";
         header.style.width = "100%";
@@ -311,9 +314,10 @@ function Header({ fpi }) {
   useEffect(() => {
     const timeout = setTimeout(() => {
       // Don't open address modal on order-status page
-      const isOrderStatusPage = location.pathname.includes('/order-status') || 
-                                 location.pathname.includes('/order-tracking');
-      
+      const isOrderStatusPage =
+        location.pathname.includes("/order-status") ||
+        location.pathname.includes("/order-tracking");
+
       if (isServiceabilityMandatory && !deliveryAddress && !isOrderStatusPage) {
         openServiceabilityModal();
       }
@@ -421,7 +425,7 @@ function Header({ fpi }) {
                             if (currentStep > 0) {
                               fpi.custom.setValue(
                                 "currentStep",
-                                currentStep - 1
+                                currentStep - 1,
                               );
                             } else if (currentStep === 0) {
                               fpi.custom.setValue("currentStep", null);

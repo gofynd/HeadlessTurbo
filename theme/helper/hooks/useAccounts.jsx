@@ -20,6 +20,8 @@ import {
 import { USER_DATA_QUERY } from "../../queries/libQuery";
 import { useSnackbar } from "./hooks";
 import { isRunningOnClient, getLocalizedRedirectUrl } from "../utils";
+import { setPersistedAuth, clearPersistedAuth } from "../auth-persistence";
+import { getApplicationID } from "../getAppCredentials";
 import {
   useGlobalStore,
   useNavigate,
@@ -53,13 +55,13 @@ export const useAccounts = ({ fpi }) => {
       if (!existingRedirectUrl) {
         queryParams?.set(
           "redirectUrl",
-          encodeURIComponent(location.pathname + location.search)
+          encodeURIComponent(location.pathname + location.search),
         );
       }
     }
     navigate?.(
       "/auth/login" +
-        (queryParams?.toString() ? `?${queryParams.toString()}` : "")
+        (queryParams?.toString() ? `?${queryParams.toString()}` : ""),
     );
   };
 
@@ -76,7 +78,7 @@ export const useAccounts = ({ fpi }) => {
     }
     navigate?.(
       "/auth/register" +
-        (queryParams?.toString() ? `?${queryParams.toString()}` : "")
+        (queryParams?.toString() ? `?${queryParams.toString()}` : ""),
     );
   };
 
@@ -108,7 +110,7 @@ export const useAccounts = ({ fpi }) => {
 
   const updateProfile = (data) => {
     // this.$store.dispatch(UPDATE_PROFILE, data);
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
     const {
       registerToken,
       firstName,
@@ -193,7 +195,7 @@ export const useAccounts = ({ fpi }) => {
             // eslint-disable-next-line no-console
             console.warn(
               "Auth state issue: User was logged in before UPDATE_PROFILE, " +
-                "but USER_DATA_QUERY returns false after update."
+                "but USER_DATA_QUERY returns false after update.",
             );
           }
         } catch (error) {
@@ -203,7 +205,7 @@ export const useAccounts = ({ fpi }) => {
             // eslint-disable-next-line no-console
             console.warn(
               "Failed to restore auth state after profile update:",
-              error
+              error,
             );
           }
         }
@@ -219,6 +221,7 @@ export const useAccounts = ({ fpi }) => {
   };
 
   const signOut = () => {
+    clearPersistedAuth();
     fpi
       .executeGQL(LOGOUT)
       .then((res) => {
@@ -226,20 +229,8 @@ export const useAccounts = ({ fpi }) => {
           throw res?.errors?.[0];
         }
         if (res?.data?.user?.logout?.logout) {
-          const queryParams = isRunningOnClient()
-            ? new URLSearchParams(location.search)
-            : null;
-          const redirectUrl = queryParams?.get("redirectUrl") || "";
-          // URLSearchParams already decodes the value, but we try to decode again
-          // in case it was double-encoded. Use try-catch to handle edge cases.
-          let decodedUrl = redirectUrl;
-          try {
-            decodedUrl = decodeURIComponent(redirectUrl);
-          } catch (e) {
-            // If decoding fails, use the original value (already decoded by URLSearchParams)
-            decodedUrl = redirectUrl;
-          }
-          const finalUrl = getLocalizedRedirectUrl(decodedUrl, locale);
+          // Always redirect to home page after logout, ignoring any redirectUrl parameter
+          const finalUrl = getLocalizedRedirectUrl("", locale);
           window.location.href = window.location.origin + finalUrl;
           return res?.data;
         }
@@ -247,6 +238,9 @@ export const useAccounts = ({ fpi }) => {
       })
       .catch((error) => {
         console.error("Error in signOut function:", error);
+        // Even on error, redirect to home page
+        const finalUrl = getLocalizedRedirectUrl("", locale);
+        window.location.href = window.location.origin + finalUrl;
       });
   };
 
@@ -265,6 +259,8 @@ export const useAccounts = ({ fpi }) => {
         if (res?.errors) {
           throw res?.errors?.[0];
         }
+        const loginData = res?.data?.loginWithEmailAndPassword;
+        setPersistedAuth(true, loginData?.user ?? null);
         if (isRedirection) {
           const queryParams = isRunningOnClient()
             ? new URLSearchParams(location.search)
@@ -288,7 +284,7 @@ export const useAccounts = ({ fpi }) => {
 
   const sendOtp = ({ mobile, countryCode }) => {
     // return this.$store.dispatch(SEND_OTP, data);
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
 
     const payload = {
       platform: id,
@@ -307,7 +303,7 @@ export const useAccounts = ({ fpi }) => {
 
   const resendOtp = ({ mobile, countryCode, token, action }) => {
     // return this.$store.dispatch(RESEND_OTP, data);
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
 
     const payload = {
       platform: id,
@@ -332,7 +328,7 @@ export const useAccounts = ({ fpi }) => {
     // 	...data,
     // });
 
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
 
     const payload = {
       platform: id,
@@ -349,24 +345,21 @@ export const useAccounts = ({ fpi }) => {
       const { user_exists: userExists } = res.data.verifyMobileOTP || {};
       if (!userExists) {
         if (isRedirection) {
-          // Preserve query params including redirectUrl when navigating to edit-profile
-          // location.search already includes the '?' prefix, so use it directly
           const queryString =
             isRunningOnClient() && location.search ? location.search : "";
           navigate?.("/auth/edit-profile" + queryString);
         }
       } else {
+        const otpData = res.data.verifyMobileOTP || {};
+        setPersistedAuth(true, otpData.user ?? null);
         const queryParams = isRunningOnClient()
           ? new URLSearchParams(location.search)
           : null;
         const redirectUrl = queryParams?.get("redirectUrl") || "";
-        // URLSearchParams already decodes the value, but we try to decode again
-        // in case it was double-encoded. Use try-catch to handle edge cases.
         let decodedUrl = redirectUrl;
         try {
           decodedUrl = decodeURIComponent(redirectUrl);
         } catch (e) {
-          // If decoding fails, use the original value (already decoded by URLSearchParams)
           decodedUrl = redirectUrl;
         }
         const finalUrl = getLocalizedRedirectUrl(decodedUrl, locale);
@@ -378,7 +371,7 @@ export const useAccounts = ({ fpi }) => {
 
   const signUp = (data) => {
     // return this.$store.dispatch(SIGNUP_USER, data);
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
     const {
       registerToken,
       firstName,
@@ -438,7 +431,7 @@ export const useAccounts = ({ fpi }) => {
   };
 
   const sendOtpMobile = (data) => {
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
     const { mobile, countryCode, action = "send" } = data;
     const sendMobileOtpRequestSchemaInput = {
       mobile,
@@ -461,7 +454,7 @@ export const useAccounts = ({ fpi }) => {
 
   const sendResetPasswordEmail = (data) => {
     // return this.$store.dispatch(SEND_RESET_PASSWORD_EMAIL, data);
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
     const { email } = data;
 
     const payload = {
@@ -472,7 +465,8 @@ export const useAccounts = ({ fpi }) => {
     };
     return fpi.executeGQL(SEND_RESET_PASSWORD_EMAIL, payload).then((res) => {
       if (res?.errors) {
-        const errorMessage = res?.errors?.[0]?.message || t("resource.common.error_message");
+        const errorMessage =
+          res?.errors?.[0]?.message || t("resource.common.error_message");
         showSnackbar(errorMessage, "error");
         throw res?.errors?.[0];
       }
@@ -484,7 +478,7 @@ export const useAccounts = ({ fpi }) => {
   };
 
   const sendResetPasswordMobile = (data) => {
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
     const { mobile, country_code, action, token } = data;
 
     const payload = {
@@ -505,11 +499,11 @@ export const useAccounts = ({ fpi }) => {
       if (res?.data?.sendForgotOTPOnMobile?.success) {
         showSnackbar(
           t("resource.common.sent_otp_on_registered_mobile"),
-          "success"
+          "success",
         );
         fpi.custom.setValue(
           "resend_otp_time",
-          res?.data?.sendForgotOTPOnMobile?.resend_timer
+          res?.data?.sendForgotOTPOnMobile?.resend_timer,
         );
         setForgotPasswordData(res?.data?.sendForgotOTPOnMobile);
       }
@@ -540,7 +534,7 @@ export const useAccounts = ({ fpi }) => {
   const resendVerifyMobileOtp = (data) => {
     // return this.$store.dispatch(RESEND_VERIFY_OTP_MOBILE, data);
     const { mobile, countryCode, token } = data;
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
 
     const payload = {
       platform: id,
@@ -562,7 +556,7 @@ export const useAccounts = ({ fpi }) => {
   const resendVerifyEmailOtp = (data) => {
     // return this.$store.dispatch(RESEND_VERIFY_OTP_EMAIL, data);
     const { email, registerToken, token } = data;
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
 
     const payload = {
       platform: id,
@@ -590,7 +584,7 @@ export const useAccounts = ({ fpi }) => {
       isEmailVerified,
       isRedirection,
     } = data;
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
 
     const payload = {
       platform: id,
@@ -610,6 +604,7 @@ export const useAccounts = ({ fpi }) => {
         verify_email_link: verifyEmailLink,
       } = res?.data?.verifyMobileOTP || {};
       if (userExists) {
+        setPersistedAuth(true);
         if (verifyEmailLink) {
           if (isRedirection) {
             const queryParams = isRunningOnClient()
@@ -618,7 +613,7 @@ export const useAccounts = ({ fpi }) => {
             queryParams?.set("email", email);
             navigate?.(
               "/auth/verify-email-link" +
-                (queryParams?.toString() ? `?${queryParams.toString()}` : "")
+                (queryParams?.toString() ? `?${queryParams.toString()}` : ""),
             );
           }
         } else if (isRedirection) {
@@ -626,13 +621,10 @@ export const useAccounts = ({ fpi }) => {
             ? new URLSearchParams(location.search)
             : null;
           const redirectUrl = queryParams?.get("redirectUrl") || "";
-          // URLSearchParams already decodes the value, but we try to decode again
-          // in case it was double-encoded. Use try-catch to handle edge cases.
           let decodedUrl = redirectUrl;
           try {
             decodedUrl = decodeURIComponent(redirectUrl);
           } catch (e) {
-            // If decoding fails, use the original value (already decoded by URLSearchParams)
             decodedUrl = redirectUrl;
           }
           const finalUrl = getLocalizedRedirectUrl(decodedUrl, locale);
@@ -652,7 +644,7 @@ export const useAccounts = ({ fpi }) => {
       isMobileVerified,
       isRedirection,
     } = data;
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
 
     const payload = {
       platform: id,
@@ -675,22 +667,22 @@ export const useAccounts = ({ fpi }) => {
             search: location.search,
           });
         }
-      } else if (isRedirection) {
-        const queryParams = isRunningOnClient()
-          ? new URLSearchParams(location.search)
-          : null;
-        const redirectUrl = queryParams?.get("redirectUrl") || "";
-        // URLSearchParams already decodes the value, but we try to decode again
-        // in case it was double-encoded. Use try-catch to handle edge cases.
-        let decodedUrl = redirectUrl;
-        try {
-          decodedUrl = decodeURIComponent(redirectUrl);
-        } catch (e) {
-          // If decoding fails, use the original value (already decoded by URLSearchParams)
-          decodedUrl = redirectUrl;
+      } else {
+        setPersistedAuth(true);
+        if (isRedirection) {
+          const queryParams = isRunningOnClient()
+            ? new URLSearchParams(location.search)
+            : null;
+          const redirectUrl = queryParams?.get("redirectUrl") || "";
+          let decodedUrl = redirectUrl;
+          try {
+            decodedUrl = decodeURIComponent(redirectUrl);
+          } catch (e) {
+            decodedUrl = redirectUrl;
+          }
+          const finalUrl = getLocalizedRedirectUrl(decodedUrl, locale);
+          window.location.href = window.location.origin + finalUrl;
         }
-        const finalUrl = getLocalizedRedirectUrl(decodedUrl, locale);
-        window.location.href = window.location.origin + finalUrl;
       }
       return res?.data?.verifyEmailOTP;
     });

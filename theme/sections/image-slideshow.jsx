@@ -94,12 +94,16 @@ export function Component({ props, blocks, globalConfig, preset }) {
     return [];
   }, [autoplay?.value, slide_interval?.value]);
 
-  // Only use mediaLayout when height_mode is explicitly configured
+  // Use default aspect ratio when height_mode is "auto" to prevent oversized images
   const hasHeightConfig =
     height_mode?.value &&
     height_mode.value !== "auto" &&
     (height_mode.value === "aspect_ratio" ||
       height_mode.value === "fixed_height");
+
+  // Apply default aspect ratio (16:5) when height_mode is "auto" or not set
+  const defaultAspectRatio = 16 / 5;
+  const defaultMobileAspectRatio = 16 / 5;
 
   const mediaLayout = hasHeightConfig
     ? getMediaLayout(
@@ -111,19 +115,26 @@ export function Component({ props, blocks, globalConfig, preset }) {
           mobile_aspect_ratio,
         },
         windowWidth <= 768,
-        16 / 5
+        defaultAspectRatio,
       )
-    : null;
+    : {
+        isAspectRatio: true,
+        isFixedHeight: false,
+        aspectRatio: defaultAspectRatio,
+        mobileAspectRatio: defaultMobileAspectRatio,
+        style: {
+          "--media-aspect-desktop": defaultAspectRatio,
+          "--media-aspect-mobile": defaultMobileAspectRatio,
+          "--media-fallback-padding-desktop": `${(1 / defaultAspectRatio) * 100}%`,
+          "--media-fallback-padding-mobile": `${(1 / defaultMobileAspectRatio) * 100}%`,
+        },
+      };
 
   const slideMediaClass = [
     styles.imageContainer,
-    mediaLayout
-      ? [
-          styles.mediaShell,
-          mediaLayout.isAspectRatio ? styles.mediaShellAspect : "",
-          mediaLayout.isFixedHeight ? styles.mediaShellFixedHeight : "",
-        ]
-      : [],
+    styles.mediaShell,
+    mediaLayout.isAspectRatio ? styles.mediaShellAspect : "",
+    mediaLayout.isFixedHeight ? styles.mediaShellFixedHeight : "",
   ]
     .flat()
     .filter(Boolean)
@@ -156,7 +167,7 @@ export function Component({ props, blocks, globalConfig, preset }) {
       if (contentAlignment) {
         positions[`--content-alignment-${view}`] = getDirectionAdaptiveValue(
           DIRECTION_ADAPTIVE_CSS_PROPERTIES.TEXT_ALIGNMENT,
-          contentAlignment
+          contentAlignment,
         );
       }
 
@@ -355,19 +366,17 @@ export function Component({ props, blocks, globalConfig, preset }) {
                       sources={getImgSrcSet(block, globalConfig, index)}
                       defer={index >= 1}
                       alt={`slide-${index}`}
-                      {...(mediaLayout
-                        ? {
-                            isFixedAspectRatio: mediaLayout.isAspectRatio,
-                            aspectRatio: mediaLayout.aspectRatio ?? 16 / 5,
-                            mobileAspectRatio:
-                              mediaLayout.mobileAspectRatio ?? 16 / 5,
-                            isImageFill:
-                              mediaLayout.isAspectRatio ||
-                              mediaLayout.isFixedHeight,
-                          }
-                        : {
-                            isFixedAspectRatio: false,
-                          })}
+                      isFixedAspectRatio={mediaLayout.isAspectRatio}
+                      aspectRatio={
+                        mediaLayout.aspectRatio ?? defaultAspectRatio
+                      }
+                      mobileAspectRatio={
+                        mediaLayout.mobileAspectRatio ??
+                        defaultMobileAspectRatio
+                      }
+                      isImageFill={
+                        mediaLayout.isAspectRatio || mediaLayout.isFixedHeight
+                      }
                     />
                   </FDKLink>
                 </div>

@@ -1,22 +1,44 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import {
-  useGlobalStore,
-  useGlobalTranslation,
-  useNavigate,
-} from "fdk-core/utils";
+import { useGlobalStore, useGlobalTranslation, useNavigate } from "../hooks";
 import { SectionRenderer } from "fdk-core/components";
 
 import { useLoggedInUser, useThemeConfig } from "../helper/hooks";
 import empty from "../assets/images/empty_state.png";
 import { ORDER_BY_ID } from "../queries/checkoutQuery";
-import Loader from "../components/loader/loader";
 import EmptyState from "../components/empty-state/empty-state";
 import OrderPendingIcon from "../assets/images/order-pending.svg";
 import Modal from "../components/core/modal/modal";
 import { getGroupedShipmentBags } from "../helper/utils";
 import styles from "../styles/order-status.less";
 import { getHelmet } from "../providers/global-provider";
+
+// Fallback sections when PAGE is not populated (e.g. theme API not yet loaded or no order-status page in theme).
+// Same pattern as single-page-checkout so order-status renders without waiting on THEME_DATA.
+const ORDER_STATUS_FALLBACK_SECTIONS = [
+  {
+    name: "order-status",
+    canvas: "header",
+    props: {},
+    blocks: [{ type: "order_header", name: "Order Header", props: {} }],
+  },
+  {
+    name: "order-status",
+    canvas: "left_panel",
+    props: {},
+    blocks: [{ type: "shipment_list", name: "Shipment List", props: {} }],
+  },
+  {
+    name: "order-status",
+    canvas: "right_panel",
+    props: {},
+    blocks: [
+      { type: "price_breakup", name: "Price Breakup", props: {} },
+      { type: "payment_info", name: "Payment Information", props: {} },
+      { type: "delivery_address", name: "Delivery Address", props: {} },
+    ],
+  },
+];
 
 function OrderPolling() {
   const { t } = useGlobalTranslation("translation");
@@ -80,37 +102,38 @@ function OrderStatus({ fpi }) {
 
   // Success state - render sections with multiple canvases
   if (success === "true" && orderData?.order_id) {
-    // Wait for page configuration to load
-    if (
+    const useFallback =
       !page?.value ||
       page.value !== "order-status" ||
-      !sections ||
-      sections.length === 0
-    ) {
-      return (
-        <div className="basePageContainer margin0auto">
-          <div style={{ textAlign: "center", padding: "40px" }}>
-            <Loader />
-          </div>
-        </div>
+      !Array.isArray(sections) ||
+      sections.length === 0;
+    const effectiveSections = useFallback
+      ? ORDER_STATUS_FALLBACK_SECTIONS
+      : sections;
+
+    const getCanvasSections = (canvas) =>
+      effectiveSections.filter(
+        (s) =>
+          (typeof s.canvas === "string" ? s.canvas : s.canvas?.value) ===
+          canvas,
       );
-    }
+
+    const customProps = {
+      orderData,
+      isLoggedIn,
+      getGroupedShipmentBags,
+    };
+
     return (
       <div className="basePageContainer margin0auto">
         <div className={styles.orderStatusContainer}>
           {/* Header sections (full width) */}
           <div className={styles.headerSection}>
             <SectionRenderer
-              sections={sections.filter(
-                (section) => section.canvas === "header"
-              )}
+              sections={getCanvasSections("header")}
               fpi={fpi}
               globalConfig={globalConfig}
-              customProps={{
-                orderData,
-                isLoggedIn,
-                getGroupedShipmentBags,
-              }}
+              customProps={customProps}
             />
           </div>
 
@@ -119,32 +142,20 @@ function OrderStatus({ fpi }) {
             {/* LEFT PANEL */}
             <div className={styles.leftPanel}>
               <SectionRenderer
-                sections={sections.filter(
-                  (section) => section.canvas === "left_panel"
-                )}
+                sections={getCanvasSections("left_panel")}
                 fpi={fpi}
                 globalConfig={globalConfig}
-                customProps={{
-                  orderData,
-                  isLoggedIn,
-                  getGroupedShipmentBags,
-                }}
+                customProps={customProps}
               />
             </div>
 
             {/* RIGHT PANEL */}
             <div className={styles.rightPanel}>
               <SectionRenderer
-                sections={sections.filter(
-                  (section) => section.canvas === "right_panel"
-                )}
+                sections={getCanvasSections("right_panel")}
                 fpi={fpi}
                 globalConfig={globalConfig}
-                customProps={{
-                  orderData,
-                  isLoggedIn,
-                  getGroupedShipmentBags,
-                }}
+                customProps={customProps}
               />
             </div>
           </div>

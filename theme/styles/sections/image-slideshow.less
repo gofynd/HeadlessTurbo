@@ -3,6 +3,7 @@
 
 .imageContainer {
   width: 100%;
+  max-width: 100%;
   position: relative;
   isolation: isolate;
   @media @tablet {
@@ -141,10 +142,27 @@
   }
 }
 
+.blockItem {
+  width: 100%;
+  position: relative;
+  display: block;
+}
+
 .slideshowCarousel {
+  width: 100%;
+
   .carouselBtn {
     @media @tablet {
       display: none;
     }
+  }
+
+  :global(.carouselContent) {
+    width: 100%;
+  }
+
+  :global(.carouselItem) {
+    width: 100%;
+    min-width: 0;
   }
 }

@@ -3,6 +3,13 @@ import { useLocation } from "react-router-dom";
 import { useGlobalStore } from "fdk-core/utils";
 import { isRunningOnClient } from "../../helper/utils";
 import { useThemeConfig } from "../../helper/hooks";
+import {
+  DUMMY_APP_INFO,
+  DUMMY_CONTACT_INFO,
+  DUMMY_FOOTER_NAVIGATION,
+  DUMMY_HEADER_NAVIGATION,
+  DUMMY_SUPPORT_INFO,
+} from "../../helper/dummy-data";
 
 function filterActiveNavigation(navigation = []) {
   return navigation.reduce((acc, item) => {
@@ -29,19 +36,19 @@ const useHeader = (fpi) => {
   const BUY_NOW = useGlobalStore(fpi.getters.BUY_NOW_CART_ITEMS);
   const { globalConfig } = useThemeConfig({ fpi });
   const HeaderNavigation = useMemo(() => {
-    const { navigation = [] } =
-      NAVIGATION?.items?.find((item) =>
-        item.orientation.landscape.includes("top")
-      ) || {};
-    return filterActiveNavigation(navigation);
-  }, [NAVIGATION]);
+    // Always use hardcoded dummy data instead of API
+    return DUMMY_HEADER_NAVIGATION;
+  }, []);
 
   const FooterNavigation = useMemo(() => {
     const { navigation = [] } =
       NAVIGATION?.items?.find((item) =>
-        item.orientation.landscape.includes("bottom")
+        item.orientation.landscape.includes("bottom"),
       ) || {};
-    return filterActiveNavigation(navigation);
+    const activeNavigation = filterActiveNavigation(navigation);
+    return activeNavigation.length > 0
+      ? activeNavigation
+      : DUMMY_FOOTER_NAVIGATION;
   }, [NAVIGATION]);
 
   const [buyNowParam, setBuyNowParam] = useState(null);
@@ -65,16 +72,26 @@ const useHeader = (fpi) => {
     }
   }, [CART_ITEMS, BUY_NOW, buyNowParam]);
 
+  const hasContactInfo = useMemo(
+    () => !!CONTACT_INFO && Object.keys(CONTACT_INFO).length > 0,
+    [CONTACT_INFO],
+  );
+
+  const hasSupportInfo = useMemo(
+    () => !!SUPPORT_INFO && Object.keys(SUPPORT_INFO).length > 0,
+    [SUPPORT_INFO],
+  );
+
   return {
     HeaderNavigation,
     FooterNavigation,
     cartItemCount,
     globalConfig,
-    appInfo: CONFIGURATION.application,
-    contactInfo: CONTACT_INFO,
-    supportInfo: SUPPORT_INFO,
+    appInfo: CONFIGURATION?.application || DUMMY_APP_INFO,
+    contactInfo: hasContactInfo ? CONTACT_INFO : DUMMY_CONTACT_INFO,
+    supportInfo: hasSupportInfo ? SUPPORT_INFO : DUMMY_SUPPORT_INFO,
     wishlistIds,
-    wishlistCount,
+    wishlistCount: wishlistCount ?? 0,
     loggedIn,
   };
 };

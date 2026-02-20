@@ -73,8 +73,8 @@ function HeaderDesktop({
   return (
     <div
       className={`${styles.headerDesktop}  ${
-        styles[globalConfig.header_layout]
-      } ${styles[globalConfig.logo_menu_alignment]}`}
+        styles[globalConfig?.header_layout]
+      } ${styles[globalConfig?.logo_menu_alignment]}`}
     >
       <div
         className={`${styles.firstRow} ${
@@ -133,7 +133,7 @@ function HeaderDesktop({
           {isServiceability &&
             globalConfig?.always_on_search &&
             ["layout_1", "layout_2", "layout_3"].includes(
-              globalConfig?.logo_menu_alignment
+              globalConfig?.logo_menu_alignment,
             ) &&
             !hideNavList && (
               <ServiceabilityButton

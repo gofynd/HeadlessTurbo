@@ -1,26 +1,23 @@
 import FPIClient from "fdk-store";
-// import FPIClient from "../../../PlatformCoreLibraries/shadowfire-graphql/lib/index";
-import customTemplates from "./custom-templates";
-import "./styles/base.global.less";
-import sections from "./sections";
-
-import Header from "./components/header/header";
 import { globalDataResolver, pageDataResolver } from "./helper/lib";
-import Loader from "./components/loader/loader";
-import Footer from "./components/footer/footer";
-import { ThemeProvider } from "./providers/global-provider";
 import {
   wrapFpiWithSWR,
   setupAutoRevalidation,
 } from "./helper/fpi-swr-wrapper";
+
+/**
+ * Initialize theme for standalone Turbo: create FPIClient and return resolvers.
+ * Consumed by theme/app.jsx only.
+ */
 export default async ({
   applicationID,
   applicationToken,
   domain,
   storeInitialData,
 }) => {
-  const proxyDomain = domain;
+  // Setup fetch interceptor to add Priority header
 
+  const proxyDomain = domain;
   const fpiOptions = {
     applicationID,
     applicationToken,
@@ -29,169 +26,39 @@ export default async ({
   };
   const { client } = new FPIClient(fpiOptions);
 
-  // Get theme config from store state
+  // FDK store cartHandler -> emitFPIEvent -> defaultFPIEmit reads window.FPI.event.emit.
+  // Set it as soon as the client exists so any GQL response handler (e.g. after CHECKOUT_LANDING
+  // or cart fetch) does not throw "Cannot read properties of undefined (reading 'event')".
+  if (typeof window !== "undefined") {
+    if (typeof window.FPI === "undefined") window.FPI = {};
+    if (typeof window.FPI.event === "undefined") window.FPI.event = {};
+    if (typeof window.FPI.event.emit !== "function") {
+      window.FPI.event.emit = function () {};
+    }
+  }
+
   const state = client.store.getState();
   const THEME = client.getters?.THEME(state);
   const mode = THEME?.config?.list?.find(
-    (f) => f.name === THEME?.config?.current
+    (f) => f.name === THEME?.config?.current,
   );
   const ENABLE_SWR_CACHE =
     mode?.global_config?.custom?.props?.enable_swr_caching ?? false;
 
   if (ENABLE_SWR_CACHE) {
-    // Initialize True SWR wrapper with caching and background revalidation
     wrapFpiWithSWR(client, {
-      staleTime: 0, // Always revalidate in background
-      cacheTime: 5 * 60 * 1000, // Cache for 5 minutes
-      dedupingInterval: 2000, // Dedupe requests within 2 seconds
-      maxCacheSize: 100, // Maximum cache entries (LRU eviction)
-      maxCacheMemoryMB: 5, // Maximum cache memory: 5 MB
+      staleTime: 0,
+      cacheTime: 5 * 60 * 1000,
+      dedupingInterval: 2000,
+      maxCacheSize: 100,
+      maxCacheMemoryMB: 5,
     });
-    // Enable auto-revalidation on window focus and network reconnect
     setupAutoRevalidation(client);
   }
 
   return {
+    fpi: client,
     globalDataResolver,
     pageDataResolver,
-    fpi: client,
-    sections,
-    customTemplates,
-    getHeader: () => Header,
-    getFooter: () => Footer,
-    getGlobalProvider: () => ThemeProvider,
-    getComponentLoader: () => Loader,
-    getHome: () => import(/* webpackChunkName:"getHome" */ "./pages/home"),
-    getLogin: () => import(/* webpackChunkName:"getLogin" */ "./pages/login"),
-    getEditProfile: () =>
-      import(/* webpackChunkName:"getEditProfile" */ "./pages/edit-profile"),
-    getRegister: () =>
-      import(/* webpackChunkName:"getRegister" */ "./pages/register"),
-    getAccountLocked: () =>
-      import(
-        /* webpackChunkName:"getAccountLocked" */ "./pages/account-locked"
-      ),
-    getSetPassword: () =>
-      import(/* webpackChunkName:"getSetPassword" */ "./pages/set-password"),
-    getNotFound: () =>
-      import(/* webpackChunkName:"getNotFound" */ "./pages/not-found-page"),
-    getBrands: () =>
-      import(/* webpackChunkName:"getBrands" */ "./pages/brands"),
-
-    getCategories: () =>
-      import(/* webpackChunkName:"getCategories" */ "./pages/categories"),
-    getCollections: () =>
-      import(/* webpackChunkName:"getCollections" */ "./pages/collections"),
-    getCollectionListing: () =>
-      import(
-        /* webpackChunkName:"getCollectionListing" */ "./pages/collection-listing"
-      ),
-    getProductListing: () =>
-      import(
-        /* webpackChunkName:"getProductListing" */ "./pages/product-listing"
-      ),
-    getProductDescription: () =>
-      import(
-        /* webpackChunkName:"getProductDescription" */ "./pages/product-description"
-      ),
-    getCart: () =>
-      import(/* webpackChunkName:"getCart" */ "./pages/cart-landing"),
-    getSharedCart: () =>
-      import(/* webpackChunkName:"getSharedCart" */ "./pages/shared-cart"),
-    getWishlist: () =>
-      import(/* webpackChunkName:"getWishlist" */ "./pages/wishlist"),
-    getSinglePageCheckout: () =>
-      import(
-        /* webpackChunkName:"getSinglePageCheckout" */ "./pages/single-page-checkout"
-      ),
-    getOrderStatus: () =>
-      import(/* webpackChunkName:"getOrderStatus" */ "./pages/order-status"),
-    getForgotPassword: () =>
-      import(
-        /* webpackChunkName:"getForgotPassword" */ "./pages/forgot-password"
-      ),
-    getMarketing: () =>
-      import(
-        /* webpackChunkName:"getMarketing" */ "./page-layouts/marketing/markting-page"
-      ),
-    getProfileDetails: () =>
-      import(
-        /* webpackChunkName:"getProfileDetails" */ "./pages/profile-details"
-      ),
-    getProfileAddress: () =>
-      import(
-        /* webpackChunkName:"getProfileAddress" */ "./pages/profile-address"
-      ),
-    getProfile: () =>
-      import(/* webpackChunkName:"getProfile" */ "./pages/profile"),
-    getOrdersList: () =>
-      import(/* webpackChunkName:"getOrdersList" */ "./pages/orders-list"),
-    getShipmentDetails: () =>
-      import(
-        /* webpackChunkName:"getShipmentDetails" */ "./pages/shipment-details"
-      ),
-    getShipmentUpdate: () =>
-      import(
-        /* webpackChunkName:"getShipmentUpdate" */ "./pages/shipment-update"
-      ),
-    getProfilePhone: () =>
-      import(/* webpackChunkName:"getProfilePhone" */ "./pages/profile-phone"),
-    getFaq: () => import(/* webpackChunkName:"getFaq" */ "./pages/faq"),
-    getProfileEmail: () =>
-      import(/* webpackChunkName:"getProfileEmail" */ "./pages/profile-email"),
-    getVerifyEmail: () =>
-      import(/* webpackChunkName:"getVerifyEmail" */ "./pages/verify-email"),
-    getVerifyEmailLink: () =>
-      import(
-        /* webpackChunkName:"getVerifyEmailLink" */ "./pages/verify-email-link"
-      ),
-    getTnc: () => import(/* webpackChunkName:"getTnc" */ "./pages/tnc"),
-    getPrivacyPolicy: () =>
-      import(/* webpackChunkName:"getPrivacyPolicy" */ "./pages/policy"),
-    getShippingPolicy: () =>
-      import(
-        /* webpackChunkName:"getShippingPolicy" */ "./pages/shipping-policy"
-      ),
-    getReturnPolicy: () =>
-      import(/* webpackChunkName:"getReturnPolicy" */ "./pages/return-policy"),
-    getCompareProducts: () =>
-      import(
-        /* webpackChunkName:"getCompareProducts" */ "./page-layouts/compare/compare"
-      ),
-    getBlog: () => import(/* webpackChunkName:"getBlog" */ "./pages/blog"),
-    getBlogPage: () =>
-      import(/* webpackChunkName:"getBlogPage" */ "./pages/blog-detail"),
-    getContactUs: () =>
-      import(/* webpackChunkName:"getContactUs" */ "./pages/contact-us"),
-    getFormItem: () =>
-      import(/* webpackChunkName:"getFormItem" */ "./components/FormItem"),
-    getOrderTracking: () =>
-      import(
-        /* webpackChunkName:"getOrderTracking" */ "./pages/order-tracking"
-      ),
-    getOrderTrackingDetails: () =>
-      import(
-        /* webpackChunkName:"getOrderTrackingDetails" */ "./pages/order-tracking-details"
-      ),
-    getSections: () =>
-      import(
-        /* webpackChunkName:"getSections" */ "./page-layouts/section-render/section-page"
-      ),
-    getRefund: () =>
-      import(/* webpackChunkName:"getRefund" */ "./pages/refund-order"),
-    getAboutUs: () =>
-      import(/* webpackChunkName:"getAboutUs" */ "./pages/about-us"),
-    getLocateUs: () =>
-      import(/* webpackChunkName:"getLocateUs" */ "./pages/locate-us"),
-    getRequestReattempt: () =>
-      import(
-        /* webpackChunkName:"getRequestReattempt" */ "./pages/request-reattempt"
-      ),
-    getPaymentLink: () =>
-      import(/* webpackChunkName:"getPaymentLink" */ "./pages/payment-link"),
-    getReturnSummaryStatus: () =>
-      import(
-        /* webpackChunkName:"getReturnSummaryStatus" */ "./pages/return-summary-status"
-      ),
   };
 };

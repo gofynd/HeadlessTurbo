@@ -1,24 +1,26 @@
 import React, { useMemo } from "react";
 import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
-import { SectionRenderer } from "fdk-core/components";
-import { getHelmet } from "../providers/global-provider";
+import { useThemeConfig } from "../helper/hooks";
+import Loader from "../components/loader/loader";
 import { sanitizeHTMLTag } from "../helper/utils";
+import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
+import ContactUs from "../sections/contact-us";
+import { CONTACT_US_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
 
 function ContactUsPage({ fpi }) {
-  const page = useGlobalStore(fpi.getters.PAGE) || {};
-  const THEME = useGlobalStore(fpi.getters.THEME);
   const { t } = useGlobalTranslation("translation");
-
-  const mode = THEME?.config?.list.find(
-    (f) => f.name === THEME?.config?.current
-  );
-  const globalConfig = mode?.global_config?.custom?.props;
-  const { sections = [] } = page || {};
-
+  const page = useGlobalStore(fpi.getters.PAGE) || {};
+  const { globalConfig } = useThemeConfig({ fpi, page: "contact-us" });
   const seoData = page?.seo || {};
-  const { brandName, canonicalUrl, pageUrl, description: seoDescription, socialImage } =
-    useSeoMeta({ fpi, seo: seoData });
+  const { error, isLoading } = page || {};
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: seoData });
 
   const title = useMemo(() => {
     const raw = sanitizeHTMLTag(
@@ -36,28 +38,43 @@ function ContactUsPage({ fpi }) {
     return normalized || seoDescription;
   }, [seoData?.description, t, seoDescription]);
 
+  if (error) {
+    return (
+      <>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
+      </>
+    );
+  }
 
   return (
-    page?.value === "contact-us" && (
-      <>
-        {getHelmet({
-          title,
-          description,
-          image: socialImage,
-          canonicalUrl,
-          url: pageUrl,
-          siteName: brandName,
-          ogType: "website",
-        })}
-        <SectionRenderer
-          sections={sections}
+    <>
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        ogType: "website",
+      })}
+      <div className="margin0auto basePageContainer">
+        <h1 className="visually-hidden">{title}</h1>
+        <ContactUs
           fpi={fpi}
+          props={CONTACT_US_PAGE_DUMMY_SECTIONS.contactUs.props}
+          blocks={CONTACT_US_PAGE_DUMMY_SECTIONS.contactUs.blocks}
           globalConfig={globalConfig}
         />
-      </>
-    )
+        {isLoading && <Loader />}
+      </div>
+    </>
   );
 }
+
+export const settings = JSON.stringify({
+  props: [],
+});
 
 export const sections = JSON.stringify([
   {

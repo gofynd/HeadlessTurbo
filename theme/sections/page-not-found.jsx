@@ -1,5 +1,5 @@
 import React from "react";
-import { useFPI, useGlobalTranslation } from "fdk-core/utils";
+import { useFPI, useGlobalTranslation } from "../hooks";
 import { FDKLink } from "fdk-core/components";
 import FyButton from "@gofynd/theme-template/components/core/fy-button/fy-button";
 import "@gofynd/theme-template/components/core/fy-button/fy-button.css";

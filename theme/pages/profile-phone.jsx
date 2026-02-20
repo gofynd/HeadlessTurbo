@@ -1,29 +1,86 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
-import { SectionRenderer } from "fdk-core/components";
-import { useGlobalStore } from "fdk-core/utils";
-import { useGlobalTranslation } from "fdk-core/utils";
+import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
 import { isLoggedIn } from "../helper/auth-guard";
 import { useThemeConfig } from "../helper/hooks";
 import ProfileRoot from "../components/profile/profile-root";
+import Loader from "../components/loader/loader";
+import { sanitizeHTMLTag } from "../helper/utils";
+import { getHelmet } from "../providers/global-provider";
+import useSeoMeta from "../helper/hooks/useSeoMeta";
+import ProfilePhoneSection from "../sections/profile-phone";
+import { PROFILE_PHONE_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
 import "@gofynd/theme-template/components/profile-navigation/profile-navigation.css";
 
 function ProfilePhone({ fpi }) {
   const { t } = useGlobalTranslation("translation");
   const page = useGlobalStore(fpi.getters.PAGE) || {};
-  const { globalConfig } = useThemeConfig({ fpi });
-  const { sections = [] } = page || {};
+  const { globalConfig } = useThemeConfig({ fpi, page: "profile-phone" });
+  const seoData = page?.seo || {};
+  const { error, isLoading } = page || {};
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: {} });
 
-  // Filter sections by canvas
-  const leftSections = sections.filter(
-    (section) => (section.canvas?.value || section.canvas) === "left_side"
+  const title = useMemo(() => {
+    const base = brandName ? `My Account | ${brandName}` : "My Account";
+    return sanitizeHTMLTag(base);
+  }, [brandName]);
+
+  const description = useMemo(() => {
+    const base = t("resource.profile_details.seo_description");
+    return (
+      sanitizeHTMLTag(base).replace(/\s+/g, " ").trim() || seoDescription
+    );
+  }, [t, seoDescription]);
+
+  const leftSections = useMemo(
+    () => [
+      {
+        name: "profile-phone",
+        props: PROFILE_PHONE_PAGE_DUMMY_SECTIONS.profilePhone.props,
+        blocks: [],
+      },
+    ],
+    []
   );
-  const rightSections = sections.filter(
-    (section) => (section.canvas?.value || section.canvas) === "right_side"
+
+  const rightSections = useMemo(
+    () => [
+      {
+        name: "profile-navigation-menu",
+        props: PROFILE_PHONE_PAGE_DUMMY_SECTIONS.profileNavigationMenu.props,
+        blocks: [],
+      },
+    ],
+    []
   );
+
+  if (error) {
+    return (
+      <>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
+      </>
+    );
+  }
 
   return (
-    page?.value === "profile-phone" && (
+    <>
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        robots: "noindex, nofollow",
+        ogType: "website",
+      })}
       <ProfileRoot
         fpi={fpi}
         leftSections={leftSections}
@@ -31,7 +88,7 @@ function ProfilePhone({ fpi }) {
         globalConfig={globalConfig}
       >
         <motion.div
-          key={page?.value}
+          key="profile-phone"
           variants={{
             hidden: { opacity: 0 },
             visible: { opacity: 1, transition: { duration: 0.5 } },
@@ -40,22 +97,27 @@ function ProfilePhone({ fpi }) {
           animate="visible"
           style={{ height: "100%" }}
         >
-          {leftSections.length > 0 && (
-            <SectionRenderer
+          <div className="margin0auto basePageContainer">
+            <h1 className="visually-hidden">{title}</h1>
+            <ProfilePhoneSection
               fpi={fpi}
-              sections={leftSections}
-              blocks={[]}
-              preset={{}}
+              props={PROFILE_PHONE_PAGE_DUMMY_SECTIONS.profilePhone.props}
+              blocks={PROFILE_PHONE_PAGE_DUMMY_SECTIONS.profilePhone.blocks}
               globalConfig={globalConfig}
             />
-          )}
+          </div>
         </motion.div>
       </ProfileRoot>
-    )
+      {isLoading && <Loader />}
+    </>
   );
 }
 
 ProfilePhone.authGuard = isLoggedIn;
+
+export const settings = JSON.stringify({
+  props: [],
+});
 
 export const sections = JSON.stringify([
   {

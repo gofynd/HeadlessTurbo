@@ -9,7 +9,7 @@ export function Component({ props, globalConfig }) {
     return "16px 40px";
   };
   const [padding, setPadding] = useState(() =>
-    getPaddingByWidth(window.innerWidth)
+    getPaddingByWidth(window.innerWidth),
   );
   const handleResize = useCallback(() => {
     setPadding(getPaddingByWidth(window.innerWidth));

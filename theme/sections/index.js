@@ -1,119 +1,62 @@
-import loadable from '@loadable/component';
 import React from "react";
 
-const AccountLockedSectionChunk = loadable(() => import(/* webpackChunkName:"AccountLockedSectionChunk" */ './account-locked.jsx'));
-
-const ApplicationBannerSectionChunk = loadable(() => import(/* webpackChunkName:"ApplicationBannerSectionChunk" */ './application-banner.jsx'));
-
-const BlogDetailSectionChunk = loadable(() => import(/* webpackChunkName:"BlogDetailSectionChunk" */ './blog-detail.jsx'));
-
-const BlogSectionChunk = loadable(() => import(/* webpackChunkName:"BlogSectionChunk" */ './blog.jsx'));
-
-const BrandListingSectionChunk = loadable(() => import(/* webpackChunkName:"BrandListingSectionChunk" */ './brand-listing.jsx'));
-
-const BrandsLandingSectionChunk = loadable(() => import(/* webpackChunkName:"BrandsLandingSectionChunk" */ './brands-landing.jsx'));
-
-const CartItemsSectionChunk = loadable(() => import(/* webpackChunkName:"CartItemsSectionChunk" */ './cart-items.jsx'));
-
-const CartLandingSectionChunk = loadable(() => import(/* webpackChunkName:"CartLandingSectionChunk" */ './cart-landing.jsx'));
-
-const CategoriesListingSectionChunk = loadable(() => import(/* webpackChunkName:"CategoriesListingSectionChunk" */ './categories-listing.jsx'));
-
-const CategoriesSectionChunk = loadable(() => import(/* webpackChunkName:"CategoriesSectionChunk" */ './categories.jsx'));
-
-const CheckoutSectionChunk = loadable(() => import(/* webpackChunkName:"CheckoutSectionChunk" */ './checkout.jsx'));
-
-const CollectionListingSectionChunk = loadable(() => import(/* webpackChunkName:"CollectionListingSectionChunk" */ './collection-listing.jsx'));
-
-const CollectionsListingSectionChunk = loadable(() => import(/* webpackChunkName:"CollectionsListingSectionChunk" */ './collections-listing.jsx'));
-
-const CollectionsSectionChunk = loadable(() => import(/* webpackChunkName:"CollectionsSectionChunk" */ './collections.jsx'));
-
-const ContactUsSectionChunk = loadable(() => import(/* webpackChunkName:"ContactUsSectionChunk" */ './contact-us.jsx'));
-
-const EditProfileSectionChunk = loadable(() => import(/* webpackChunkName:"EditProfileSectionChunk" */ './edit-profile.jsx'));
-
-const FaqSectionChunk = loadable(() => import(/* webpackChunkName:"FaqSectionChunk" */ './faq.jsx'));
-
-const FeatureBlogSectionChunk = loadable(() => import(/* webpackChunkName:"FeatureBlogSectionChunk" */ './feature-blog.jsx'));
-
-const FeaturedCollectionSectionChunk = loadable(() => import(/* webpackChunkName:"FeaturedCollectionSectionChunk" */ './featured-collection.jsx'));
-
-const ForgotPasswordSectionChunk = loadable(() => import(/* webpackChunkName:"ForgotPasswordSectionChunk" */ './forgot-password.jsx'));
-
-const HeroImageSectionChunk = loadable(() => import(/* webpackChunkName:"HeroImageSectionChunk" */ './hero-image.jsx'));
-
-const HeroVideoSectionChunk = loadable(() => import(/* webpackChunkName:"HeroVideoSectionChunk" */ './hero-video.jsx'));
-
-const ImageGallerySectionChunk = loadable(() => import(/* webpackChunkName:"ImageGallerySectionChunk" */ './image-gallery.jsx'));
-
-const ImageSlideshowSectionChunk = loadable(() => import(/* webpackChunkName:"ImageSlideshowSectionChunk" */ './image-slideshow.jsx'));
-
-const LinkSectionChunk = loadable(() => import(/* webpackChunkName:"LinkSectionChunk" */ './link.jsx'));
-
-const LoginSectionChunk = loadable(() => import(/* webpackChunkName:"LoginSectionChunk" */ './login.jsx'));
-
-const MediaWithTextSectionChunk = loadable(() => import(/* webpackChunkName:"MediaWithTextSectionChunk" */ './media-with-text.jsx'));
-
-const MultiCollectionProductListSectionChunk = loadable(() => import(/* webpackChunkName:"MultiCollectionProductListSectionChunk" */ './multi-collection-product-list.jsx'));
-
-const OrderDetailsSectionChunk = loadable(() => import(/* webpackChunkName:"OrderDetailsSectionChunk" */ './order-details.jsx'));
-
-const OrderStatusSectionChunk = loadable(() => import(/* webpackChunkName:"OrderStatusSectionChunk" */ './order-status.jsx'));
-
-const OrderTrackingDetailsSectionChunk = loadable(() => import(/* webpackChunkName:"OrderTrackingDetailsSectionChunk" */ './order-tracking-details.jsx'));
-
-const OrderTrackingSectionChunk = loadable(() => import(/* webpackChunkName:"OrderTrackingSectionChunk" */ './order-tracking.jsx'));
-
-const PageNotFoundSectionChunk = loadable(() => import(/* webpackChunkName:"PageNotFoundSectionChunk" */ './page-not-found.jsx'));
-
-const PrivacyPolicySectionChunk = loadable(() => import(/* webpackChunkName:"PrivacyPolicySectionChunk" */ './privacy-policy.jsx'));
-
-const ProductDescriptionSectionChunk = loadable(() => import(/* webpackChunkName:"ProductDescriptionSectionChunk" */ './product-description.jsx'));
-
-const ProductListingSectionChunk = loadable(() => import(/* webpackChunkName:"ProductListingSectionChunk" */ './product-listing.jsx'));
-
-const ProfileAddressSectionChunk = loadable(() => import(/* webpackChunkName:"ProfileAddressSectionChunk" */ './profile-address.jsx'));
-
-const ProfileDetailsFormSectionChunk = loadable(() => import(/* webpackChunkName:"ProfileDetailsFormSectionChunk" */ './profile-details-form.jsx'));
-
-const ProfileEmailSectionChunk = loadable(() => import(/* webpackChunkName:"ProfileEmailSectionChunk" */ './profile-email.jsx'));
-
-const ProfileNavigationMenuSectionChunk = loadable(() => import(/* webpackChunkName:"ProfileNavigationMenuSectionChunk" */ './profile-navigation-menu.jsx'));
-
-const ProfileOrdersSectionChunk = loadable(() => import(/* webpackChunkName:"ProfileOrdersSectionChunk" */ './profile-orders.jsx'));
-
-const ProfilePhoneSectionChunk = loadable(() => import(/* webpackChunkName:"ProfilePhoneSectionChunk" */ './profile-phone.jsx'));
-
-const ProfileWishlistSectionChunk = loadable(() => import(/* webpackChunkName:"ProfileWishlistSectionChunk" */ './profile-wishlist.jsx'));
-
-const RawHtmlSectionChunk = loadable(() => import(/* webpackChunkName:"RawHtmlSectionChunk" */ './raw-html.jsx'));
-
-const RegisterSectionChunk = loadable(() => import(/* webpackChunkName:"RegisterSectionChunk" */ './register.jsx'));
-
-const ReturnPolicySectionChunk = loadable(() => import(/* webpackChunkName:"ReturnPolicySectionChunk" */ './return-policy.jsx'));
-
-const SetPasswordSectionChunk = loadable(() => import(/* webpackChunkName:"SetPasswordSectionChunk" */ './set-password.jsx'));
-
-const SharedCartBreakupSectionChunk = loadable(() => import(/* webpackChunkName:"SharedCartBreakupSectionChunk" */ './shared-cart-breakup.jsx'));
-
-const SharedCartItemsSectionChunk = loadable(() => import(/* webpackChunkName:"SharedCartItemsSectionChunk" */ './shared-cart-items.jsx'));
-
-const ShippingPolicySectionChunk = loadable(() => import(/* webpackChunkName:"ShippingPolicySectionChunk" */ './shipping-policy.jsx'));
-
-const SiteMapSectionChunk = loadable(() => import(/* webpackChunkName:"SiteMapSectionChunk" */ './site-map.jsx'));
-
-const StoreLocatorSectionChunk = loadable(() => import(/* webpackChunkName:"StoreLocatorSectionChunk" */ './store-locator.jsx'));
-
-const TestimonialsSectionChunk = loadable(() => import(/* webpackChunkName:"TestimonialsSectionChunk" */ './testimonials.jsx'));
-
-const TncSectionChunk = loadable(() => import(/* webpackChunkName:"TncSectionChunk" */ './tnc.jsx'));
-
-const TrustMarkerSectionChunk = loadable(() => import(/* webpackChunkName:"TrustMarkerSectionChunk" */ './trust-marker.jsx'));
-
-const VerifyEmailLinkSectionChunk = loadable(() => import(/* webpackChunkName:"VerifyEmailLinkSectionChunk" */ './verify-email-link.jsx'));
-
-const VerifyEmailSectionChunk = loadable(() => import(/* webpackChunkName:"VerifyEmailSectionChunk" */ './verify-email.jsx'));
+const AccountLockedSectionChunk = React.lazy(() => import(/* webpackChunkName:"AccountLockedSectionChunk" */ './account-locked.jsx'));
+const ApplicationBannerSectionChunk = React.lazy(() => import(/* webpackChunkName:"ApplicationBannerSectionChunk" */ './application-banner.jsx'));
+const BlogDetailSectionChunk = React.lazy(() => import(/* webpackChunkName:"BlogDetailSectionChunk" */ './blog-detail.jsx'));
+const BlogSectionChunk = React.lazy(() => import(/* webpackChunkName:"BlogSectionChunk" */ './blog.jsx'));
+const BrandListingSectionChunk = React.lazy(() => import(/* webpackChunkName:"BrandListingSectionChunk" */ './brand-listing.jsx'));
+const BrandsLandingSectionChunk = React.lazy(() => import(/* webpackChunkName:"BrandsLandingSectionChunk" */ './brands-landing.jsx'));
+const CartItemsSectionChunk = React.lazy(() => import(/* webpackChunkName:"CartItemsSectionChunk" */ './cart-items.jsx'));
+const CartLandingSectionChunk = React.lazy(() => import(/* webpackChunkName:"CartLandingSectionChunk" */ './cart-landing.jsx'));
+const CategoriesListingSectionChunk = React.lazy(() => import(/* webpackChunkName:"CategoriesListingSectionChunk" */ './categories-listing.jsx'));
+const CategoriesSectionChunk = React.lazy(() => import(/* webpackChunkName:"CategoriesSectionChunk" */ './categories.jsx'));
+const CheckoutSectionChunk = React.lazy(() => import(/* webpackChunkName:"CheckoutSectionChunk" */ './checkout.jsx'));
+const CollectionListingSectionChunk = React.lazy(() => import(/* webpackChunkName:"CollectionListingSectionChunk" */ './collection-listing.jsx'));
+const CollectionsListingSectionChunk = React.lazy(() => import(/* webpackChunkName:"CollectionsListingSectionChunk" */ './collections-listing.jsx'));
+const CollectionsSectionChunk = React.lazy(() => import(/* webpackChunkName:"CollectionsSectionChunk" */ './collections.jsx'));
+const ContactUsSectionChunk = React.lazy(() => import(/* webpackChunkName:"ContactUsSectionChunk" */ './contact-us.jsx'));
+const EditProfileSectionChunk = React.lazy(() => import(/* webpackChunkName:"EditProfileSectionChunk" */ './edit-profile.jsx'));
+const FaqSectionChunk = React.lazy(() => import(/* webpackChunkName:"FaqSectionChunk" */ './faq.jsx'));
+const FeatureBlogSectionChunk = React.lazy(() => import(/* webpackChunkName:"FeatureBlogSectionChunk" */ './feature-blog.jsx'));
+const FeaturedCollectionSectionChunk = React.lazy(() => import(/* webpackChunkName:"FeaturedCollectionSectionChunk" */ './featured-collection.jsx'));
+const ForgotPasswordSectionChunk = React.lazy(() => import(/* webpackChunkName:"ForgotPasswordSectionChunk" */ './forgot-password.jsx'));
+const HeroImageSectionChunk = React.lazy(() => import(/* webpackChunkName:"HeroImageSectionChunk" */ './hero-image.jsx'));
+const HeroVideoSectionChunk = React.lazy(() => import(/* webpackChunkName:"HeroVideoSectionChunk" */ './hero-video.jsx'));
+const ImageGallerySectionChunk = React.lazy(() => import(/* webpackChunkName:"ImageGallerySectionChunk" */ './image-gallery.jsx'));
+const ImageSlideshowSectionChunk = React.lazy(() => import(/* webpackChunkName:"ImageSlideshowSectionChunk" */ './image-slideshow.jsx'));
+const LinkSectionChunk = React.lazy(() => import(/* webpackChunkName:"LinkSectionChunk" */ './link.jsx'));
+const LoginSectionChunk = React.lazy(() => import(/* webpackChunkName:"LoginSectionChunk" */ './login.jsx'));
+const MediaWithTextSectionChunk = React.lazy(() => import(/* webpackChunkName:"MediaWithTextSectionChunk" */ './media-with-text.jsx'));
+const MultiCollectionProductListSectionChunk = React.lazy(() => import(/* webpackChunkName:"MultiCollectionProductListSectionChunk" */ './multi-collection-product-list.jsx'));
+const OrderDetailsSectionChunk = React.lazy(() => import(/* webpackChunkName:"OrderDetailsSectionChunk" */ './order-details.jsx'));
+const OrderStatusSectionChunk = React.lazy(() => import(/* webpackChunkName:"OrderStatusSectionChunk" */ './order-status.jsx'));
+const OrderTrackingDetailsSectionChunk = React.lazy(() => import(/* webpackChunkName:"OrderTrackingDetailsSectionChunk" */ './order-tracking-details.jsx'));
+const OrderTrackingSectionChunk = React.lazy(() => import(/* webpackChunkName:"OrderTrackingSectionChunk" */ './order-tracking.jsx'));
+const PageNotFoundSectionChunk = React.lazy(() => import(/* webpackChunkName:"PageNotFoundSectionChunk" */ './page-not-found.jsx'));
+const PrivacyPolicySectionChunk = React.lazy(() => import(/* webpackChunkName:"PrivacyPolicySectionChunk" */ './privacy-policy.jsx'));
+const ProductDescriptionSectionChunk = React.lazy(() => import(/* webpackChunkName:"ProductDescriptionSectionChunk" */ './product-description.jsx'));
+const ProductListingSectionChunk = React.lazy(() => import(/* webpackChunkName:"ProductListingSectionChunk" */ './product-listing.jsx'));
+const ProfileAddressSectionChunk = React.lazy(() => import(/* webpackChunkName:"ProfileAddressSectionChunk" */ './profile-address.jsx'));
+const ProfileDetailsFormSectionChunk = React.lazy(() => import(/* webpackChunkName:"ProfileDetailsFormSectionChunk" */ './profile-details-form.jsx'));
+const ProfileEmailSectionChunk = React.lazy(() => import(/* webpackChunkName:"ProfileEmailSectionChunk" */ './profile-email.jsx'));
+const ProfileNavigationMenuSectionChunk = React.lazy(() => import(/* webpackChunkName:"ProfileNavigationMenuSectionChunk" */ './profile-navigation-menu.jsx'));
+const ProfileOrdersSectionChunk = React.lazy(() => import(/* webpackChunkName:"ProfileOrdersSectionChunk" */ './profile-orders.jsx'));
+const ProfilePhoneSectionChunk = React.lazy(() => import(/* webpackChunkName:"ProfilePhoneSectionChunk" */ './profile-phone.jsx'));
+const ProfileWishlistSectionChunk = React.lazy(() => import(/* webpackChunkName:"ProfileWishlistSectionChunk" */ './profile-wishlist.jsx'));
+const RawHtmlSectionChunk = React.lazy(() => import(/* webpackChunkName:"RawHtmlSectionChunk" */ './raw-html.jsx'));
+const RegisterSectionChunk = React.lazy(() => import(/* webpackChunkName:"RegisterSectionChunk" */ './register.jsx'));
+const ReturnPolicySectionChunk = React.lazy(() => import(/* webpackChunkName:"ReturnPolicySectionChunk" */ './return-policy.jsx'));
+const SetPasswordSectionChunk = React.lazy(() => import(/* webpackChunkName:"SetPasswordSectionChunk" */ './set-password.jsx'));
+const SharedCartBreakupSectionChunk = React.lazy(() => import(/* webpackChunkName:"SharedCartBreakupSectionChunk" */ './shared-cart-breakup.jsx'));
+const SharedCartItemsSectionChunk = React.lazy(() => import(/* webpackChunkName:"SharedCartItemsSectionChunk" */ './shared-cart-items.jsx'));
+const ShippingPolicySectionChunk = React.lazy(() => import(/* webpackChunkName:"ShippingPolicySectionChunk" */ './shipping-policy.jsx'));
+const SiteMapSectionChunk = React.lazy(() => import(/* webpackChunkName:"SiteMapSectionChunk" */ './site-map.jsx'));
+const StoreLocatorSectionChunk = React.lazy(() => import(/* webpackChunkName:"StoreLocatorSectionChunk" */ './store-locator.jsx'));
+const TestimonialsSectionChunk = React.lazy(() => import(/* webpackChunkName:"TestimonialsSectionChunk" */ './testimonials.jsx'));
+const TncSectionChunk = React.lazy(() => import(/* webpackChunkName:"TncSectionChunk" */ './tnc.jsx'));
+const TrustMarkerSectionChunk = React.lazy(() => import(/* webpackChunkName:"TrustMarkerSectionChunk" */ './trust-marker.jsx'));
+const VerifyEmailLinkSectionChunk = React.lazy(() => import(/* webpackChunkName:"VerifyEmailLinkSectionChunk" */ './verify-email-link.jsx'));
+const VerifyEmailSectionChunk = React.lazy(() => import(/* webpackChunkName:"VerifyEmailSectionChunk" */ './verify-email.jsx'));
 
 
 const getbundle = (type) => {
@@ -239,61 +182,61 @@ const getbundle = (type) => {
 
 
 export default {
-            'account-locked': { ...AccountLockedSectionChunk, Component: getbundle('account-locked') },
-        'application-banner': { ...ApplicationBannerSectionChunk, Component: getbundle('application-banner') },
-        'blog-detail': { ...BlogDetailSectionChunk, Component: getbundle('blog-detail') },
-        'blog': { ...BlogSectionChunk, Component: getbundle('blog') },
-        'brand-listing': { ...BrandListingSectionChunk, Component: getbundle('brand-listing') },
-        'brands-landing': { ...BrandsLandingSectionChunk, Component: getbundle('brands-landing') },
-        'cart-items': { ...CartItemsSectionChunk, Component: getbundle('cart-items') },
-        'cart-landing': { ...CartLandingSectionChunk, Component: getbundle('cart-landing') },
-        'categories-listing': { ...CategoriesListingSectionChunk, Component: getbundle('categories-listing') },
-        'categories': { ...CategoriesSectionChunk, Component: getbundle('categories') },
-        'checkout': { ...CheckoutSectionChunk, Component: getbundle('checkout') },
-        'collection-listing': { ...CollectionListingSectionChunk, Component: getbundle('collection-listing') },
-        'collections-listing': { ...CollectionsListingSectionChunk, Component: getbundle('collections-listing') },
-        'collections': { ...CollectionsSectionChunk, Component: getbundle('collections') },
-        'contact-us': { ...ContactUsSectionChunk, Component: getbundle('contact-us') },
-        'edit-profile': { ...EditProfileSectionChunk, Component: getbundle('edit-profile') },
-        'faq': { ...FaqSectionChunk, Component: getbundle('faq') },
-        'feature-blog': { ...FeatureBlogSectionChunk, Component: getbundle('feature-blog') },
-        'featured-collection': { ...FeaturedCollectionSectionChunk, Component: getbundle('featured-collection') },
-        'forgot-password': { ...ForgotPasswordSectionChunk, Component: getbundle('forgot-password') },
-        'hero-image': { ...HeroImageSectionChunk, Component: getbundle('hero-image') },
-        'hero-video': { ...HeroVideoSectionChunk, Component: getbundle('hero-video') },
-        'image-gallery': { ...ImageGallerySectionChunk, Component: getbundle('image-gallery') },
-        'image-slideshow': { ...ImageSlideshowSectionChunk, Component: getbundle('image-slideshow') },
-        'link': { ...LinkSectionChunk, Component: getbundle('link') },
-        'login': { ...LoginSectionChunk, Component: getbundle('login') },
-        'media-with-text': { ...MediaWithTextSectionChunk, Component: getbundle('media-with-text') },
-        'multi-collection-product-list': { ...MultiCollectionProductListSectionChunk, Component: getbundle('multi-collection-product-list') },
-        'order-details': { ...OrderDetailsSectionChunk, Component: getbundle('order-details') },
-        'order-status': { ...OrderStatusSectionChunk, Component: getbundle('order-status') },
-        'order-tracking-details': { ...OrderTrackingDetailsSectionChunk, Component: getbundle('order-tracking-details') },
-        'order-tracking': { ...OrderTrackingSectionChunk, Component: getbundle('order-tracking') },
-        'page-not-found': { ...PageNotFoundSectionChunk, Component: getbundle('page-not-found') },
-        'privacy-policy': { ...PrivacyPolicySectionChunk, Component: getbundle('privacy-policy') },
-        'product-description': { ...ProductDescriptionSectionChunk, Component: getbundle('product-description') },
-        'product-listing': { ...ProductListingSectionChunk, Component: getbundle('product-listing') },
-        'profile-address': { ...ProfileAddressSectionChunk, Component: getbundle('profile-address') },
-        'profile-details-form': { ...ProfileDetailsFormSectionChunk, Component: getbundle('profile-details-form') },
-        'profile-email': { ...ProfileEmailSectionChunk, Component: getbundle('profile-email') },
-        'profile-navigation-menu': { ...ProfileNavigationMenuSectionChunk, Component: getbundle('profile-navigation-menu') },
-        'profile-orders': { ...ProfileOrdersSectionChunk, Component: getbundle('profile-orders') },
-        'profile-phone': { ...ProfilePhoneSectionChunk, Component: getbundle('profile-phone') },
-        'profile-wishlist': { ...ProfileWishlistSectionChunk, Component: getbundle('profile-wishlist') },
-        'raw-html': { ...RawHtmlSectionChunk, Component: getbundle('raw-html') },
-        'register': { ...RegisterSectionChunk, Component: getbundle('register') },
-        'return-policy': { ...ReturnPolicySectionChunk, Component: getbundle('return-policy') },
-        'set-password': { ...SetPasswordSectionChunk, Component: getbundle('set-password') },
-        'shared-cart-breakup': { ...SharedCartBreakupSectionChunk, Component: getbundle('shared-cart-breakup') },
-        'shared-cart-items': { ...SharedCartItemsSectionChunk, Component: getbundle('shared-cart-items') },
-        'shipping-policy': { ...ShippingPolicySectionChunk, Component: getbundle('shipping-policy') },
-        'site-map': { ...SiteMapSectionChunk, Component: getbundle('site-map') },
-        'store-locator': { ...StoreLocatorSectionChunk, Component: getbundle('store-locator') },
-        'testimonials': { ...TestimonialsSectionChunk, Component: getbundle('testimonials') },
-        'tnc': { ...TncSectionChunk, Component: getbundle('tnc') },
-        'trust-marker': { ...TrustMarkerSectionChunk, Component: getbundle('trust-marker') },
-        'verify-email-link': { ...VerifyEmailLinkSectionChunk, Component: getbundle('verify-email-link') },
-        'verify-email': { ...VerifyEmailSectionChunk, Component: getbundle('verify-email') },
-        };
+  'account-locked': { Component: getbundle('account-locked') },
+  'application-banner': { Component: getbundle('application-banner') },
+  'blog-detail': { Component: getbundle('blog-detail') },
+  'blog': { Component: getbundle('blog') },
+  'brand-listing': { Component: getbundle('brand-listing') },
+  'brands-landing': { Component: getbundle('brands-landing') },
+  'cart-items': { Component: getbundle('cart-items') },
+  'cart-landing': { Component: getbundle('cart-landing') },
+  'categories-listing': { Component: getbundle('categories-listing') },
+  'categories': { Component: getbundle('categories') },
+  'checkout': { Component: getbundle('checkout') },
+  'collection-listing': { Component: getbundle('collection-listing') },
+  'collections-listing': { Component: getbundle('collections-listing') },
+  'collections': { Component: getbundle('collections') },
+  'contact-us': { Component: getbundle('contact-us') },
+  'edit-profile': { Component: getbundle('edit-profile') },
+  'faq': { Component: getbundle('faq') },
+  'feature-blog': { Component: getbundle('feature-blog') },
+  'featured-collection': { Component: getbundle('featured-collection') },
+  'forgot-password': { Component: getbundle('forgot-password') },
+  'hero-image': { Component: getbundle('hero-image') },
+  'hero-video': { Component: getbundle('hero-video') },
+  'image-gallery': { Component: getbundle('image-gallery') },
+  'image-slideshow': { Component: getbundle('image-slideshow') },
+  'link': { Component: getbundle('link') },
+  'login': { Component: getbundle('login') },
+  'media-with-text': { Component: getbundle('media-with-text') },
+  'multi-collection-product-list': { Component: getbundle('multi-collection-product-list') },
+  'order-details': { Component: getbundle('order-details') },
+  'order-status': { Component: getbundle('order-status') },
+  'order-tracking-details': { Component: getbundle('order-tracking-details') },
+  'order-tracking': { Component: getbundle('order-tracking') },
+  'page-not-found': { Component: getbundle('page-not-found') },
+  'privacy-policy': { Component: getbundle('privacy-policy') },
+  'product-description': { Component: getbundle('product-description') },
+  'product-listing': { Component: getbundle('product-listing') },
+  'profile-address': { Component: getbundle('profile-address') },
+  'profile-details-form': { Component: getbundle('profile-details-form') },
+  'profile-email': { Component: getbundle('profile-email') },
+  'profile-navigation-menu': { Component: getbundle('profile-navigation-menu') },
+  'profile-orders': { Component: getbundle('profile-orders') },
+  'profile-phone': { Component: getbundle('profile-phone') },
+  'profile-wishlist': { Component: getbundle('profile-wishlist') },
+  'raw-html': { Component: getbundle('raw-html') },
+  'register': { Component: getbundle('register') },
+  'return-policy': { Component: getbundle('return-policy') },
+  'set-password': { Component: getbundle('set-password') },
+  'shared-cart-breakup': { Component: getbundle('shared-cart-breakup') },
+  'shared-cart-items': { Component: getbundle('shared-cart-items') },
+  'shipping-policy': { Component: getbundle('shipping-policy') },
+  'site-map': { Component: getbundle('site-map') },
+  'store-locator': { Component: getbundle('store-locator') },
+  'testimonials': { Component: getbundle('testimonials') },
+  'tnc': { Component: getbundle('tnc') },
+  'trust-marker': { Component: getbundle('trust-marker') },
+  'verify-email-link': { Component: getbundle('verify-email-link') },
+  'verify-email': { Component: getbundle('verify-email') },
+};

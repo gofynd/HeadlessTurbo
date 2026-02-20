@@ -8,6 +8,11 @@ import React, {
 /* useNavigte is imported from react-router-dom because ,functionality to go to previous page was not there in useNavigate hook of fdk-core/utils */
 import { useNavigate } from "react-router-dom";
 import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
+import { useThemeConfig } from "../helper/hooks";
+import { getHelmet } from "../providers/global-provider";
+import useSeoMeta from "../helper/hooks/useSeoMeta";
+import { sanitizeHTMLTag } from "../helper/utils";
+import Loader from "../components/loader/loader";
 import styles from "../styles/request-reattempt.less";
 import MessageCard from "../components/message-card/MessageCard";
 import FileCopyIcon from "../assets/images/file-copy.svg";
@@ -35,7 +40,6 @@ import {
 } from "../queries/reattemptQuery.js";
 import { convertUTCDateToLocalDate, detectMobileWidth } from "../helper/utils";
 import EmptyState from "../components/empty-state/empty-state";
-import Loader from "../components/loader/loader";
 
 const DeliveryAddressCard = ({ addresItem, shipmentDetails }) => {
   const formatAddressForDisplay = (address) => {
@@ -124,6 +128,25 @@ const RequestReattempt = ({ fpi }) => {
   const CONFIGURATION = useGlobalStore(fpi.getters.CONFIGURATION);
   const { t } = useGlobalTranslation("translation");
   const page = useGlobalStore(fpi.getters.PAGE) || {};
+  useThemeConfig({ fpi, page: "request-reattempt" });
+  const seoData = page?.seo || {};
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: seoData });
+  const title = useMemo(() => {
+    const base =
+      (seoData?.title?.value ?? seoData?.title) ||
+      (brandName ? `Delivery Reattempt | ${brandName}` : "Delivery Reattempt");
+    return sanitizeHTMLTag(base);
+  }, [seoData?.title, brandName]);
+  const description = useMemo(() => {
+    const base = seoData?.description?.value ?? seoData?.description ?? "";
+    return sanitizeHTMLTag(base).replace(/\s+/g, " ").trim() || seoDescription;
+  }, [seoData?.description, seoDescription]);
   const THEME = useGlobalStore(fpi.getters.THEME);
   const isUserLoggedIn = useGlobalStore(fpi.getters.LOGGED_IN);
   const { fetchCountrieDetails, currentCountry } = useInternational({
@@ -737,8 +760,31 @@ const RequestReattempt = ({ fpi }) => {
 
     return <></>;
   };
+
+  if (page?.error) {
+    return (
+      <>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(page.error, null, 4)}</pre>
+      </>
+    );
+  }
+
   return (
-    <div className={styles.outerContainer}>
+    <>
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        robots: "noindex, nofollow",
+        ogType: "website",
+      })}
+      <div className="basePageContainer margin0auto">
+        <h1 className="visually-hidden">{title}</h1>
+        <div className={styles.outerContainer}>
       {showItemsList && <ViewItems />}
       <div className={styles.innerContainer}>
         <div className={styles.header}>
@@ -1117,7 +1163,15 @@ const RequestReattempt = ({ fpi }) => {
         )}
       </div>
     </div>
+      </div>
+      {page?.isLoading && <Loader />}
+    </>
   );
 };
+
+export const settings = JSON.stringify({ props: [] });
+export const sections = JSON.stringify([
+  { attributes: { page: "request-reattempt" } },
+]);
 
 export default RequestReattempt;

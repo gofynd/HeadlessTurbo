@@ -1,20 +1,48 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { subscribeToCacheKey } from '../fpi-swr-wrapper';
+import { storefrontGraphql } from '../storefront-graphql';
 
 /**
- * React hook to subscribe to fpi.executeGQL with automatic updates
- * 
+ * Execute GraphQL: use fpi.executeGQL if available, else Storefront API (direct HTTP).
+ * See https://docs.fynd.com/partners/commerce/sdk/latest/graphql/application/client-libraries
+ */
+async function executeGql(fpi, query, variables, applicationId, applicationToken) {
+  if (fpi?.executeGQL) {
+    return fpi.executeGQL(query, variables);
+  }
+  if (applicationId && applicationToken) {
+    const res = await storefrontGraphql({
+      query,
+      variables,
+      applicationId,
+      applicationToken,
+      domain: '',
+    });
+    if (res.errors?.length) {
+      return { data: res.data, errors: res.errors };
+    }
+    return { data: res.data };
+  }
+  throw new Error('useFpiQuery: need fpi or applicationId+applicationToken (e.g. from window.APP_DATA)');
+}
+
+/**
+ * React hook to subscribe to fpi.executeGQL with automatic updates.
+ * Falls back to Storefront GraphQL (direct HTTP) when fpi or executeGQL is missing.
+ *
  * Usage:
  *   const { data, isLoading, mutate } = useFpiQuery(fpi, QUERY, variables);
- * 
- * This hook automatically updates when background revalidation completes.
- * 
- * @param {Object} fpi - The FPI client instance
+ *   // Without fpi (e.g. from window.APP_DATA):
+ *   const { data } = useFpiQuery(null, CART_COUNT, vars, { applicationId, applicationToken });
+ *
+ * @param {Object} fpi - The FPI client instance (or null to use storefrontGraphql)
  * @param {string} query - GraphQL query string
  * @param {Object} variables - Query variables (default: {})
  * @param {Object} options - Configuration options
  * @param {*} options.initialData - Initial data to use before first fetch
  * @param {boolean} options.enabled - Enable/disable the query (default: true)
+ * @param {string} [options.applicationId] - For storefront path (e.g. window.APP_DATA.applicationID)
+ * @param {string} [options.applicationToken] - For storefront path (e.g. window.APP_DATA.applicationToken)
  * @returns {Object} { data, error, isLoading, isValidating, mutate }
  */
 export function useFpiQuery(fpi, query, variables = {}, options = {}) {
@@ -24,17 +52,19 @@ export function useFpiQuery(fpi, query, variables = {}, options = {}) {
   const [isValidating, setIsValidating] = useState(false);
   const mountedRef = useRef(true);
   const enabled = options.enabled !== false;
+  const applicationId = options.applicationId ?? (typeof window !== 'undefined' && (window.APP_DATA || window.__APP_CREDENTIALS__)?.applicationID);
+  const applicationToken = options.applicationToken ?? (typeof window !== 'undefined' && (window.APP_DATA || window.__APP_CREDENTIALS__)?.applicationToken);
 
-  const cacheKey = fpi.getCacheKey?.(query, variables) ?? 
+  const cacheKey = fpi?.getCacheKey?.(query, variables) ??
     JSON.stringify({ query, variables });
 
-  // Fetch function
+  // Fetch function (FPI or Storefront API)
   const fetchData = useCallback(async () => {
     if (!enabled) return;
-    
+
     setIsValidating(true);
     try {
-      const result = await fpi.executeGQL(query, variables);
+      const result = await executeGql(fpi, query, variables, applicationId, applicationToken);
       if (mountedRef.current) {
         if (result?.errors?.length) {
           setError(result.errors[0]);
@@ -53,7 +83,7 @@ export function useFpiQuery(fpi, query, variables = {}, options = {}) {
         setIsValidating(false);
       }
     }
-  }, [fpi, query, JSON.stringify(variables), enabled]);
+  }, [fpi, query, JSON.stringify(variables), enabled, applicationId, applicationToken]);
 
   // Initial fetch
   useEffect(() => {

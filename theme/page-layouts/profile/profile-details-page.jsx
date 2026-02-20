@@ -1,10 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
-import {
-  useGlobalStore,
-  useGlobalTranslation,
-  useNavigate,
-} from "fdk-core/utils";
+import { useGlobalStore, useGlobalTranslation, useNavigate } from "../../hooks";
 import { useAccounts, useSnackbar } from "../../helper/hooks";
 import { USER_DATA_QUERY } from "../../queries/libQuery";
 import ProfileDetailsForm from "../../components/profile/profile-details-form";
@@ -14,24 +10,50 @@ function ProfileDetailsPage({ fpi }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingUser, setIsFetchingUser] = useState(false);
   const userDataStore = useGlobalStore(fpi.getters.USER_DATA);
-  const { first_name, last_name, gender, user, emails, phone_numbers, dob } =
-    userDataStore || {};
+  const customUserData = useGlobalStore(fpi.getters.CUSTOM_VALUE)?.user_Data;
+  const rawStore = userDataStore || customUserData || {};
 
-  const userInfo = useMemo(() => user || userDataStore, [user, userDataStore]);
+  const userInfo = useMemo(
+    () => rawStore?.logged_in_user ?? rawStore?.user ?? rawStore,
+    [rawStore],
+  );
+
+  useEffect(() => {
+    const state = fpi.store?.getState?.() || {};
+    const hasUserData =
+      state?.auth?.user_data?.user_id || rawStore?.user_id || userInfo?.user_id;
+    if (!hasUserData) {
+      setIsFetchingUser(true);
+      fpi
+        .executeGQL(USER_DATA_QUERY)
+        .then((res) => {
+          const loggedInUser = res?.data?.user?.logged_in_user;
+          if (loggedInUser) {
+            fpi.custom.setValue("user_Data", { logged_in_user: loggedInUser });
+          }
+        })
+        .catch(() => {})
+        .finally(() => setIsFetchingUser(false));
+    }
+  }, [fpi]);
+
+  const { first_name, last_name, gender, emails, phone_numbers, dob } =
+    userInfo;
 
   const primaryEmail = useMemo(
     () =>
       emails?.find((e) => e.primary) ||
       userInfo?.emails?.find((e) => e.primary),
-    [emails, userInfo]
+    [emails, userInfo],
   );
 
   const primaryPhone = useMemo(
     () =>
       phone_numbers?.find((p) => p.primary) ||
       userInfo?.phone_numbers?.find((p) => p.primary),
-    [phone_numbers, userInfo]
+    [phone_numbers, userInfo],
   );
 
   // Format phone number with country code
@@ -66,7 +88,7 @@ function ProfileDetailsPage({ fpi }) {
       dob,
       emails,
       phone_numbers,
-    ]
+    ],
   );
 
   const { updateProfile } = useAccounts({ fpi });
@@ -154,7 +176,7 @@ function ProfileDetailsPage({ fpi }) {
               t("resource.common.verification_required") ||
                 "Verification required. Please verify your email/mobile.",
               "info",
-              "top-center"
+              "top-center",
             );
             // Don't navigate away - let user complete verification on profile page
             return;
@@ -183,12 +205,18 @@ function ProfileDetailsPage({ fpi }) {
         error?.message ||
           t("resource.common.error_message") ||
           "Failed to update profile",
-        "error"
+        "error",
       );
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isFetchingUser && !userInfo?.user_id) {
+    return (
+      <div style={{ padding: "2rem", textAlign: "center" }}>Loading...</div>
+    );
+  }
 
   return (
     <ProfileDetailsForm

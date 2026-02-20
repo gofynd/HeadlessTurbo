@@ -4,9 +4,11 @@ import {
   SET_MOBILE_NUMBER_AS_PRIMARY,
 } from "../../queries/phoneQuery";
 import { useGlobalStore } from "fdk-core/utils";
+import { getApplicationID } from "../../helper/getAppCredentials";
 
 export const usePhone = ({ fpi }) => {
-  const { phone_numbers, user = {} } = useGlobalStore(fpi.getters.USER_DATA);
+  const { phone_numbers, user = {} } =
+    useGlobalStore(fpi.getters.USER_DATA) || {};
 
   const [phoneNumbers, setPhoneNumbers] = useState([]);
 
@@ -39,7 +41,7 @@ export const usePhone = ({ fpi }) => {
   };
 
   const deleteMobileNumber = (data) => {
-    const id = window.APP_DATA.applicationID;
+    const id = getApplicationID();
 
     const payload = {
       ...data,

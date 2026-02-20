@@ -7,6 +7,7 @@ import Hotspot from "../components/hotspot/product-hotspot";
 import { FEATURE_PRODUCT_DETAILS } from "../queries/featureProductQuery";
 import { useViewport } from "../helper/hooks";
 import { BlockRenderer, FDKLink } from "fdk-core/components";
+import { storefrontGraphql } from "../helper/storefront-graphql";
 import placeholderDesktop from "../assets/images/placeholder/media-with-text-desktop.jpg";
 import placeholderMobile from "../assets/images/placeholder/media-with-text-mobile.jpg";
 import { MEDIA_WITH_TEXT_HOTSPOT_PLACEHOLDER_PRODUCT } from "../helper/constant";
@@ -104,14 +105,24 @@ export function Component({ props, globalConfig, blocks, fpi }) {
         return;
       }
       try {
+        const creds =
+          typeof window !== "undefined" &&
+          (window.APP_DATA || window.__APP_CREDENTIALS__);
         const results = await Promise.all(
           productSlugs.map((slug) =>
-            fpi
-              .executeGQL(
-                FEATURE_PRODUCT_DETAILS,
-                { slug },
-                { skipStoreUpdate: true }
-              )
+            (creds?.applicationID && creds?.applicationToken
+              ? storefrontGraphql({
+                  query: FEATURE_PRODUCT_DETAILS,
+                  variables: { slug },
+                  applicationId: creds.applicationID,
+                  applicationToken: creds.applicationToken,
+                  domain: "",
+                })
+              : fpi.executeGQL(
+                  FEATURE_PRODUCT_DETAILS,
+                  { slug },
+                  { skipStoreUpdate: true }
+                ))
               .then((result) => ({
                 uid: result?.data?.product?.uid,
                 data: result,

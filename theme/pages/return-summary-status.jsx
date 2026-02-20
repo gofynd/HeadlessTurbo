@@ -1,6 +1,11 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGlobalTranslation } from "fdk-core/utils";
+import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
+import { useThemeConfig } from "../helper/hooks";
+import { getHelmet } from "../providers/global-provider";
+import useSeoMeta from "../helper/hooks/useSeoMeta";
+import { sanitizeHTMLTag } from "../helper/utils";
+import Loader from "../components/loader/loader";
 import RefundSummary from "../components/refund-summary/refund-summary";
 import MessageCard from "../components/message-card/message-card";
 import ContacRefundSupport from "../components/contact-refund-support/contact-refund-support";
@@ -372,8 +377,29 @@ const RightSection = ({ shipmentDetails, isLoading }) => {
 const ReturnSummaryStatus = ({ fpi }) => {
   const navigate = useNavigate();
   const { t } = useGlobalTranslation("translation");
+  const page = useGlobalStore(fpi.getters.PAGE) || {};
+  useThemeConfig({ fpi, page: "return-summary-status" });
+  const seoData = page?.seo || {};
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: seoData });
+  const title = useMemo(() => {
+    const base =
+      (seoData?.title?.value ?? seoData?.title) ||
+      (brandName ? `Return Summary | ${brandName}` : "Return Summary");
+    return sanitizeHTMLTag(base);
+  }, [seoData?.title, brandName]);
+  const description = useMemo(() => {
+    const base = seoData?.description?.value ?? seoData?.description ?? "";
+    return sanitizeHTMLTag(base).replace(/\s+/g, " ").trim() || seoDescription;
+  }, [seoData?.description, seoDescription]);
 
   const { isLoading, shipmentDetails } = useShipmentDetails(fpi);
+  const { error, isLoading: pageLoading } = page || {};
 
   const handleContinueShopping = () => navigate("/");
 
@@ -382,7 +408,29 @@ const ReturnSummaryStatus = ({ fpi }) => {
     navigate(route);
   };
 
+  if (error) {
+    return (
+      <>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
+      </>
+    );
+  }
+
   return (
+    <>
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        robots: "noindex, nofollow",
+        ogType: "website",
+      })}
+      <div className="basePageContainer margin0auto">
+        <h1 className="visually-hidden">{title}</h1>
     <div className={styles.mainContainer}>
       <div className={styles.contentWrapper}>
         <RequestSubmittedSection
@@ -408,7 +456,15 @@ const ReturnSummaryStatus = ({ fpi }) => {
         )}
       </div>
     </div>
+      </div>
+      {pageLoading && <Loader />}
+    </>
   );
 };
+
+export const settings = JSON.stringify({ props: [] });
+export const sections = JSON.stringify([
+  { attributes: { page: "return-summary-status" } },
+]);
 
 export default ReturnSummaryStatus;

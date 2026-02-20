@@ -1,23 +1,26 @@
 import React, { useMemo } from "react";
-import { SectionRenderer } from "fdk-core/components";
 import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
-import { getHelmet } from "../providers/global-provider";
+import { useThemeConfig } from "../helper/hooks";
+import Loader from "../components/loader/loader";
 import { sanitizeHTMLTag } from "../helper/utils";
+import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
+import BlogSection from "../sections/blog";
+import { BLOG_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
 
 function Blog({ fpi }) {
   const { t } = useGlobalTranslation("translation");
   const page = useGlobalStore(fpi.getters.PAGE) || {};
-  const THEME = useGlobalStore(fpi.getters.THEME);
-
-  const mode = THEME?.config?.list.find(
-    (f) => f.name === THEME?.config?.current
-  );
-  const globalConfig = mode?.global_config?.custom?.props;
-  const { sections = [] } = page || {};
+  const { globalConfig } = useThemeConfig({ fpi, page: "blog" });
   const seoData = page?.seo || {};
-  const { brandName, canonicalUrl, pageUrl, description: seoDescription, socialImage } =
-    useSeoMeta({ fpi, seo: seoData });
+  const { error, isLoading } = page || {};
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: seoData });
 
   const title = useMemo(() => {
     const raw = sanitizeHTMLTag(
@@ -35,30 +38,44 @@ function Blog({ fpi }) {
     return normalized || seoDescription;
   }, [seoData?.description, t, seoDescription]);
 
-  console.log("Blog Page Rendered", sections);
+  if (error) {
+    return (
+      <>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
+      </>
+    );
+  }
+
   return (
     <>
-      {page?.value === "blog" && (
-        <>
-          {getHelmet({
-            title,
-            description,
-            image: socialImage,
-            canonicalUrl,
-            url: pageUrl,
-            siteName: brandName,
-            ogType: "article",
-          })}
-          <SectionRenderer
-            sections={sections}
-            fpi={fpi}
-            globalConfig={globalConfig}
-          />
-        </>
-      )}
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        ogType: "article",
+      })}
+      <div className="margin0auto basePageContainer">
+        <h1 className="visually-hidden">{title}</h1>
+        <BlogSection
+          fpi={fpi}
+          props={BLOG_PAGE_DUMMY_SECTIONS.blog.props}
+          blocks={BLOG_PAGE_DUMMY_SECTIONS.blog.blocks}
+          globalConfig={globalConfig}
+        />
+        {isLoading && <Loader />}
+      </div>
     </>
   );
 }
+
+export const settings = JSON.stringify({
+  props: [],
+});
+
 export const sections = JSON.stringify([
   {
     attributes: {
@@ -66,4 +83,5 @@ export const sections = JSON.stringify([
     },
   },
 ]);
+
 export default Blog;

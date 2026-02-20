@@ -30,7 +30,7 @@ export default function SocailMedia({ social_links, customClassName }) {
   const { t } = useGlobalTranslation("translation");
   const fpi = useFPI();
   const { globalConfig } = useHeader(fpi);
-  const openSameTab = !!globalConfig.footer_social_open_same_tab;
+  const openSameTab = !!globalConfig?.footer_social_open_same_tab;
 
   function getSocialIcon(key) {
     const SocialIcon = iconMap[key];
@@ -60,7 +60,7 @@ export default function SocailMedia({ social_links, customClassName }) {
             >
               {getSocialIcon(`social_${key}`)}
             </FDKLink>
-          ))
+          )),
       )}
     </div>
   );

@@ -15,9 +15,8 @@ function ProfileRoot({
   rightSections = [],
   globalConfig,
 }) {
-  const { first_name, last_name, profile_pic_url, user } = useGlobalStore(
-    fpi.getters.USER_DATA
-  );
+  const { first_name, last_name, profile_pic_url, user } =
+    useGlobalStore(fpi.getters.USER_DATA) || {};
   const { signOut } = useAccounts({ fpi });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
@@ -26,8 +25,13 @@ function ProfileRoot({
 
   const userProfilePicUrl = profile_pic_url ?? user?.profile_pic_url;
   const { t } = useGlobalTranslation("translation");
-  const { brandName, canonicalUrl, pageUrl, description: seoDescription, socialImage } =
-    useSeoMeta({ fpi, seo: {} });
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: {} });
 
   const title = useMemo(() => {
     const base = brandName ? `My Account | ${brandName}` : "My Account";
@@ -36,9 +40,7 @@ function ProfileRoot({
 
   const description = useMemo(() => {
     const base = t("resource.profile_details.seo_description");
-    return (
-      sanitizeHTMLTag(base).replace(/\s+/g, " ").trim() || seoDescription
-    );
+    return sanitizeHTMLTag(base).replace(/\s+/g, " ").trim() || seoDescription;
   }, [t, seoDescription]);
   const handleSignOut = () => {
     setIsLogoutModalOpen(true);

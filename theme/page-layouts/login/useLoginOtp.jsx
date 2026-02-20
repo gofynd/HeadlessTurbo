@@ -74,10 +74,14 @@ const useLoginOtp = ({ fpi, isLoginToggle }) => {
       .catch((err) => {
         if (err?.details?.meta?.is_deleted) {
           navigate(
-            "/auth/account-locked" + (location.search ? location.search : "")
+            "/auth/account-locked" + (location.search ? location.search : ""),
           );
         }
-        setOtpError({ message: translateDynamicLabel(err?.message, t) || t("resource.common.error_message") });
+        setOtpError({
+          message:
+            translateDynamicLabel(err?.message, t) ||
+            t("resource.common.error_message"),
+        });
       });
   };
   const handleResendOtp = ({ phone }) => {

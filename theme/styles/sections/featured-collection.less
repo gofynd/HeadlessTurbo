@@ -94,6 +94,29 @@
 .imageGallery {
   border-radius: @ImageRadius;
   -webkit-mask-image: -webkit-radial-gradient(white, black); //safari fix
+  width: 100%;
+  height: auto;
+  display: block;
+  visibility: visible;
+  opacity: 1;
+}
+
+// Ensure product card images are visible
+.imageGrid,
+.productSlider {
+  :global(.product-card),
+  :global([class*="product-card"]) {
+    img,
+    picture,
+    :global(.fy-image__imageWrapper___wKmP2),
+    :global(.fyImg) {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      width: 100% !important;
+      height: auto !important;
+    }
+  }
 }
 
 .pos-relative {
@@ -377,7 +400,7 @@
         gap: 12px;
         align-items: start;
       }
-      
+
       & > * {
         height: auto;
         min-height: 0;

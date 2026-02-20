@@ -1,17 +1,27 @@
 import React, { useMemo } from "react";
 import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
-import { SectionRenderer } from "fdk-core/components";
-import { getHelmet } from "../providers/global-provider";
+import { useThemeConfig } from "../helper/hooks";
+import Loader from "../components/loader/loader";
 import { sanitizeHTMLTag } from "../helper/utils";
+import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
+import StoreLocator from "../sections/store-locator";
+import { LOCATE_US_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
 
 function LocateUsPage({ fpi }) {
   const { t } = useGlobalTranslation("translation");
   const page = useGlobalStore(fpi.getters.PAGE) || {};
-  const THEME = useGlobalStore(fpi.getters.THEME);
+  const { globalConfig } = useThemeConfig({ fpi, page: "locate-us" });
   const seoData = page?.seo || {};
-  const { brandName, canonicalUrl, pageUrl, description: seoDescription, socialImage } =
-    useSeoMeta({ fpi, seo: seoData });
+  const { error, isLoading } = page || {};
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: seoData });
+
   const title = useMemo(() => {
     const raw = sanitizeHTMLTag(
       seoData?.title || t("resource.common.page_titles.locate_us")
@@ -19,6 +29,7 @@ function LocateUsPage({ fpi }) {
     if (raw && brandName) return `${raw} | ${brandName}`;
     return raw || brandName || "";
   }, [seoData?.title, brandName, t]);
+
   const description = useMemo(() => {
     const raw = sanitizeHTMLTag(
       seoData?.description || t("resource.common.locate_us_seo_description")
@@ -27,35 +38,43 @@ function LocateUsPage({ fpi }) {
     return normalized || seoDescription;
   }, [seoData?.description, t, seoDescription]);
 
-  const mode = THEME?.config?.list.find(
-    (f) => f.name === THEME?.config?.current
-  );
-  const globalConfig = mode?.global_config?.custom?.props;
-  const { sections = [] } = page || {};
+  if (error) {
+    return (
+      <>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
+      </>
+    );
+  }
 
   return (
-    page?.value === "locate-us" && (
-      <>
-        {getHelmet({
-          title,
-          description,
-          image: socialImage,
-          canonicalUrl,
-          url: pageUrl,
-          siteName: brandName,
-          ogType: "website",
-        })}
-        <div className="basePageContainer margin0auto">
-          <SectionRenderer
-            sections={sections}
-            fpi={fpi}
-            globalConfig={globalConfig}
-          />
-        </div>
-      </>
-    )
+    <>
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        ogType: "website",
+      })}
+      <div className="basePageContainer margin0auto">
+        <h1 className="visually-hidden">{title}</h1>
+        <StoreLocator
+          fpi={fpi}
+          props={LOCATE_US_PAGE_DUMMY_SECTIONS.storeLocator.props}
+          blocks={LOCATE_US_PAGE_DUMMY_SECTIONS.storeLocator.blocks}
+          globalConfig={globalConfig}
+        />
+        {isLoading && <Loader />}
+      </div>
+    </>
   );
 }
+
+export const settings = JSON.stringify({
+  props: [],
+});
 
 export const sections = JSON.stringify([
   {

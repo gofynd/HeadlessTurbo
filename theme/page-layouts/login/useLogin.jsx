@@ -9,6 +9,7 @@ import { useAccounts, useThemeConfig } from "../../helper/hooks";
 import useLoginOtp from "./useLoginOtp";
 import useLoginPassword from "./useLoginPassword";
 import { isRunningOnClient, getLocalizedRedirectUrl } from "../../helper/utils";
+import { setPersistedAuth } from "../../helper/auth-persistence";
 import {
   GOOGLE_LOGIN,
   LOGIN_WITH_FACEBOOK_MUTATION,
@@ -48,12 +49,12 @@ const useLogin = ({ fpi, pageConfig = {} }) => {
         alt: t("resource.auth.login.mobile_logo_alt"),
       },
     }),
-    [platformData]
+    [platformData],
   );
 
   const showLoginToggleButton = useMemo(
     () => platformData?.login?.otp && platformData?.login?.password,
-    [platformData]
+    [platformData],
   );
 
   const isPassword = useMemo(() => {
@@ -132,6 +133,7 @@ const useLogin = ({ fpi, pageConfig = {} }) => {
     const userExists = data?.user_exists;
     fpi.custom.setValue("user_Data", data);
     if (userExists) {
+      setPersistedAuth(true, data?.user ?? null);
       const queryParams = isRunningOnClient()
         ? new URLSearchParams(location.search)
         : null;

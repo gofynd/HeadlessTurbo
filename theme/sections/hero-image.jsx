@@ -43,7 +43,7 @@ export function Component({ props, globalConfig, blocks }) {
   useEffect(() => {
     const updateTooltipDimensions = () => {
       const tooltip = document.querySelector(
-        `.${styles["application-banner-container"]} .${styles["tooltip-visible"]}`
+        `.${styles["application-banner-container"]} .${styles["tooltip-visible"]}`,
       );
       if (tooltip) {
         const newHeight = tooltip.clientHeight - 20;
@@ -271,10 +271,10 @@ export function Component({ props, globalConfig, blocks }) {
   const getHotspots = () => {
     return {
       desktop: blocks?.filter(
-        (block) => block?.type && block?.type !== "hotspot_mobile"
+        (block) => block?.type && block?.type !== "hotspot_mobile",
       ),
       mobile: blocks?.filter(
-        (block) => block?.type && block?.type !== "hotspot_desktop"
+        (block) => block?.type && block?.type !== "hotspot_desktop",
       ),
     };
   };
@@ -284,12 +284,16 @@ export function Component({ props, globalConfig, blocks }) {
     paddingBottom: `${padding_bottom?.value ?? 16}px`,
   };
 
-  // Only use mediaLayout when height_mode is explicitly configured
+  // Use default aspect ratio when height_mode is "auto" to prevent oversized images
   const hasHeightConfig =
     height_mode?.value &&
     height_mode.value !== "auto" &&
     (height_mode.value === "aspect_ratio" ||
       height_mode.value === "fixed_height");
+
+  // Apply default aspect ratio (16:9) when height_mode is "auto" or not set
+  const defaultAspectRatio = 16 / 9;
+  const defaultMobileAspectRatio = 16 / 9;
 
   const mediaLayout = hasHeightConfig
     ? getMediaLayout(
@@ -301,19 +305,28 @@ export function Component({ props, globalConfig, blocks }) {
           mobile_aspect_ratio,
         },
         windowWidth <= 768,
-        16 / 9
+        defaultAspectRatio,
       )
-    : null;
+    : {
+        isAspectRatio: true,
+        isFixedHeight: false,
+        aspectRatio: defaultAspectRatio,
+        mobileAspectRatio: defaultMobileAspectRatio,
+        style: {
+          "--media-aspect-desktop": defaultAspectRatio,
+          "--media-aspect-mobile": defaultMobileAspectRatio,
+          "--media-fallback-padding-desktop": `${(1 / defaultAspectRatio) * 100}%`,
+          "--media-fallback-padding-mobile": `${(1 / defaultMobileAspectRatio) * 100}%`,
+        },
+      };
 
   const heroContainerClassNames = [
     styles.heroImageContainer,
-    mediaLayout
-      ? [
-          styles.mediaShell,
-          mediaLayout.isAspectRatio ? styles.mediaShellAspect : "",
-          mediaLayout.isFixedHeight ? styles.mediaShellFixedHeight : "",
-        ]
-      : [],
+    [
+      styles.mediaShell,
+      mediaLayout.isAspectRatio ? styles.mediaShellAspect : "",
+      mediaLayout.isFixedHeight ? styles.mediaShellFixedHeight : "",
+    ],
   ]
     .flat()
     .filter(Boolean)
@@ -328,17 +341,12 @@ export function Component({ props, globalConfig, blocks }) {
           showOverlay={displayOverlay}
           overlayColor={getOverlayColor}
           defer={false}
-          {...(mediaLayout
-            ? {
-                isFixedAspectRatio: mediaLayout.isAspectRatio,
-                aspectRatio: mediaLayout.aspectRatio ?? 16 / 9,
-                mobileAspectRatio: mediaLayout.mobileAspectRatio ?? 16 / 9,
-                isImageFill:
-                  mediaLayout.isAspectRatio || mediaLayout.isFixedHeight,
-              }
-            : {
-                isFixedAspectRatio: false,
-              })}
+          isFixedAspectRatio={mediaLayout.isAspectRatio}
+          aspectRatio={mediaLayout.aspectRatio ?? defaultAspectRatio}
+          mobileAspectRatio={
+            mediaLayout.mobileAspectRatio ?? defaultMobileAspectRatio
+          }
+          isImageFill={mediaLayout.isAspectRatio || mediaLayout.isFixedHeight}
           alt={heading?.value || "Hero banner"}
         />
         <div className={styles.overlayItems} style={getOverlayPositionStyles()}>

@@ -12,6 +12,7 @@
 .mediaShell {
   position: relative;
   width: 100%;
+  max-width: 100%;
 }
 
 .mediaShellFixedHeight {
@@ -27,6 +28,16 @@
 
 .mediaShellAspect {
   width: 100%;
+  max-width: 100%;
+  max-height: 90vh; // Prevent images from being taller than viewport
+
+  @media (max-width: 480px) {
+    max-height: 70vh; // Smaller max-height on mobile
+  }
+
+  @media (min-width: 481px) and (max-width: 768px) {
+    max-height: 80vh; // Medium max-height on tablet
+  }
 }
 
 .mediaShellAspect :global(.fy-image__imageWrapper___wKmP2) {
@@ -41,10 +52,7 @@
 
   @media (max-width: 768px) {
     .mediaShellAspect {
-      aspect-ratio: var(
-        --media-aspect-mobile,
-        var(--media-aspect-desktop, 1)
-      );
+      aspect-ratio: var(--media-aspect-mobile, var(--media-aspect-desktop, 1));
     }
   }
 }

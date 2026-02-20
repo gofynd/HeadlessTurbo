@@ -1,67 +1,84 @@
 import React, { useMemo } from "react";
-
-import { SectionRenderer } from "fdk-core/components";
-import { useGlobalStore } from "fdk-core/utils";
+import { useGlobalStore, useGlobalTranslation } from "fdk-core/utils";
+import { useThemeConfig } from "../helper/hooks";
+import Loader from "../components/loader/loader";
 import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
+import CollectionsSection from "../sections/collections";
+import { COLLECTIONS_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
 
 function Collections({ fpi }) {
+  const { t } = useGlobalTranslation("translation");
   const page = useGlobalStore(fpi.getters.PAGE) || {};
-  const THEME = useGlobalStore(fpi.getters.THEME);
+  const { globalConfig } = useThemeConfig({ fpi, page: "collections" });
   const seoData = page?.seo || {};
-  const { brandName, canonicalUrl, pageUrl, description: seoDescription, socialImage } =
-    useSeoMeta({ fpi, seo: seoData });
-
-  const mode = THEME?.config?.list.find(
-    (f) => f.name === THEME?.config?.current
-  );
-  const globalConfig = mode?.global_config?.custom?.props;
-  const { sections = [] } = page || {};
+  const { error, isLoading } = page || {};
+  const fallbackTitle =
+    COLLECTIONS_PAGE_DUMMY_SECTIONS.collections.props?.title?.value ||
+    "Collections";
+  const fallbackDescription =
+    COLLECTIONS_PAGE_DUMMY_SECTIONS.collections.props?.description?.value || "";
+  const {
+    brandName,
+    canonicalUrl,
+    pageUrl,
+    description: seoDescription,
+    socialImage,
+  } = useSeoMeta({ fpi, seo: seoData });
 
   const title = useMemo(() => {
-    const fallbackTitle =
-      sections?.find((section) => section?.props?.title?.value)?.props?.title
-        ?.value || "Collections";
     const raw = sanitizeHTMLTag(
-      seoData?.title || fallbackTitle || "Collections"
+      seoData?.title || fallbackTitle || "Collections",
     );
     if (raw && brandName) return `${raw} | ${brandName}`;
     return raw || brandName || "";
-  }, [seoData?.title, brandName, sections]);
+  }, [seoData?.title, brandName, fallbackTitle]);
 
   const description = useMemo(() => {
-    const fallbackDescription =
-      sections?.find((section) => section?.props?.description?.value)?.props
-        ?.description?.value || "";
     const raw = sanitizeHTMLTag(
-      seoData?.description || fallbackDescription || ""
+      seoData?.description || fallbackDescription || "",
     );
     const normalized = raw.replace(/\s+/g, " ").trim();
     return normalized || seoDescription;
-  }, [seoData?.description, seoDescription, sections]);
+  }, [seoData?.description, fallbackDescription, seoDescription]);
+
+  if (error) {
+    return (
+      <>
+        <h1>{t("resource.common.error_occurred")}</h1>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
+      </>
+    );
+  }
 
   return (
-    page?.value === "collections" && (
-      <>
-        {getHelmet({
-          title,
-          description,
-          image: socialImage,
-          canonicalUrl,
-          url: pageUrl,
-          siteName: brandName,
-          ogType: "website",
-        })}
-        <SectionRenderer
-          sections={sections}
-          fpi={fpi}
+    <>
+      {getHelmet({
+        title,
+        description,
+        image: socialImage,
+        canonicalUrl,
+        url: pageUrl,
+        siteName: brandName,
+        ogType: "website",
+      })}
+      <div className="margin0auto basePageContainer">
+        <h1 className="visually-hidden">{title}</h1>
+        <CollectionsSection
+          props={COLLECTIONS_PAGE_DUMMY_SECTIONS.collections.props}
+          blocks={COLLECTIONS_PAGE_DUMMY_SECTIONS.collections.blocks}
           globalConfig={globalConfig}
         />
-      </>
-    )
+        {isLoading && <Loader />}
+      </div>
+    </>
   );
 }
+
+export const settings = JSON.stringify({
+  props: [],
+});
 
 export const sections = JSON.stringify([
   {

@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useMemo, useEffect } from "react";
 import Values from "values.js";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useFPI, useGlobalStore } from "fdk-core/utils";
@@ -12,6 +12,14 @@ import { useThemeConfig } from "../helper/hooks";
 import useInternational from "../components/header/useInternational";
 import { fetchCartDetails } from "../page-layouts/cart/useCart";
 import { initializeCopilot } from "../../copilot";
+
+const normalizeFontWeight = (weight) => {
+  if (weight === "regular" || weight === "normal") {
+    return 400;
+  }
+  const parsed = Number(weight);
+  return Number.isFinite(parsed) ? parsed : 400;
+};
 
 export function ThemeProvider({ children }) {
   const fpi = useFPI();
@@ -27,7 +35,7 @@ export function ThemeProvider({ children }) {
     globalConfig?.site_name ||
       globalConfig?.brand_name ||
       CONFIGURATION?.application?.name ||
-      CONFIGURATION?.app?.name
+      CONFIGURATION?.app?.name,
   );
 
   useEffect(() => {
@@ -74,7 +82,7 @@ export function ThemeProvider({ children }) {
     seoData?.image ||
       seoData?.image_url ||
       CONFIGURATION?.application?.logo?.secure_url ||
-      ""
+      "",
   );
   const canonicalPath = sanitizeHTMLTag(seoData?.canonical_url);
   let canonicalUrl = "";
@@ -132,26 +140,28 @@ export function ThemeProvider({ children }) {
     } else {
       return "sticky ";
     }
-  }, [globalConfig]);
+  }, [globalConfig, isValidSection]);
 
   const fontStyles = useMemo(() => {
     let styles = "";
-    const headerFont = globalConfig.font_header;
-    const bodyFont = globalConfig.font_body;
+    const headerFont = globalConfig?.font_header || {};
+    const bodyFont = globalConfig?.font_body || {};
     const headerFontName = headerFont?.family;
-    const headerFontVariants = headerFont?.variants;
+    const headerFontVariants = headerFont?.variants || {};
 
     const bodyFontName = bodyFont?.family;
-    const bodyFontVariants = bodyFont?.variants;
+    const bodyFontVariants = bodyFont?.variants || {};
 
     if (headerFontName) {
       Object.keys(headerFontVariants).forEach((variant) => {
+        const fontFile = headerFontVariants?.[variant]?.file;
+        if (!fontFile) return;
         const fontStyles = `
           @font-face {
-            font-family: ${headerFontName};
-            src: local(${headerFontName}),
-              url(${headerFontVariants[variant].file});
-            font-weight: ${headerFontVariants[variant].name};
+            font-family: '${headerFontName}';
+            src: local('${headerFontName}'),
+              url(${fontFile});
+            font-weight: ${normalizeFontWeight(headerFontVariants?.[variant]?.name)};
             font-display: swap;
           }
         `;
@@ -161,7 +171,7 @@ export function ThemeProvider({ children }) {
 
       const customFontClasses = `
         .fontHeader {
-          font-family: ${headerFontName} !important;
+          font-family: '${headerFontName}', sans-serif !important;
         }
       `;
 
@@ -170,12 +180,14 @@ export function ThemeProvider({ children }) {
 
     if (bodyFontName) {
       Object.keys(bodyFontVariants).forEach((variant) => {
+        const fontFile = bodyFontVariants?.[variant]?.file;
+        if (!fontFile) return;
         const fontStyles = `
           @font-face {
-            font-family: ${bodyFontName};
-            src: local(${bodyFontName}),
-              url(${bodyFontVariants[variant].file});
-            font-weight: ${bodyFontVariants[variant].name};
+            font-family: '${bodyFontName}';
+            src: local('${bodyFontName}'),
+              url(${fontFile});
+            font-weight: ${normalizeFontWeight(bodyFontVariants?.[variant]?.name)};
             font-display: swap;
           }
         `;
@@ -185,57 +197,66 @@ export function ThemeProvider({ children }) {
 
       const customFontClasses = `
         .fontBody {
-          font-family: ${bodyFontName} !important;
+          font-family: '${bodyFontName}', sans-serif !important;
         }
       `;
 
       styles = styles.concat(customFontClasses);
     }
 
-    const buttonPrimaryShade = new Values(pallete.button.button_primary);
-    const buttonLinkShade = new Values(pallete.button.button_link);
-    const accentDarkShades = new Values(pallete.theme.theme_accent).shades(20);
-    const accentLightShades = new Values(pallete.theme.theme_accent).tints(20);
+    const buttonPrimaryShade = pallete?.button?.button_primary
+      ? new Values(pallete?.button?.button_primary)
+      : null;
+    const buttonLinkShade = pallete?.button?.button_link
+      ? new Values(pallete?.button?.button_link)
+      : null;
+    const accentDarkShades = pallete?.theme?.theme_accent
+      ? new Values(pallete?.theme?.theme_accent).shades(20)
+      : null;
+    const accentLightShades = pallete?.theme?.theme_accent
+      ? new Values(pallete?.theme?.theme_accent).tints(20)
+      : null;
     styles = styles.concat(
       `:root, ::before, ::after {
-        --font-body: ${bodyFontName};
-        --font-header: ${headerFontName};
+        --font-body: '${bodyFontName || "Inter"}', sans-serif;
+        --font-header: '${headerFontName || "Red Hat Display"}', sans-serif;
         --section-bottom-padding: ${globalConfig?.section_margin_bottom}px;
         --imageRadius: ${globalConfig?.image_border_radius}px;
         --badgeRadius: ${globalConfig?.badge_border_radius ?? 24}px;
         --buttonRadius: ${globalConfig?.button_border_radius}px;
         --productImgAspectRatio: ${getProductImgAspectRatio(globalConfig)};
-        --buttonPrimaryL1: #${buttonPrimaryShade.tint(20).hex};
-        --buttonPrimaryL3: #${buttonPrimaryShade.tint(60).hex};
-        --buttonLinkL1: #${buttonLinkShade.tint(20).hex};
-        --buttonLinkL2: #${buttonLinkShade.tint(40).hex};
+        ${buttonPrimaryShade ? `--buttonPrimaryL1: #${buttonPrimaryShade.tint(20).hex};` : ""}
+        ${buttonPrimaryShade ? `--buttonPrimaryL3: #${buttonPrimaryShade.tint(60).hex};` : ""}
+        ${buttonLinkShade ? `--buttonLinkL1: #${buttonLinkShade.tint(20).hex};` : ""}
+        ${buttonLinkShade ? `--buttonLinkL2: #${buttonLinkShade.tint(40).hex};` : ""}
         --page-max-width: ${globalConfig?.enable_page_max_width ? "1440px" : "unset"};
+        --headerPosition: ${headerPosition};
         --header-position: ${headerPosition};
-        ${accentDarkShades?.reduce((acc, color, index) => acc.concat(`--themeAccentD${index + 1}: #${color.hex};`), "")}
-        ${accentLightShades?.reduce((acc, color, index) => acc.concat(`--themeAccentL${index + 1}: #${color.hex};`), "")}
-      }`
+        ${accentDarkShades ? accentDarkShades.reduce((acc, color, index) => acc.concat(`--themeAccentD${index + 1}: #${color.hex};`), "") : ""}
+        ${accentLightShades ? accentLightShades.reduce((acc, color, index) => acc.concat(`--themeAccentL${index + 1}: #${color.hex};`), "") : ""}
+      }`,
     );
-    return styles.replace(/\s+/g, "");
-  }, [globalConfig]);
+    return styles;
+  }, [globalConfig, pallete, headerPosition]);
 
   const fontLinks = useMemo(() => {
     const links = [];
     const addedDomains = new Set(); // Track added domains
     const fonts = [
       {
-        font: globalConfig.font_header,
+        font: globalConfig?.font_header,
         keyPrefix: "header",
         variant: "semi_bold",
       },
       {
-        font: globalConfig.font_body,
+        font: globalConfig?.font_body,
         keyPrefix: "body",
         variant: "regular",
       },
-    ];
+    ].filter((f) => f.font); // Filter out fonts that don't exist
 
     const addFontLinks = ({ font, keyPrefix, variant }) => {
-      if (font?.variants) {
+      if (font?.variants?.[variant]?.file) {
         const fontUrl = font.variants[variant].file;
         let fontDomain;
         try {
@@ -243,13 +264,13 @@ export function ThemeProvider({ children }) {
         } catch (error) {
           fontDomain = ""; // Fallback to an empty string or handle as needed
         }
-        if (!addedDomains.has(fontDomain)) {
+        if (fontDomain && !addedDomains.has(fontDomain)) {
           links.push(
             <link
               key={`preconnect-${keyPrefix}-${links.length}`}
               rel="preconnect"
               href={fontDomain}
-            />
+            />,
           );
           addedDomains.add(fontDomain); // Mark domain as added
         }
@@ -261,7 +282,7 @@ export function ThemeProvider({ children }) {
             href={fontUrl}
             as="font"
             crossOrigin="anonymous"
-          />
+          />,
         );
       }
     };
@@ -274,7 +295,7 @@ export function ThemeProvider({ children }) {
     if (globalConfig?.show_quantity_control) {
       fetchCartDetails(fpi, { buyNow });
     }
-  }, [globalConfig?.show_quantity_control]);
+  }, [globalConfig?.show_quantity_control, fpi, buyNow]);
 
   // to scroll top whenever path changes
   useEffect(() => {
@@ -416,14 +437,14 @@ export const getHelmet = ({
 
   const description = sanitizeHTMLTag(overrideDescription || seo?.description);
   const image = sanitizeHTMLTag(
-    overrideImage || (seo?.image ? seo?.image : seo?.image_url)
+    overrideImage || (seo?.image ? seo?.image : seo?.image_url),
   );
   const url = sanitizeHTMLTag(overrideUrl || seo?.url || seo?.canonical_url);
   const canonicalPath = sanitizeHTMLTag(
-    overrideCanonicalUrl || seo?.canonical_url
+    overrideCanonicalUrl || seo?.canonical_url,
   );
   const siteName = sanitizeHTMLTag(
-    overrideSiteName || seo?.site_name || seo?.brand || title
+    overrideSiteName || seo?.site_name || seo?.brand || title,
   );
   const robots = sanitizeHTMLTag(overrideRobots || seo?.robots);
   const canonicalUrl = canonicalPath || url;
