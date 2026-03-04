@@ -44,7 +44,7 @@ const distPath = resolve(join(__dirname, "dist"));
 
 const app = express();
 
-// Single API proxy for both dev and prod: /service and /ext -> Fynd API
+// Single API proxy for both dev and prod: /service, /ext and /graphql -> Fynd API
 if (PROXY_TARGET) {
   const apiProxyOptions = {
     target: PROXY_TARGET,
@@ -62,11 +62,11 @@ if (PROXY_TARGET) {
       },
     },
   };
-  app.use(["/service", "/ext"], createProxyMiddleware(apiProxyOptions));
-  console.log(`Proxy: /service, /ext -> ${PROXY_TARGET}`);
+  app.use(["/service", "/ext", "/graphql"], createProxyMiddleware(apiProxyOptions));
+  console.log(`Proxy: /service, /ext, /graphql -> ${PROXY_TARGET}`);
 } else {
   console.warn(
-    "PROXY_TARGET (or DOMAIN) not set. API proxy disabled for /service, /ext.",
+    "PROXY_TARGET (or DOMAIN) not set. API proxy disabled for /service, /ext, /graphql.",
   );
 }
 

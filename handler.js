@@ -64,7 +64,7 @@ function getMimeType(filePath) {
 }
 
 // ---------------------------------------------------------------------------
-// API proxy: forward /service and /ext to Fynd API with cookie rewriting
+// API proxy: forward /service, /ext and /graphql to Fynd API with cookie rewriting
 // ---------------------------------------------------------------------------
 function collectBody(req) {
   if (typeof req.on === "function") {
@@ -166,7 +166,11 @@ const handler = async (event, res) => {
     const pathname = url.split("?")[0].split("#")[0];
 
     // Proxy API paths to Fynd
-    if (pathname.startsWith("/service") || pathname.startsWith("/ext")) {
+    if (
+      pathname.startsWith("/service") ||
+      pathname.startsWith("/ext") ||
+      pathname.startsWith("/graphql")
+    ) {
       return proxyToFynd(event, res, url);
     }
 
