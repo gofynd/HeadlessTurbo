@@ -28,6 +28,7 @@ function readEnvFromFile(filePath) {
 
 const envFromFile = readEnvFromFile(resolve(__dirname, ".env"));
 const env = { ...envFromFile, ...process.env };
+const BUILD_ID = env.BUILD_ID || "turbo-proxy-v3-20260304";
 
 function toProxyTarget(domain) {
   if (!domain || typeof domain !== "string") return null;
@@ -84,6 +85,7 @@ function collectBody(req) {
 }
 
 async function proxyToFynd(event, res, requestUrl) {
+  res.setHeader("x-turbo-build", BUILD_ID);
   if (!PROXY_TARGET) {
     res.statusCode = 502;
     res.setHeader("Content-Type", "text/plain");
@@ -162,6 +164,7 @@ async function proxyToFynd(event, res, requestUrl) {
 // ---------------------------------------------------------------------------
 const handler = async (event, res) => {
   try {
+    res.setHeader("x-turbo-build", BUILD_ID);
     const url = event.url || event.path || "/";
     const pathname = url.split("?")[0].split("#")[0];
 

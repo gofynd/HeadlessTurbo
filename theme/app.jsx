@@ -8,7 +8,6 @@ import "./styles/base.global.less";
 import initializeTheme from "./index";
 import { routes } from "./routes";
 import { getPersistedAuth } from "./helper/auth-persistence";
-import { getApiDomainForClient } from "./helper/api-config";
 
 async function main() {
   const applicationID = process.env.APPLICATION_ID;
@@ -22,9 +21,9 @@ async function main() {
     );
   }
 
-  // Flag-based API target: ON_LOCAL → localhost (relative URLs); IS_PRODUCTION → api.fynd.com (or DOMAIN).
-  // See theme/helper/api-config.js. When neither flag is set, falls back to hostname (localhost → local).
-  const domainForClient = getApiDomainForClient();
+  // Always use same-origin for FPI calls so server-side proxy handles Storefront API.
+  // This avoids CORS failures in serverless deployments where build-time envs differ.
+  const domainForClient = "";
 
   if (typeof initializeTheme !== "function") {
     const got =
