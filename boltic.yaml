@@ -12,5 +12,5 @@ build:
   ignorefile: .gitignore
 
 # Runtime env (set in Boltic console or here): DOMAIN or PROXY_TARGET for API proxy in handler.js
-# env:
-#   DOMAIN: "api.fynd.com"
+env:
+  DOMAIN: "api.fynd.com"

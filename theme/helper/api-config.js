@@ -37,20 +37,21 @@ export function useProxy() {
 
 /**
  * Whether API calls should target same-origin instead of api.fynd.com.
- * USE_PROXY > ON_LOCAL > IS_PRODUCTION > hostname fallback.
+ * DISABLE_PROXY > USE_PROXY > ON_LOCAL > IS_PRODUCTION > hostname fallback.
+ * In serverless deployments, build-time envs may be unavailable, so default to
+ * same-origin proxy unless explicitly disabled.
  * @returns {boolean}
  */
 export function useLocalApi() {
+  if (process.env.DISABLE_PROXY === "true") return false;
   if (useProxy()) return true;
   if (isOnLocal()) return true;
-  if (isProduction()) return false;
+  if (isProduction()) return true;
   if (typeof window !== "undefined") {
-    return (
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1"
-    );
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") return true;
   }
-  return false;
+  return true;
 }
 
 /**
