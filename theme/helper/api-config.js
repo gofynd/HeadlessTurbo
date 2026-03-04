@@ -1,8 +1,9 @@
 /**
  * Flag-based API endpoint configuration.
+ * - USE_PROXY=true → API calls use same-origin (relative URLs), relying on server-side proxy.
  * - ON_LOCAL=true → API calls go to localhost (same-origin / dev proxy).
  * - IS_PRODUCTION=true → API calls go to api.fynd.com (or DOMAIN from env).
- * When both are set, ON_LOCAL wins so you can point production builds at local API.
+ * Priority: USE_PROXY > ON_LOCAL > IS_PRODUCTION > hostname fallback.
  * When neither is set, behavior falls back to hostname (localhost/127.0.0.1 → local).
  */
 
@@ -28,11 +29,19 @@ export function isProduction() {
 }
 
 /**
- * Whether API calls should target localhost (same-origin) instead of api.fynd.com.
- * ON_LOCAL wins over IS_PRODUCTION when both are set.
+ * @returns {boolean} True when USE_PROXY env is explicitly "true".
+ */
+export function useProxy() {
+  return process.env.USE_PROXY === "true";
+}
+
+/**
+ * Whether API calls should target same-origin instead of api.fynd.com.
+ * USE_PROXY > ON_LOCAL > IS_PRODUCTION > hostname fallback.
  * @returns {boolean}
  */
 export function useLocalApi() {
+  if (useProxy()) return true;
   if (isOnLocal()) return true;
   if (isProduction()) return false;
   if (typeof window !== "undefined") {

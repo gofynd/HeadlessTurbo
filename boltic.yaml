@@ -1,6 +1,8 @@
 # boltic.yaml
 app: "headless-react-starter"
 region: "asia-south1"
+# Container entrypoint is server.js (set via Dockerfile CMD).
+# handler.handler is kept as fallback for Boltic FaaS mode (static-only, no proxy).
 handler: "handler.handler"
 language: "nodejs/20"
 

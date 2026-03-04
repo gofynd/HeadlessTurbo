@@ -55,6 +55,7 @@ module.exports = (env = {}, argv = {}) => {
     },
     resolve: {
       extensions: [".js", ".jsx", ".ts", ".tsx"],
+      fullySpecified: false,
       alias: {
         "fdk-core/utils": path.resolve(context, "theme/fdk-core/utils.js"),
         "fdk-core/components": path.resolve(
