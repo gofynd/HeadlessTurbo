@@ -68,20 +68,35 @@ function getMimeType(filePath) {
 // API proxy: forward /service, /ext and /graphql to Fynd API with cookie rewriting
 // ---------------------------------------------------------------------------
 function collectBody(req) {
+  // Prefer streaming body (raw bytes), but some serverless runtimes pre-parse
+  // the body and expose it only via req.body (stream may already be consumed).
   if (typeof req.on === "function") {
     return new Promise((resolve, reject) => {
       const chunks = [];
       req.on("data", (c) => chunks.push(c));
-      req.on("end", () => resolve(Buffer.concat(chunks)));
+      req.on("end", () => {
+        const buf = Buffer.concat(chunks);
+        // If stream was already consumed (empty) but req.body exists, fall back.
+        if (buf.length === 0 && req.body != null) {
+          resolve(bodyToBuffer(req.body));
+        } else {
+          resolve(buf);
+        }
+      });
       req.on("error", reject);
     });
   }
   if (req.body != null) {
-    return Promise.resolve(
-      typeof req.body === "string" ? Buffer.from(req.body) : req.body,
-    );
+    return Promise.resolve(bodyToBuffer(req.body));
   }
   return Promise.resolve(null);
+}
+
+function bodyToBuffer(body) {
+  if (Buffer.isBuffer(body)) return body;
+  if (typeof body === "string") return Buffer.from(body);
+  // Pre-parsed JSON object — re-serialize so the upstream receives valid JSON.
+  return Buffer.from(JSON.stringify(body));
 }
 
 async function proxyToFynd(event, res, requestUrl) {
@@ -98,15 +113,20 @@ async function proxyToFynd(event, res, requestUrl) {
 
   const fwdHeaders = {};
   const reqHeaders = event.headers || {};
+  // Strip hop-by-hop headers and origin/referer so api.fynd.com treats this
+  // as a clean server-to-server call and does not issue any origin-based redirect.
+  const SKIP_HEADERS = new Set([
+    "host",
+    "connection",
+    "content-length",
+    "origin",
+    "referer",
+    "transfer-encoding",
+  ]);
   for (const [k, v] of Object.entries(reqHeaders)) {
-    const lower = k.toLowerCase();
-    if (
-      lower === "host" ||
-      lower === "connection" ||
-      lower === "content-length"
-    )
-      continue;
-    fwdHeaders[k] = v;
+    if (!SKIP_HEADERS.has(k.toLowerCase())) {
+      fwdHeaders[k] = v;
+    }
   }
 
   let body = null;

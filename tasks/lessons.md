@@ -17,6 +17,19 @@
 - After a full-page redirect post-login, only `logged_in: true` was persisted; `user_data` was lost. Persist the user payload (from login mutation or from USER_DATA_QUERY) with auth and rehydrate into `storeInitialData.auth` so the profile page has data on load.
 - When running USER_DATA_QUERY manually (e.g. in auth-guard or profile page), sync the response to `fpi.custom.setValue("user_Data", { logged_in_user })` so components that read from custom store get the data even if FDK handler runs in a different order.
 
+## 2026-03-04: CORS errors in production serverless proxy
+
+- **`redirect: "manual"` in server-side proxy is dangerous.** When the upstream API redirects
+  (e.g. `/graphql` → `/graphql/`), the proxy forwards the `3xx + Location: https://api.fynd.com/...`
+  response to the browser. The browser follows the redirect cross-origin → CORS error.
+  Always use `redirect: "follow"` in a transparent proxy so redirects are resolved server-side.
+- **All prod GraphQL calls go through `fpi.executeGQL` (fdk-store-gql), not Apollo/storefront-graphql.js.**
+  Verify the actual call path before assuming which client is responsible for CORS failures.
+- **`systemvars: true` in dotenv-webpack is required for CI/cloud builds** where `.env` may be
+  excluded (e.g. via `.gitignore` in the Boltic build context). Without it, env vars injected
+  by the cloud console are ignored at webpack compile-time, causing `process.env.*` to be
+  `undefined` in the browser bundle.
+
 ## 2026-02-19: Add to watchlist 401 when logged in (local dev)
 
 - Fynd Storefront API requires a session **cookie** for user-associated operations (e.g. `followById`). The Bearer header is app credentials only; user identity is via cookie.
