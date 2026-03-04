@@ -28,7 +28,7 @@ function readEnvFromFile(filePath) {
 
 const envFromFile = readEnvFromFile(resolve(__dirname, ".env"));
 const env = { ...envFromFile, ...process.env };
-const BUILD_ID = env.BUILD_ID || "turbo-proxy-v3-20260304";
+const BUILD_ID = env.BUILD_ID || "turbo-proxy-v4-20260304";
 
 function toProxyTarget(domain) {
   if (!domain || typeof domain !== "string") return null;

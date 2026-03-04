@@ -13,4 +13,6 @@ build:
 
 # Runtime env (set in Boltic console or here): DOMAIN or PROXY_TARGET for API proxy in handler.js
 env:
+  PROXY_TARGET: "https://api.fynd.com"
   DOMAIN: "api.fynd.com"
+  BUILD_ID: "turbo-proxy-v4-20260304"
