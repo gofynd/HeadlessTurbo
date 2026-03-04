@@ -29,6 +29,16 @@
   excluded (e.g. via `.gitignore` in the Boltic build context). Without it, env vars injected
   by the cloud console are ignored at webpack compile-time, causing `process.env.*` to be
   `undefined` in the browser bundle.
+- **Boltic's serverless runtime passes the full URL in `event.url`** — not just the path.
+  `event.url` may be `https://host/service/application/graphql/`. Always extract `pathname`
+  using `new URL(rawUrl).pathname` when `rawUrl` starts with `http://` or `https://`.
+  Without this, `pathname.startsWith("/service")` always fails and the handler falls through
+  to serving `index.html` for every API request.
+- **Add a `/__version` health endpoint to every serverless handler** so you can instantly
+  verify which build is live without reading logs or checking the dashboard.
+- **Confirm actual deployed code via a live probe before debugging.** Check for a known
+  response header (e.g. `x-turbo-build`) or hit a health endpoint. The live server may be
+  running code that is several commits behind even if git push succeeded.
 
 ## 2026-02-19: Add to watchlist 401 when logged in (local dev)
 
