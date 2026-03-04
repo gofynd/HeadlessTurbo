@@ -122,7 +122,7 @@ async function proxyToFynd(event, res, requestUrl) {
       method,
       headers: fwdHeaders,
       body,
-      redirect: "manual",
+      redirect: "follow",
     });
 
     res.statusCode = upstream.status;

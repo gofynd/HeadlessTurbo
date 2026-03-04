@@ -181,6 +181,7 @@ module.exports = (env = {}, argv = {}) => {
       new Dotenv({
         path: path.resolve(context, ".env"),
         safe: false,
+        systemvars: true,
       }),
       ...(isDev
         ? [
