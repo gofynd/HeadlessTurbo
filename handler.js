@@ -98,7 +98,12 @@ async function proxyToFynd(event, res, requestUrl) {
   const reqHeaders = event.headers || {};
   for (const [k, v] of Object.entries(reqHeaders)) {
     const lower = k.toLowerCase();
-    if (lower === "host" || lower === "connection" || lower === "content-length") continue;
+    if (
+      lower === "host" ||
+      lower === "connection" ||
+      lower === "content-length"
+    )
+      continue;
     fwdHeaders[k] = v;
   }
 
@@ -197,10 +202,7 @@ const handler = async (event, res) => {
         res.statusCode = 200;
         res.setHeader("Content-Type", mimeType);
         if (isStaticAsset) {
-          res.setHeader(
-            "Cache-Control",
-            "public, max-age=31536000, immutable",
-          );
+          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
         } else {
           res.setHeader("Cache-Control", "no-cache");
         }
