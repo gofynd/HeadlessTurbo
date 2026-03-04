@@ -28,7 +28,7 @@ function readEnvFromFile(filePath) {
 
 const envFromFile = readEnvFromFile(resolve(__dirname, ".env"));
 const env = { ...envFromFile, ...process.env };
-const BUILD_ID = env.BUILD_ID || "turbo-proxy-v4-20260304";
+const BUILD_ID = env.BUILD_ID || "turbo-proxy-v5-20260304";
 
 function toProxyTarget(domain) {
   if (!domain || typeof domain !== "string") return null;
@@ -185,8 +185,30 @@ async function proxyToFynd(event, res, requestUrl) {
 const handler = async (event, res) => {
   try {
     res.setHeader("x-turbo-build", BUILD_ID);
-    const url = event.url || event.path || "/";
+
+    // Some serverless runtimes pass the full URL (https://host/path?q) rather
+    // than just the path.  Normalise to a relative path + query string.
+    const rawUrl = event.url || event.path || "/";
+    let url = rawUrl;
+    if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+      try {
+        const parsed = new URL(rawUrl);
+        url = parsed.pathname + (parsed.search || "");
+      } catch {
+        /* keep rawUrl as-is */
+      }
+    }
     const pathname = url.split("?")[0].split("#")[0];
+
+    // Health / version endpoint — used to confirm which build is running.
+    if (pathname === "/__version" || pathname === "/__health") {
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.end(
+        JSON.stringify({ build: BUILD_ID, proxy: PROXY_TARGET || "not configured" }),
+      );
+      return;
+    }
 
     // Proxy API paths to Fynd
     if (

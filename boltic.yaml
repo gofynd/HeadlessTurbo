@@ -15,4 +15,5 @@ build:
 env:
   PROXY_TARGET: "https://api.fynd.com"
   DOMAIN: "api.fynd.com"
-  BUILD_ID: "turbo-proxy-v4-20260304"
+  BUILD_ID: "turbo-proxy-v5-20260304"
+  USE_PROXY: "true"
