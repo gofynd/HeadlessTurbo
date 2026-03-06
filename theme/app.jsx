@@ -56,6 +56,7 @@ async function main() {
   }
 
   const { fpi, globalDataResolver } = parsedTheme;
+  fpi.domain = "";
 
   if (typeof window !== "undefined") {
     window.__APP_CREDENTIALS__ = { applicationID, applicationToken };

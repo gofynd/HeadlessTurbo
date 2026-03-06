@@ -18,6 +18,7 @@ export default async ({
   // Setup fetch interceptor to add Priority header
 
   const proxyDomain = domain;
+  console.log("proxyDomain", proxyDomain);
   const fpiOptions = {
     applicationID,
     applicationToken,
@@ -25,6 +26,9 @@ export default async ({
     storeInitialData,
   };
   const { client } = new FPIClient(fpiOptions);
+  // Defensive override: all storefront GraphQL traffic must stay same-origin
+  // and go through server-side proxy in both dev and serverless.
+  client.domain = "";
 
   // FDK store cartHandler -> emitFPIEvent -> defaultFPIEmit reads window.FPI.event.emit.
   // Set it as soon as the client exists so any GQL response handler (e.g. after CHECKOUT_LANDING
