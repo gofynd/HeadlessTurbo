@@ -1,3 +1,4 @@
+const webpack = require("webpack");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const path = require("path");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
@@ -42,6 +43,12 @@ module.exports = (env = {}, argv = {}) => {
   );
   const domain = envFromFile.DOMAIN || process.env.DOMAIN || "";
   const proxyTarget = getProxyTarget(domain);
+  // When USE_PROXY is true, force client bundle to use same-origin for API (avoids CORS on Boltic/serverless).
+  const useProxy =
+    envFromFile.USE_PROXY === "true" || process.env.USE_PROXY === "true";
+  const clientDomainForBundle = useProxy
+    ? ""
+    : domain || "api.fynd.com";
 
   return {
     entry: {
@@ -182,6 +189,9 @@ module.exports = (env = {}, argv = {}) => {
         path: path.resolve(context, ".env"),
         safe: false,
         systemvars: true,
+      }),
+      new webpack.DefinePlugin({
+        "process.env.DOMAIN": JSON.stringify(clientDomainForBundle),
       }),
       ...(isDev
         ? [

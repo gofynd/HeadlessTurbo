@@ -11,7 +11,8 @@ build:
   builtin: dockerfile
   ignorefile: .gitignore
 
-# Runtime env (set in Boltic console or here): DOMAIN or PROXY_TARGET for API proxy in handler.js
+# Runtime env: PROXY_TARGET/DOMAIN for handler proxy; USE_PROXY must be "true" at build time
+# so the client bundle uses same-origin URLs (/service/...) and avoids CORS.
 env:
   PROXY_TARGET: "https://api.fynd.com"
   DOMAIN: "api.fynd.com"

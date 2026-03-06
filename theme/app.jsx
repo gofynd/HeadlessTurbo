@@ -56,7 +56,11 @@ async function main() {
   }
 
   const { fpi, globalDataResolver } = parsedTheme;
+  // Force same-origin for all API/GraphQL so serverless handler proxy is used (avoids CORS).
   fpi.domain = "";
+  if (fpi.client && typeof fpi.client.domain !== "undefined") {
+    fpi.client.domain = "";
+  }
 
   if (typeof window !== "undefined") {
     window.__APP_CREDENTIALS__ = { applicationID, applicationToken };
