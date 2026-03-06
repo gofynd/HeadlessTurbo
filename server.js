@@ -51,6 +51,7 @@ if (PROXY_TARGET) {
     changeOrigin: true,
     secure: true,
     cookieDomainRewrite: "",
+    pathFilter: ["/service", "/ext", "/graphql"],
     on: {
       proxyRes(proxyRes) {
         const setCookie = proxyRes.headers["set-cookie"];
@@ -62,7 +63,7 @@ if (PROXY_TARGET) {
       },
     },
   };
-  app.use(["/service", "/ext", "/graphql"], createProxyMiddleware(apiProxyOptions));
+  app.use(createProxyMiddleware(apiProxyOptions));
   console.log(`Proxy: /service, /ext, /graphql -> ${PROXY_TARGET}`);
 } else {
   console.warn(

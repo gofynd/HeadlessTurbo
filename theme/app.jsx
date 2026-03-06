@@ -8,22 +8,21 @@ import "./styles/base.global.less";
 import initializeTheme from "./index";
 import { routes } from "./routes";
 import { getPersistedAuth } from "./helper/auth-persistence";
+import { getApiDomainForClient } from "./helper/api-config";
 
 async function main() {
   const applicationID = process.env.APPLICATION_ID;
   const applicationToken = process.env.APPLICATION_TOKEN;
-  const domain = process.env.DOMAIN;
 
-  if (!applicationID || !applicationToken || !domain) {
+  if (!applicationID || !applicationToken) {
     // Keeps local setup failures explicit before rendering.
     throw new Error(
-      "Missing env vars. Expected APPLICATION_ID, APPLICATION_TOKEN, DOMAIN.",
+      "Missing env vars. Expected APPLICATION_ID, APPLICATION_TOKEN.",
     );
   }
 
-  // Always use same-origin for FPI calls so server-side proxy handles Storefront API.
-  // This avoids CORS failures in serverless deployments where build-time envs differ.
-  const domainForClient = "";
+  // In proxy/local mode this returns "", otherwise it returns an absolute API domain.
+  const domainForClient = getApiDomainForClient();
 
   if (typeof initializeTheme !== "function") {
     const got =

@@ -1,4 +1,3 @@
-const webpack = require("webpack");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const path = require("path");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
@@ -6,6 +5,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const Dotenv = require("dotenv-webpack");
 const { readFileSync } = require("node:fs");
 const ReactRefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
+const { createProxyMiddleware } = require("http-proxy-middleware");
 
 function readEnvFromFile(filePath) {
   try {
@@ -25,13 +25,6 @@ function readEnvFromFile(filePath) {
   }
 }
 
-function getProxyTarget(domain) {
-  if (!domain || typeof domain !== "string") return null;
-  const d = domain.trim();
-  if (/^https?:\/\//i.test(d)) return d;
-  return `https://${d}`;
-}
-
 module.exports = (env = {}, argv = {}) => {
   const mode = argv.mode || env.mode || process.env.NODE_ENV || "development";
   const isDev = mode === "development";
@@ -42,13 +35,23 @@ module.exports = (env = {}, argv = {}) => {
     10,
   );
   const domain = envFromFile.DOMAIN || process.env.DOMAIN || "";
-  const proxyTarget = getProxyTarget(domain);
   // When USE_PROXY is true, force client bundle to use same-origin for API (avoids CORS on Boltic/serverless).
   const useProxy =
     envFromFile.USE_PROXY === "true" || process.env.USE_PROXY === "true";
   const clientDomainForBundle = useProxy
     ? ""
     : domain || "api.fynd.com";
+
+  const proxyTargetRaw = envFromFile.PROXY_TARGET || process.env.PROXY_TARGET || domain;
+  const proxyTarget = !proxyTargetRaw
+    ? ""
+    : /^https?:\/\//i.test(String(proxyTargetRaw).trim())
+      ? String(proxyTargetRaw).trim()
+      : `https://${String(proxyTargetRaw).trim()}`;
+
+  // `dotenv-webpack` also defines `process.env.DOMAIN` (via webpack DefinePlugin internally).
+  // Set the desired client bundle value here to avoid conflicting DefinePlugin values.
+  process.env.DOMAIN = clientDomainForBundle;
 
   return {
     entry: {
@@ -190,9 +193,6 @@ module.exports = (env = {}, argv = {}) => {
         safe: false,
         systemvars: true,
       }),
-      new webpack.DefinePlugin({
-        "process.env.DOMAIN": JSON.stringify(clientDomainForBundle),
-      }),
       ...(isDev
         ? [
             new ReactRefreshWebpackPlugin({
@@ -217,30 +217,27 @@ module.exports = (env = {}, argv = {}) => {
       hot: true,
       port: Number.isNaN(devServerPort) ? 5002 : devServerPort,
       open: false,
-      proxy: proxyTarget
-        ? [
-            {
-              context: ["/service"],
+      // API proxy is handled by `Turbo/server.js` (single proxy source). Avoid a second proxy here.
+      setupMiddlewares: (middlewares, devServer) => {
+        if (devServer?.app) {
+          // In local dev, users typically browse the webpack-dev-server port directly (e.g. :5001).
+          // Mount the API proxy here too so `/service|/ext|/graphql` works on the same origin/port.
+          //
+          // IMPORTANT:
+          // `http-proxy-middleware@3` only supports `createProxyMiddleware(options)`.
+          // Use `options.pathFilter` instead of the legacy `(context, options)` signature.
+          if (useProxy && proxyTarget) {
+            const apiProxyOptions = {
               target: proxyTarget,
               changeOrigin: true,
               secure: true,
-              // Rewrite Set-Cookie so session cookie works on localhost (required for followById etc.).
               cookieDomainRewrite: "",
-              // Fallback: manually strip Domain from Set-Cookie so cookie is stored for current host.
-              onProxyRes(proxyRes) {
-                const setCookie = proxyRes.headers["set-cookie"];
-                if (!Array.isArray(setCookie) && !setCookie) return;
-                const rewritten = (Array.isArray(setCookie) ? setCookie : [setCookie]).map(
-                  (header) =>
-                    header.replace(/;\s*Domain=[^;]+/gi, "").replace(/;\s*domain=[^;]+/gi, ""),
-                );
-                proxyRes.headers["set-cookie"] = rewritten;
-              },
-            },
-          ]
-        : undefined,
-      setupMiddlewares: (middlewares, devServer) => {
-        if (devServer?.app) {
+              pathFilter: ["/service", "/ext", "/graphql"],
+            };
+
+            devServer.app.use(createProxyMiddleware(apiProxyOptions));
+          }
+
           devServer.app.get("/favicon.ico", (_, res) => res.status(204).end());
         }
         return middlewares;
