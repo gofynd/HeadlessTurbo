@@ -28,7 +28,7 @@ function readEnvFromFile(filePath) {
 
 const envFromFile = readEnvFromFile(resolve(__dirname, ".env"));
 const env = { ...envFromFile, ...process.env };
-const BUILD_ID = env.BUILD_ID || "turbo-proxy-v6c-20260311";
+const BUILD_ID = env.BUILD_ID || "turbo-proxy-v6d-20260311";
 
 function toProxyTarget(domain) {
   if (!domain || typeof domain !== "string") return null;
@@ -174,6 +174,10 @@ async function proxyToFynd(event, res, requestUrl) {
     "origin",
     "referer",
     "transfer-encoding",
+    // Node.js fetch() auto-decompresses gzip/br, so don't ask the upstream to
+    // compress — send identity only, which avoids a content-encoding mismatch
+    // when we forward the raw ArrayBuffer to the browser.
+    "accept-encoding",
   ]);
   for (const [k, v] of Object.entries(reqHeaders)) {
     if (!SKIP_HEADERS.has(k.toLowerCase())) {
@@ -208,7 +212,15 @@ async function proxyToFynd(event, res, requestUrl) {
 
     for (const [key, value] of upstream.headers.entries()) {
       const lower = key.toLowerCase();
-      if (lower === "set-cookie" || lower === "transfer-encoding") continue;
+      // Skip encoding-related headers: Node.js fetch already decompressed the
+      // body into a plain ArrayBuffer, so forwarding content-encoding would
+      // make the browser try to decompress data that is already plain text.
+      if (
+        lower === "set-cookie" ||
+        lower === "transfer-encoding" ||
+        lower === "content-encoding"
+      )
+        continue;
       try {
         res.setHeader(key, value);
       } catch {
