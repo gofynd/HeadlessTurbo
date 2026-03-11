@@ -28,7 +28,7 @@ function readEnvFromFile(filePath) {
 
 const envFromFile = readEnvFromFile(resolve(__dirname, ".env"));
 const env = { ...envFromFile, ...process.env };
-const BUILD_ID = env.BUILD_ID || "turbo-proxy-v6-20260311";
+const BUILD_ID = env.BUILD_ID || "turbo-proxy-v6b-20260311";
 
 function toProxyTarget(domain) {
   if (!domain || typeof domain !== "string") return null;
@@ -37,7 +37,10 @@ function toProxyTarget(domain) {
   return `https://${d}`;
 }
 
-const PROXY_TARGET = env.PROXY_TARGET || toProxyTarget(env.DOMAIN);
+// Boltic serverless does not inject boltic.yaml `env:` values into process.env at runtime,
+// and the .env file is excluded by .gitignore. Fall back to the canonical Fynd API domain.
+const PROXY_TARGET =
+  env.PROXY_TARGET || toProxyTarget(env.DOMAIN) || "https://api.fynd.com";
 
 // ---------------------------------------------------------------------------
 // CORS / preflight (defensive for serverless + browser clients)
