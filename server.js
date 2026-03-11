@@ -42,7 +42,17 @@ const WDS_PORT = Number(env.TURBO_DEV_PORT) || 5002;
 const WDS_URL = env.WDS_URL || `http://localhost:${WDS_PORT}`;
 const distPath = resolve(join(__dirname, "dist"));
 
+const BUILD_ID = env.BUILD_ID || "turbo-proxy-v7-container-20260311";
+
 const app = express();
+
+app.get("/__version", (_req, res) => {
+  res.json({ build: BUILD_ID, proxy: PROXY_TARGET || "not configured" });
+});
+
+app.get("/__health", (_req, res) => {
+  res.json({ build: BUILD_ID, proxy: PROXY_TARGET || "not configured" });
+});
 
 // Single API proxy for both dev and prod: /service, /ext and /graphql -> Fynd API
 if (PROXY_TARGET) {

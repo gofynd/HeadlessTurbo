@@ -1,20 +1,14 @@
-# boltic.yaml — serverless deploy (no custom Dockerfile)
-# With no Dockerfile in repo, Boltic uses its built-in builder (system-generated Dockerfile).
+# boltic.yaml — container deploy: builds Dockerfile, runs server.js on port 8080.
 app: "headless-react-starter"
 region: "asia-south1"
 
-handler: "handler.handler"
-language: "nodejs/20"
-
-# Use Boltic's built-in builder (no custom Dockerfile in repo)
 build:
-  builtin: dockerfile
+  dockerfile: Dockerfile
   ignorefile: .gitignore
 
-# Runtime env: PROXY_TARGET/DOMAIN for handler proxy; USE_PROXY must be "true" at build time
-# so the client bundle uses same-origin URLs (/service/...) and avoids CORS.
 env:
   PROXY_TARGET: "https://api.fynd.com"
   DOMAIN: "api.fynd.com"
-  BUILD_ID: "turbo-proxy-v6d-20260311"
+  BUILD_ID: "turbo-proxy-v7-container-20260311"
   USE_PROXY: "true"
+  PORT: "8080"
