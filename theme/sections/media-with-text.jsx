@@ -7,7 +7,6 @@ import Hotspot from "../components/hotspot/product-hotspot";
 import { FEATURE_PRODUCT_DETAILS } from "../queries/featureProductQuery";
 import { useViewport } from "../helper/hooks";
 import { BlockRenderer, FDKLink } from "fdk-core/components";
-import { storefrontGraphql } from "../helper/storefront-graphql";
 import placeholderDesktop from "../assets/images/placeholder/media-with-text-desktop.jpg";
 import placeholderMobile from "../assets/images/placeholder/media-with-text-mobile.jpg";
 import { MEDIA_WITH_TEXT_HOTSPOT_PLACEHOLDER_PRODUCT } from "../helper/constant";
@@ -110,24 +109,19 @@ export function Component({ props, globalConfig, blocks, fpi }) {
           (window.APP_DATA || window.__APP_CREDENTIALS__);
         const results = await Promise.all(
           productSlugs.map((slug) =>
-            (creds?.applicationID && creds?.applicationToken
-              ? storefrontGraphql({
-                  query: FEATURE_PRODUCT_DETAILS,
-                  variables: { slug },
-                  applicationId: creds.applicationID,
-                  applicationToken: creds.applicationToken,
-                  domain: "",
-                })
-              : fpi.executeGQL(
-                  FEATURE_PRODUCT_DETAILS,
-                  { slug },
-                  { skipStoreUpdate: true }
-                ))
-              .then((result) => ({
-                uid: result?.data?.product?.uid,
-                data: result,
-              }))
-          )
+            (
+              creds?.applicationID &&
+              creds?.applicationToken &&
+              fpi.executeGQL(
+                FEATURE_PRODUCT_DETAILS,
+                { slug },
+                { skipStoreUpdate: true },
+              )
+            ).then((result) => ({
+              uid: result?.data?.product?.uid,
+              data: result,
+            })),
+          ),
         );
         // Aggregate only the data field into a single array
         const aggregatedResults = results.map(({ data }) => data);
@@ -149,10 +143,10 @@ export function Component({ props, globalConfig, blocks, fpi }) {
   const getHotspots = () => {
     return {
       desktop: blocks?.filter(
-        (block) => block?.type && block?.type !== "hotspot_mobile"
+        (block) => block?.type && block?.type !== "hotspot_mobile",
       ),
       mobile: blocks?.filter(
-        (block) => block?.type && block?.type !== "hotspot_desktop"
+        (block) => block?.type && block?.type !== "hotspot_desktop",
       ),
     };
   };

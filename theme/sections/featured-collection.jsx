@@ -11,7 +11,6 @@ import "@gofynd/theme-template/components/product-card/product-card.css";
 import placeholderBanner from "../assets/images/placeholder/featured-collection-banner.png";
 import placeholderProduct from "../assets/images/placeholder/featured-collection-product.png";
 import useAddToCartModal from "../page-layouts/plp/useAddToCartModal";
-import { storefrontGraphql } from "../helper/storefront-graphql";
 import {
   useViewport,
   useAccounts,
@@ -266,14 +265,8 @@ export function Component({ props, globalConfig }) {
             (window.APP_DATA || window.__APP_CREDENTIALS__);
           const queryPromise =
             creds?.applicationID && creds?.applicationToken
-              ? storefrontGraphql({
-                  query: FEATURED_COLLECTION,
-                  variables: payload,
-                  applicationId: creds.applicationID,
-                  applicationToken: creds.applicationToken,
-                  domain: "",
-                })
-              : fpi.executeGQL(FEATURED_COLLECTION, payload);
+              ? fpi.executeGQL(FEATURED_COLLECTION, payload)
+              : Promise.resolve({ data: null });
 
           queryPromise.then((res) => {
             setIsLoading(false);
