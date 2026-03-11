@@ -61,6 +61,13 @@ if (PROXY_TARGET) {
           header.replace(/;\s*[Dd]omain=[^;]+/g, ""),
         );
       },
+      error(err, req, res) {
+        console.error(`Proxy error for ${req.method} ${req.url}:`, err.message);
+        if (!res.headersSent) {
+          res.writeHead(502, { "Content-Type": "text/plain" });
+          res.end("Bad Gateway: proxy error");
+        }
+      },
     },
   };
   app.use(createProxyMiddleware(apiProxyOptions));

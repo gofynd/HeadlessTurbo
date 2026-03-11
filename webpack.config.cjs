@@ -77,6 +77,12 @@ module.exports = (env = {}, argv = {}) => {
     module: {
       rules: [
         {
+          // Allow bare imports (no extension required) in .js/.jsx files even when
+          // package.json has "type":"module" which enables strict ESM resolution.
+          test: /\.(m?js|jsx)$/,
+          resolve: { fullySpecified: false },
+        },
+        {
           test: /\.(ts|tsx)$/,
           exclude: /node_modules/,
           use: [

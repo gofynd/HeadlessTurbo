@@ -18,9 +18,8 @@ export default async ({
   // Setup fetch interceptor to add Priority header
 
   const originDomain =
-    typeof window !== "undefined" && window?.location?.origin
-      ? window.location.origin
-      : domain;
+    typeof window !== "undefined" && window?.location?.origin;
+  console.log("originDomain", originDomain);
   const fpiOptions = {
     applicationID,
     applicationToken,
@@ -30,8 +29,9 @@ export default async ({
   const { client } = new FPIClient(fpiOptions);
   // Force absolute same-origin base URL. Some SDK codepaths treat "" as "use default api.fynd.com".
   if (typeof window !== "undefined" && window?.location?.origin) {
-    client.domain = window.location.origin;
+    client.domain = originDomain;
   }
+  console.log("client.domain", client.domain);
 
   // FDK store cartHandler -> emitFPIEvent -> defaultFPIEmit reads window.FPI.event.emit.
   // Set it as soon as the client exists so any GQL response handler (e.g. after CHECKOUT_LANDING

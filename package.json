@@ -2,6 +2,7 @@
   "name": "Turbo",
   "version": "2.2.1",
   "description": "",
+  "type": "module",
   "main": "index.js",
   "license": "ISC",
   "scripts": {
