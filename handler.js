@@ -28,7 +28,7 @@ function readEnvFromFile(filePath) {
 
 const envFromFile = readEnvFromFile(resolve(__dirname, ".env"));
 const env = { ...envFromFile, ...process.env };
-const BUILD_ID = env.BUILD_ID || "turbo-proxy-v6b-20260311";
+const BUILD_ID = env.BUILD_ID || "turbo-proxy-v6c-20260311";
 
 function toProxyTarget(domain) {
   if (!domain || typeof domain !== "string") return null;
@@ -110,26 +110,20 @@ function getMimeType(filePath) {
 // API proxy: forward /service, /ext and /graphql to Fynd API with cookie rewriting
 // ---------------------------------------------------------------------------
 function collectBody(req) {
-  // Prefer streaming body (raw bytes), but some serverless runtimes pre-parse
-  // the body and expose it only via req.body (stream may already be consumed).
+  // Boltic serverless pre-parses the request body before calling the handler,
+  // which consumes the stream. Check req.body FIRST to avoid waiting forever
+  // for stream events that will never fire.
+  if (req.body != null) {
+    return Promise.resolve(bodyToBuffer(req.body));
+  }
+  // Fallback: try streaming (works in Express / local container).
   if (typeof req.on === "function") {
     return new Promise((resolve, reject) => {
       const chunks = [];
       req.on("data", (c) => chunks.push(c));
-      req.on("end", () => {
-        const buf = Buffer.concat(chunks);
-        // If stream was already consumed (empty) but req.body exists, fall back.
-        if (buf.length === 0 && req.body != null) {
-          resolve(bodyToBuffer(req.body));
-        } else {
-          resolve(buf);
-        }
-      });
+      req.on("end", () => resolve(Buffer.concat(chunks)));
       req.on("error", reject);
     });
-  }
-  if (req.body != null) {
-    return Promise.resolve(bodyToBuffer(req.body));
   }
   return Promise.resolve(null);
 }
@@ -201,6 +195,8 @@ async function proxyToFynd(event, res, requestUrl) {
       headers: fwdHeaders,
       body,
       redirect: "follow",
+      // Fail fast — Boltic kills the function at 60 s, so abort well before that.
+      signal: AbortSignal.timeout(25000),
     });
 
     res.statusCode = upstream.status;
@@ -266,6 +262,24 @@ const handler = async (event, res) => {
       res.end(
         JSON.stringify({ build: BUILD_ID, proxy: PROXY_TARGET || "not configured" }),
       );
+      return;
+    }
+
+    // Debug endpoint — inspect the raw event shape to diagnose serverless issues.
+    if (pathname === "/__debug") {
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      const info = {
+        method: event.method,
+        url: event.url,
+        path: event.path,
+        hasBody: event.body != null,
+        bodyType: typeof event.body,
+        hasOn: typeof event.on === "function",
+        headerKeys: Object.keys(event.headers || {}),
+        env: { PROXY_TARGET: !!PROXY_TARGET, BUILD_ID },
+      };
+      res.end(JSON.stringify(info, null, 2));
       return;
     }
 
