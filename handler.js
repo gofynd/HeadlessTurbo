@@ -40,6 +40,45 @@ function toProxyTarget(domain) {
 const PROXY_TARGET = env.PROXY_TARGET || toProxyTarget(env.DOMAIN);
 
 // ---------------------------------------------------------------------------
+// CORS / preflight (defensive for serverless + browser clients)
+// ---------------------------------------------------------------------------
+function getRequestHeader(headers, key) {
+  if (!headers) return undefined;
+  const target = String(key).toLowerCase();
+  for (const [k, v] of Object.entries(headers)) {
+    if (String(k).toLowerCase() === target) return v;
+  }
+  return undefined;
+}
+
+function addCorsHeaders(event, res) {
+  const origin = getRequestHeader(event?.headers, "origin");
+  if (!origin) return;
+
+  const allowedOriginsRaw = env.ALLOWED_ORIGINS || "";
+  const allowed = allowedOriginsRaw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const host = getRequestHeader(event?.headers, "host");
+  const selfOrigins = host ? [`https://${host}`, `http://${host}`] : [];
+
+  const isAllowed =
+    allowed.length === 0
+      ? selfOrigins.includes(origin) ||
+        origin.startsWith("http://localhost") ||
+        origin.startsWith("http://127.0.0.1")
+      : allowed.includes(origin);
+
+  if (!isAllowed) return;
+
+  res.setHeader("Access-Control-Allow-Origin", origin);
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Vary", "Origin");
+}
+
+// ---------------------------------------------------------------------------
 // Static file serving
 // ---------------------------------------------------------------------------
 const mimeTypes = {
@@ -101,6 +140,7 @@ function bodyToBuffer(body) {
 
 async function proxyToFynd(event, res, requestUrl) {
   res.setHeader("x-turbo-build", BUILD_ID);
+  addCorsHeaders(event, res);
   if (!PROXY_TARGET) {
     res.statusCode = 502;
     res.setHeader("Content-Type", "text/plain");
@@ -110,6 +150,21 @@ async function proxyToFynd(event, res, requestUrl) {
 
   const targetUrl = PROXY_TARGET.replace(/\/+$/, "") + requestUrl;
   const method = (event.method || "GET").toUpperCase();
+
+  if (method === "OPTIONS") {
+    res.statusCode = 204;
+    const reqAllowHeaders =
+      getRequestHeader(event?.headers, "access-control-request-headers") ||
+      "Content-Type, Authorization";
+    const reqAllowMethod =
+      getRequestHeader(event?.headers, "access-control-request-method") ||
+      "GET,POST,PUT,PATCH,DELETE";
+    res.setHeader("Access-Control-Allow-Methods", reqAllowMethod);
+    res.setHeader("Access-Control-Allow-Headers", reqAllowHeaders);
+    res.setHeader("Access-Control-Max-Age", "600");
+    res.end();
+    return;
+  }
 
   const fwdHeaders = {};
   const reqHeaders = event.headers || {};
@@ -185,6 +240,7 @@ async function proxyToFynd(event, res, requestUrl) {
 const handler = async (event, res) => {
   try {
     res.setHeader("x-turbo-build", BUILD_ID);
+    addCorsHeaders(event, res);
 
     // Some serverless runtimes pass the full URL (https://host/path?q) rather
     // than just the path.  Normalise to a relative path + query string.

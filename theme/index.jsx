@@ -17,18 +17,21 @@ export default async ({
 }) => {
   // Setup fetch interceptor to add Priority header
 
-  const proxyDomain = domain;
-  console.log("proxyDomain", proxyDomain);
+  const originDomain =
+    typeof window !== "undefined" && window?.location?.origin
+      ? window.location.origin
+      : domain;
   const fpiOptions = {
     applicationID,
     applicationToken,
-    domain: proxyDomain,
+    domain: originDomain,
     storeInitialData,
   };
   const { client } = new FPIClient(fpiOptions);
-  // Defensive override: all storefront GraphQL traffic must stay same-origin
-  // and go through server-side proxy in both dev and serverless.
-  client.domain = "";
+  // Force absolute same-origin base URL. Some SDK codepaths treat "" as "use default api.fynd.com".
+  if (typeof window !== "undefined" && window?.location?.origin) {
+    client.domain = window.location.origin;
+  }
 
   // FDK store cartHandler -> emitFPIEvent -> defaultFPIEmit reads window.FPI.event.emit.
   // Set it as soon as the client exists so any GQL response handler (e.g. after CHECKOUT_LANDING

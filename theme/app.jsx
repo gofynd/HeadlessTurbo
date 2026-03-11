@@ -55,10 +55,12 @@ async function main() {
   }
 
   const { fpi, globalDataResolver } = parsedTheme;
-  // Force same-origin for all API/GraphQL so serverless handler proxy is used (avoids CORS).
-  fpi.domain = "";
-  if (fpi.client && typeof fpi.client.domain !== "undefined") {
-    fpi.client.domain = "";
+  // Force absolute same-origin base URL. Some SDK codepaths treat "" as "use default api.fynd.com".
+  if (typeof window !== "undefined" && window?.location?.origin) {
+    fpi.domain = window.location.origin;
+    if (fpi.client && typeof fpi.client.domain !== "undefined") {
+      fpi.client.domain = window.location.origin;
+    }
   }
 
   if (typeof window !== "undefined") {
