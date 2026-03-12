@@ -8,42 +8,64 @@ import "./styles/base.global.less";
 import initializeTheme from "./index";
 import { routes } from "./routes";
 import { getPersistedAuth } from "./helper/auth-persistence";
-import { getApiDomainForClient } from "./helper/api-config";
 
-async function main() {
+const isBrowser = typeof window !== "undefined";
+
+function assertEnvVars() {
   const applicationID = process.env.APPLICATION_ID;
   const applicationToken = process.env.APPLICATION_TOKEN;
 
   if (!applicationID || !applicationToken) {
-    // Keeps local setup failures explicit before rendering.
     throw new Error(
       "Missing env vars. Expected APPLICATION_ID, APPLICATION_TOKEN.",
     );
   }
 
-  // In proxy/local mode this returns "", otherwise it returns an absolute API domain.
-  const domainForClient = getApiDomainForClient();
+  return { applicationID, applicationToken };
+}
 
-  if (typeof initializeTheme !== "function") {
-    const got =
-      initializeTheme === undefined ? "undefined" : typeof initializeTheme;
-    throw new Error(
-      `Theme Error: initializeTheme is not a function. Got type: ${got}. ` +
-        "Ensure theme/index.jsx default export is bundled correctly (standalone: use npm run dev; no themeBundle entry in local).",
-    );
+function getStoreInitialData() {
+  if (!isBrowser) return {};
+
+  const persistedAuth = getPersistedAuth();
+  if (!persistedAuth || !Object.keys(persistedAuth).length) return {};
+
+  return { auth: { ...persistedAuth } };
+}
+
+function assertInitializeThemeFn(fn) {
+  if (typeof fn === "function") return fn;
+
+  const got = fn === undefined ? "undefined" : typeof fn;
+  throw new Error(
+    `Theme Error: initializeTheme is not a function. Got type: ${got}. ` +
+      "Ensure theme/index.jsx default export is bundled correctly (standalone: use npm run dev; no themeBundle entry in local).",
+  );
+}
+
+function attachGlobals({ fpi, applicationID, applicationToken }) {
+  if (!isBrowser) return;
+
+  window.__APP_CREDENTIALS__ = { applicationID, applicationToken };
+  window.fpi = fpi;
+
+  if (typeof window.FPI === "undefined") window.FPI = {};
+  if (typeof window.FPI.event === "undefined") window.FPI.event = {};
+  if (typeof window.FPI.event.emit !== "function") {
+    window.FPI.event.emit = function () {};
   }
+}
 
-  const persistedAuth =
-    typeof window !== "undefined" ? getPersistedAuth() : null;
-  const storeInitialData =
-    persistedAuth && Object.keys(persistedAuth).length
-      ? { auth: { ...persistedAuth } }
-      : {};
+async function bootstrap() {
+  const { applicationID, applicationToken } = assertEnvVars();
+  const storeInitialData = getStoreInitialData();
+  const safeInitializeTheme = assertInitializeThemeFn(initializeTheme);
 
-  const parsedTheme = await initializeTheme({
+  const parsedTheme = await safeInitializeTheme({
     applicationID,
     applicationToken,
-    domain: domainForClient,
+    // Domain is derived and enforced inside theme/index.jsx for same-origin usage.
+    domain: undefined,
     storeInitialData,
   });
 
@@ -55,30 +77,15 @@ async function main() {
   }
 
   const { fpi, globalDataResolver } = parsedTheme;
-  // Force absolute same-origin base URL. Some SDK codepaths treat "" as "use default api.fynd.com".
-  if (typeof window !== "undefined" && window?.location?.origin) {
-    fpi.domain = window.location.origin;
-    if (fpi.client && typeof fpi.client.domain !== "undefined") {
-      fpi.client.domain = window.location.origin;
-    }
-  }
 
-  if (typeof window !== "undefined") {
-    window.__APP_CREDENTIALS__ = { applicationID, applicationToken };
-    // Set window.fpi for global access (used by copilot utils and actions)
-    window.fpi = fpi;
-    // Fallback: theme/index.jsx sets window.FPI.event earlier (right after FPIClient creation).
-    // Here we ensure it exists so host can attach later or we no-op; avoids "Cannot read
-    // properties of undefined (reading 'event')" in defaultFPIEmit when cart/checkout GQL runs.
-    if (typeof window.FPI === "undefined") window.FPI = {};
-    if (typeof window.FPI.event === "undefined") window.FPI.event = {};
-    if (typeof window.FPI.event.emit !== "function") {
-      window.FPI.event.emit = function () {};
-    }
-  }
+  attachGlobals({ fpi, applicationID, applicationToken });
   await globalDataResolver?.({ fpi, applicationID });
 
   const app = document.getElementById("app");
+  if (!app) {
+    throw new Error('Theme Error: Root element with id "app" not found.');
+  }
+
   const root = ReactDOM.createRoot(app);
 
   root.render(
@@ -92,4 +99,4 @@ async function main() {
   );
 }
 
-main();
+bootstrap();

@@ -1,9 +1,6 @@
 import FPIClient from "@gofynd/fdk-store-gql";
 import { globalDataResolver, pageDataResolver } from "./helper/lib";
-import {
-  wrapFpiWithSWR,
-  setupAutoRevalidation,
-} from "./helper/fpi-swr-wrapper";
+import { setupAutoRevalidation } from "./helper/fpi-swr-wrapper";
 
 /**
  * Initialize theme for standalone Turbo: create FPIClient and return resolvers.
@@ -19,7 +16,6 @@ export default async ({
 
   const originDomain =
     typeof window !== "undefined" && window?.location?.origin;
-  console.log("originDomain", originDomain);
   const fpiOptions = {
     applicationID,
     applicationToken,
@@ -31,37 +27,8 @@ export default async ({
   if (typeof window !== "undefined" && window?.location?.origin) {
     client.domain = originDomain;
   }
-  console.log("client.domain", client.domain);
 
-  // FDK store cartHandler -> emitFPIEvent -> defaultFPIEmit reads window.FPI.event.emit.
-  // Set it as soon as the client exists so any GQL response handler (e.g. after CHECKOUT_LANDING
-  // or cart fetch) does not throw "Cannot read properties of undefined (reading 'event')".
-  if (typeof window !== "undefined") {
-    if (typeof window.FPI === "undefined") window.FPI = {};
-    if (typeof window.FPI.event === "undefined") window.FPI.event = {};
-    if (typeof window.FPI.event.emit !== "function") {
-      window.FPI.event.emit = function () {};
-    }
-  }
-
-  const state = client.store.getState();
-  const THEME = client.getters?.THEME(state);
-  const mode = THEME?.config?.list?.find(
-    (f) => f.name === THEME?.config?.current,
-  );
-  const ENABLE_SWR_CACHE =
-    mode?.global_config?.custom?.props?.enable_swr_caching ?? false;
-
-  if (ENABLE_SWR_CACHE) {
-    wrapFpiWithSWR(client, {
-      staleTime: 0,
-      cacheTime: 5 * 60 * 1000,
-      dedupingInterval: 2000,
-      maxCacheSize: 100,
-      maxCacheMemoryMB: 5,
-    });
-    setupAutoRevalidation(client);
-  }
+  setupAutoRevalidation(client);
 
   return {
     fpi: client,
