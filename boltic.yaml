@@ -9,6 +9,6 @@ build:
 env:
   PROXY_TARGET: "https://api.fynd.com"
   DOMAIN: "api.fynd.com"
-  BUILD_ID: "turbo-proxy-v7-container-20260311"
+  BUILD_ID: "turbo-proxy-v7-container-20260312"
   USE_PROXY: "true"
   PORT: "8080"
