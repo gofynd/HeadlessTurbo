@@ -30,7 +30,7 @@ export function ThemeProvider({ children }) {
   const description = sanitizeHTMLTag(seoData?.description);
   const CONFIGURATION = useGlobalStore(fpi.getters.CONFIGURATION);
   const sections = useGlobalStore(fpi.getters.PAGE)?.sections || [];
-  const { globalConfig, pallete } = useThemeConfig({ fpi });
+  const { globalConfig } = useThemeConfig({ fpi });
   const siteName = sanitizeHTMLTag(
     globalConfig?.site_name ||
       globalConfig?.brand_name ||
@@ -204,40 +204,104 @@ export function ThemeProvider({ children }) {
       styles = styles.concat(customFontClasses);
     }
 
-    const buttonPrimaryShade = pallete?.button?.button_primary
-      ? new Values(pallete?.button?.button_primary)
-      : null;
-    const buttonLinkShade = pallete?.button?.button_link
-      ? new Values(pallete?.button?.button_link)
-      : null;
-    const accentDarkShades = pallete?.theme?.theme_accent
-      ? new Values(pallete?.theme?.theme_accent).shades(20)
-      : null;
-    const accentLightShades = pallete?.theme?.theme_accent
-      ? new Values(pallete?.theme?.theme_accent).tints(20)
-      : null;
+    // Theme engine is now separated from Turbo.
+    // Hardcode colors here so UI does not rely on remote palette/config.
+    const THEME = {
+      page_background: "#FFFFFF",
+      theme_accent: "#ABC9F6",
+      text_heading: "#0E0E0E",
+      text_body: "#272727",
+      text_label: "#383838",
+      text_secondary: "#605E5E",
+      button_primary: "#0E0E0E",
+      button_secondary: "#FFFFFF",
+      button_link: "#0E0E0E",
+      sale_badge_background: "#E9F7E9",
+      sale_badge_text: "#135610",
+      sale_discount_text: "#008000",
+      sale_timer: "#DD1E1E",
+      header_background: "#FFFFFF",
+      header_nav: "#0E0E0E",
+      header_icon: "#383838",
+      footer_background: "#DFE5FF",
+      footer_bottom_background: "#3D6FBF",
+      footer_heading_text: "#0E0E0E",
+      footer_body_text: "#272727",
+      footer_icon: "#383838",
+      dialog_background: "#FFFFFF",
+      overlay: "#000000",
+      divider_strokes: "#E4E4E4",
+      highlight: "#F0F0F0",
+      success_background: "#E9F7E9",
+      success_text: "#135610",
+      error_background: "#FEE6EA",
+      error_text: "#660014",
+      info_background: "#FEF0E7",
+      info_text: "#F06D0F",
+    };
+
+    const buttonPrimaryShade = new Values(THEME.button_primary);
+    const buttonLinkShade = new Values(THEME.button_link);
+    const accentDarkShades = new Values(THEME.theme_accent).shades(20);
+    const accentLightShades = new Values(THEME.theme_accent).tints(20);
     styles = styles.concat(
       `:root, ::before, ::after {
         --font-body: '${bodyFontName || "Inter"}', sans-serif;
         --font-header: '${headerFontName || "Red Hat Display"}', sans-serif;
+        --pageBackground: ${THEME.page_background};
+        --themeAccent: ${THEME.theme_accent};
+        --bgColor: ${THEME.page_background};
+        --textHeading: ${THEME.text_heading};
+        --textBody: ${THEME.text_body};
+        --textLabel: ${THEME.text_label};
+        --textSecondary: ${THEME.text_secondary};
+        --buttonPrimary: ${THEME.button_primary};
+        --buttonSecondary: ${THEME.button_secondary};
+        --buttonLink: ${THEME.button_link};
+        --primaryColor: ${THEME.button_primary};
+        --secondaryColor: ${THEME.button_secondary};
+        --accentColor: ${THEME.theme_accent};
+        --linkColor: ${THEME.button_link};
+        --saleBadgeBackground: ${THEME.sale_badge_background};
+        --saleBadgeText: ${THEME.sale_badge_text};
+        --saleDiscountText: ${THEME.sale_discount_text};
+        --saleTimer: ${THEME.sale_timer};
+        --headerBackground: ${THEME.header_background};
+        --headerNav: ${THEME.header_nav};
+        --headerIcon: ${THEME.header_icon};
+        --footerBackground: ${THEME.footer_background};
+        --footerBottomBackground: ${THEME.footer_bottom_background};
+        --footerHeadingText: ${THEME.footer_heading_text};
+        --footerBodyText: ${THEME.footer_body_text};
+        --footerIcon: ${THEME.footer_icon};
+        --dialogBackground: ${THEME.dialog_background};
+        --overlay: ${THEME.overlay};
+        --dividerStokes: ${THEME.divider_strokes};
+        --highlightColor: ${THEME.highlight};
+        --successBackground: ${THEME.success_background};
+        --successText: ${THEME.success_text};
+        --errorBackground: ${THEME.error_background};
+        --errorText: ${THEME.error_text};
+        --informationBackground: ${THEME.info_background};
+        --informationText: ${THEME.info_text};
         --section-bottom-padding: ${globalConfig?.section_margin_bottom}px;
         --imageRadius: ${globalConfig?.image_border_radius}px;
         --badgeRadius: ${globalConfig?.badge_border_radius ?? 24}px;
         --buttonRadius: ${globalConfig?.button_border_radius}px;
         --productImgAspectRatio: ${getProductImgAspectRatio(globalConfig)};
-        ${buttonPrimaryShade ? `--buttonPrimaryL1: #${buttonPrimaryShade.tint(20).hex};` : ""}
-        ${buttonPrimaryShade ? `--buttonPrimaryL3: #${buttonPrimaryShade.tint(60).hex};` : ""}
-        ${buttonLinkShade ? `--buttonLinkL1: #${buttonLinkShade.tint(20).hex};` : ""}
-        ${buttonLinkShade ? `--buttonLinkL2: #${buttonLinkShade.tint(40).hex};` : ""}
+        --buttonPrimaryL1: #${buttonPrimaryShade.tint(20).hex};
+        --buttonPrimaryL3: #${buttonPrimaryShade.tint(60).hex};
+        --buttonLinkL1: #${buttonLinkShade.tint(20).hex};
+        --buttonLinkL2: #${buttonLinkShade.tint(40).hex};
         --page-max-width: ${globalConfig?.enable_page_max_width ? "1440px" : "unset"};
         --headerPosition: ${headerPosition};
         --header-position: ${headerPosition};
-        ${accentDarkShades ? accentDarkShades.reduce((acc, color, index) => acc.concat(`--themeAccentD${index + 1}: #${color.hex};`), "") : ""}
-        ${accentLightShades ? accentLightShades.reduce((acc, color, index) => acc.concat(`--themeAccentL${index + 1}: #${color.hex};`), "") : ""}
+        ${accentDarkShades.reduce((acc, color, index) => acc.concat(`--themeAccentD${index + 1}: #${color.hex};`), "")}
+        ${accentLightShades.reduce((acc, color, index) => acc.concat(`--themeAccentL${index + 1}: #${color.hex};`), "")}
       }`,
     );
     return styles;
-  }, [globalConfig, pallete, headerPosition]);
+  }, [globalConfig, headerPosition]);
 
   const fontLinks = useMemo(() => {
     const links = [];

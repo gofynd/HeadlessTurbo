@@ -106,7 +106,8 @@ if (isDev) {
       index: false,
     }),
   );
-  app.get("*", (_req, res) => {
+  // Use regex to avoid path-to-regexp wildcard differences across Express versions
+  app.get(/.*/, (_req, res) => {
     res.set("Cache-Control", "no-cache");
     res.sendFile("index.html", { root: distPath });
   });
