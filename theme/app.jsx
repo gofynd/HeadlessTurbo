@@ -8,12 +8,16 @@ import "./styles/base.global.less";
 import initializeTheme from "./index";
 import { routes } from "./routes";
 import { getPersistedAuth } from "./helper/auth-persistence";
+import { getAppCredentials } from "./helper/getAppCredentials";
 
 const isBrowser = typeof window !== "undefined";
 
 function assertEnvVars() {
-  const applicationID = process.env.APPLICATION_ID;
-  const applicationToken = process.env.APPLICATION_TOKEN;
+  const runtimeCredentials = getAppCredentials();
+  const applicationID =
+    runtimeCredentials.applicationID || process.env.APPLICATION_ID;
+  const applicationToken =
+    runtimeCredentials.applicationToken || process.env.APPLICATION_TOKEN;
 
   if (!applicationID || !applicationToken) {
     throw new Error(

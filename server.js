@@ -41,10 +41,47 @@ const PROXY_TARGET = env.PROXY_TARGET || getProxyTarget(env.DOMAIN);
 const WDS_PORT = Number(env.TURBO_DEV_PORT) || 5002;
 const WDS_URL = env.WDS_URL || `http://localhost:${WDS_PORT}`;
 const distPath = resolve(join(__dirname, "dist"));
+const indexHtmlPath = resolve(join(distPath, "index.html"));
 
 const BUILD_ID = env.BUILD_ID || "turbo-proxy-v7-container-20260311";
+const APP_CREDENTIAL_KEYS = ["APPLICATION_ID", "APPLICATION_TOKEN"];
 
 const app = express();
+
+function getRuntimeAppCredentials() {
+  const applicationID = env.APPLICATION_ID || "";
+  const applicationToken = env.APPLICATION_TOKEN || "";
+
+  return {
+    applicationID,
+    applicationToken,
+  };
+}
+
+function renderIndexHtml() {
+  const rawIndexHtml = readFileSync(indexHtmlPath, "utf-8");
+  const { applicationID, applicationToken } = getRuntimeAppCredentials();
+  const inlineCredentialsScript =
+    "<script>" +
+    `window.__APP_CREDENTIALS__=${JSON.stringify({
+      applicationID,
+      applicationToken,
+    })
+      .replace(/</g, "\\u003c")
+      .replace(/>/g, "\\u003e")
+      .replace(/&/g, "\\u0026")};` +
+    "</script>";
+
+  return rawIndexHtml.includes("</head>")
+    ? rawIndexHtml.replace("</head>", `${inlineCredentialsScript}</head>`)
+    : `${inlineCredentialsScript}${rawIndexHtml}`;
+}
+
+for (const key of APP_CREDENTIAL_KEYS) {
+  if (!env[key]) {
+    console.warn(`${key} is not set. Client bootstrap will fail without it.`);
+  }
+}
 
 app.get("/__version", (_req, res) => {
   res.json({ build: BUILD_ID, proxy: PROXY_TARGET || "not configured" });
@@ -109,7 +146,7 @@ if (isDev) {
   // Use regex to avoid path-to-regexp wildcard differences across Express versions
   app.get(/.*/, (_req, res) => {
     res.set("Cache-Control", "no-cache");
-    res.sendFile("index.html", { root: distPath });
+    res.type("html").send(renderIndexHtml());
   });
 }
 
