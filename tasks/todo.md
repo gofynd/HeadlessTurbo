@@ -32,3 +32,28 @@ Three distinct root causes identified via live-server inspection:
 
 - `handler.js` — correct path parsing, full URL safety, health endpoint, BUILD_ID bump
 - `boltic.yaml` — USE_PROXY=true ensures Boltic build uses proxy mode regardless of app.jsx version
+
+---
+
+# Proxy 404 on Production — Debug & Fix (2026-03-13)
+
+## Root Cause
+
+`/__version` on deployed container returned `proxy: "not configured"` and `build: "turbo-proxy-v7-container-20260311"` (the server.js hardcoded fallback) — proving boltic's `env:` section in `boltic.yaml` was **not** being injected into the running container, and the previously-deployed image pre-dated the `PROXY_TARGET` env entry. Without `PROXY_TARGET`, the proxy middleware was never registered → all `POST /service/...` had no Express handler → 404.
+
+Also: `.env` was listed in `.gitignore` so boltic excluded it from the Docker build context (`ignorefile: .gitignore`), meaning even a `.env` file wouldn't have been copied.
+
+## Changes Made
+
+- [x] Create `.env` with PROXY_TARGET, DOMAIN, PORT, APPLICATION_ID, APPLICATION_TOKEN
+- [x] Update `.gitignore` — track `.env`, ignore only `.env.local` / `.env.*.local`
+- [x] Update `Dockerfile` — `COPY --from=builder /app/.env ./` in final stage
+- [x] Add hardcoded fallback in `server.js`: `|| "https://api.fynd.com"` so proxy always activates
+- [x] Update `BUILD_ID` fallback to `turbo-proxy-v8-container-20260313`
+- [x] Verified locally: `/__version` → `proxy: "https://api.fynd.com"`, GraphQL → HTTP 400 (not 404)
+- [ ] **Trigger boltic redeploy** — boltctl has no `deploy` command; use boltic web dashboard
+
+## Review
+
+- Three-layer defense so PROXY_TARGET is always set: (1) `.env` baked into image, (2) boltic.yaml runtime injection, (3) `"https://api.fynd.com"` fallback in server.js
+- boltctl v1 serverless has no `deploy` command — redeploy must be triggered from boltic dashboard

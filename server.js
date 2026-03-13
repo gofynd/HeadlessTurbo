@@ -37,13 +37,14 @@ function getProxyTarget(domain) {
 
 const isDev = env.DEV === "1" || env.DEV === "true";
 const PORT = Number(env.PORT) || 8080;
-const PROXY_TARGET = env.PROXY_TARGET || getProxyTarget(env.DOMAIN);
+const PROXY_TARGET =
+  env.PROXY_TARGET || getProxyTarget(env.DOMAIN) || "https://api.fynd.com";
 const WDS_PORT = Number(env.TURBO_DEV_PORT) || 5002;
 const WDS_URL = env.WDS_URL || `http://localhost:${WDS_PORT}`;
 const distPath = resolve(join(__dirname, "dist"));
 const indexHtmlPath = resolve(join(distPath, "index.html"));
 
-const BUILD_ID = env.BUILD_ID || "turbo-proxy-v7-container-20260311";
+const BUILD_ID = env.BUILD_ID || "turbo-proxy-v8-container-20260313";
 const APP_CREDENTIAL_KEYS = ["APPLICATION_ID", "APPLICATION_TOKEN"];
 
 const app = express();
