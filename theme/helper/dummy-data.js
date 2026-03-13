@@ -211,6 +211,12 @@ export const HOME_PAGE_DUMMY_SECTIONS = {
       preselect_size: asField(false, "checkbox"),
     },
   },
+  animatedDistortedText: {
+    props: {
+      line_1: asField("WE DON'T JUST MAKE HERE", "text"),
+      line_2: asField("WE ENGINEER PERFORMANCE", "text"),
+    },
+  },
   imageSlideshow: {
     props: {
       autoplay: asField(true, "checkbox"),

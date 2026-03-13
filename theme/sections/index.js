@@ -18,6 +18,7 @@ const ContactUsSectionChunk = React.lazy(() => import(/* webpackChunkName:"Conta
 const EditProfileSectionChunk = React.lazy(() => import(/* webpackChunkName:"EditProfileSectionChunk" */ './edit-profile.jsx'));
 const FaqSectionChunk = React.lazy(() => import(/* webpackChunkName:"FaqSectionChunk" */ './faq.jsx'));
 const FeatureBlogSectionChunk = React.lazy(() => import(/* webpackChunkName:"FeatureBlogSectionChunk" */ './feature-blog.jsx'));
+const AnimatedDistortedTextSectionChunk = React.lazy(() => import(/* webpackChunkName:"AnimatedDistortedTextSectionChunk" */ './animated-distorted-text.jsx'));
 const FeaturedCollectionSectionChunk = React.lazy(() => import(/* webpackChunkName:"FeaturedCollectionSectionChunk" */ './featured-collection.jsx'));
 const ForgotPasswordSectionChunk = React.lazy(() => import(/* webpackChunkName:"ForgotPasswordSectionChunk" */ './forgot-password.jsx'));
 const HeroImageSectionChunk = React.lazy(() => import(/* webpackChunkName:"HeroImageSectionChunk" */ './hero-image.jsx'));
@@ -97,6 +98,8 @@ const getbundle = (type) => {
             return (props) => <FaqSectionChunk {...props}/>;
         case 'feature-blog':
             return (props) => <FeatureBlogSectionChunk {...props}/>;
+        case 'animated-distorted-text':
+            return (props) => <AnimatedDistortedTextSectionChunk {...props}/>;
         case 'featured-collection':
             return (props) => <FeaturedCollectionSectionChunk {...props}/>;
         case 'forgot-password':
@@ -200,6 +203,7 @@ export default {
   'edit-profile': { Component: getbundle('edit-profile') },
   'faq': { Component: getbundle('faq') },
   'feature-blog': { Component: getbundle('feature-blog') },
+  'animated-distorted-text': { Component: getbundle('animated-distorted-text') },
   'featured-collection': { Component: getbundle('featured-collection') },
   'forgot-password': { Component: getbundle('forgot-password') },
   'hero-image': { Component: getbundle('hero-image') },

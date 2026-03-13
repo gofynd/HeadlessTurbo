@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import HeroImage from "../sections/hero-image";
-import FeaturedCollection from "../sections/featured-collection";
+import AnimatedDistortedText from "../sections/animated-distorted-text";
 import ImageSlideshow from "../sections/image-slideshow";
 import MediaWithText from "../sections/media-with-text";
 import Testimonials from "../sections/testimonials";
@@ -20,7 +20,9 @@ function Home({ fpi }) {
 
   // Ensure global data (currencies, countries, etc.) is loaded on homepage via Storefront GraphQL
   useEffect(() => {
-    const creds = typeof window !== "undefined" && (window.APP_DATA || window.__APP_CREDENTIALS__);
+    const creds =
+      typeof window !== "undefined" &&
+      (window.APP_DATA || window.__APP_CREDENTIALS__);
     if (fpi && creds?.applicationID && creds?.applicationToken) {
       globalDataResolver({
         fpi,
@@ -83,10 +85,8 @@ function Home({ fpi }) {
           blocks={HOME_PAGE_DUMMY_SECTIONS.heroImage.blocks}
           globalConfig={globalConfig}
         />
-        <FeaturedCollection
-          fpi={fpi}
-          props={HOME_PAGE_DUMMY_SECTIONS.featuredCollection.props}
-          globalConfig={globalConfig}
+        <AnimatedDistortedText
+          props={HOME_PAGE_DUMMY_SECTIONS.animatedDistortedText.props}
         />
         <ImageSlideshow
           fpi={fpi}
