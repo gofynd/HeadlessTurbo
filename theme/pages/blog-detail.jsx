@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import BlogDetailSection from "../sections/blog-detail";
-import { BLOG_DETAIL_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { BLOG_DETAIL_PAGE_SECTIONS } from "../props/blog-detail";
 
 function BlogDetails({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -58,8 +58,8 @@ function BlogDetails({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <BlogDetailSection
           fpi={fpi}
-          props={BLOG_DETAIL_PAGE_DUMMY_SECTIONS.blogDetail.props}
-          blocks={BLOG_DETAIL_PAGE_DUMMY_SECTIONS.blogDetail.blocks}
+          props={BLOG_DETAIL_PAGE_SECTIONS.blogDetail.props}
+          blocks={BLOG_DETAIL_PAGE_SECTIONS.blogDetail.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

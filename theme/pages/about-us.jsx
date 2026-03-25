@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import RawHtml from "../sections/raw-html";
-import { ABOUT_US_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { ABOUT_US_PAGE_SECTIONS } from "../props/about-us";
 
 function AboutUsPage({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -62,8 +62,8 @@ function AboutUsPage({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <RawHtml
           fpi={fpi}
-          props={ABOUT_US_PAGE_DUMMY_SECTIONS.rawHtml.props}
-          blocks={ABOUT_US_PAGE_DUMMY_SECTIONS.rawHtml.blocks}
+          props={ABOUT_US_PAGE_SECTIONS.rawHtml.props}
+          blocks={ABOUT_US_PAGE_SECTIONS.rawHtml.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

@@ -9,7 +9,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import ProfileEmailSection from "../sections/profile-email";
-import { PROFILE_EMAIL_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { PROFILE_EMAIL_PAGE_SECTIONS } from "../props/profile-email";
 import "@gofynd/theme-template/components/profile-navigation/profile-navigation.css";
 
 function ProfileEmail({ fpi }) {
@@ -42,7 +42,7 @@ function ProfileEmail({ fpi }) {
     () => [
       {
         name: "profile-email",
-        props: PROFILE_EMAIL_PAGE_DUMMY_SECTIONS.profileEmail.props,
+        props: PROFILE_EMAIL_PAGE_SECTIONS.profileEmail.props,
         blocks: [],
       },
     ],
@@ -53,7 +53,7 @@ function ProfileEmail({ fpi }) {
     () => [
       {
         name: "profile-navigation-menu",
-        props: PROFILE_EMAIL_PAGE_DUMMY_SECTIONS.profileNavigationMenu.props,
+        props: PROFILE_EMAIL_PAGE_SECTIONS.profileNavigationMenu.props,
         blocks: [],
       },
     ],
@@ -101,8 +101,8 @@ function ProfileEmail({ fpi }) {
             <h1 className="visually-hidden">{title}</h1>
             <ProfileEmailSection
               fpi={fpi}
-              props={PROFILE_EMAIL_PAGE_DUMMY_SECTIONS.profileEmail.props}
-              blocks={PROFILE_EMAIL_PAGE_DUMMY_SECTIONS.profileEmail.blocks}
+              props={PROFILE_EMAIL_PAGE_SECTIONS.profileEmail.props}
+              blocks={PROFILE_EMAIL_PAGE_SECTIONS.profileEmail.blocks}
               globalConfig={globalConfig}
             />
           </div>

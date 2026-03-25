@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import ContactUs from "../sections/contact-us";
-import { CONTACT_US_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { CONTACT_US_PAGE_SECTIONS } from "../props/contact-us";
 
 function ContactUsPage({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -62,8 +62,8 @@ function ContactUsPage({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <ContactUs
           fpi={fpi}
-          props={CONTACT_US_PAGE_DUMMY_SECTIONS.contactUs.props}
-          blocks={CONTACT_US_PAGE_DUMMY_SECTIONS.contactUs.blocks}
+          props={CONTACT_US_PAGE_SECTIONS.contactUs.props}
+          blocks={CONTACT_US_PAGE_SECTIONS.contactUs.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

@@ -389,7 +389,7 @@ Component.serverFetch = async ({ fpi, router, props }) => {
         : decodeURIComponent(value);
 
       const existingParam = filterParams.find((param) =>
-        param.startsWith(`${key}:`)
+        param.startsWith(`${key}:`),
       );
 
       if (existingParam) {
@@ -419,7 +419,7 @@ Component.serverFetch = async ({ fpi, router, props }) => {
     const url = new URL(BASE_URL);
     url.searchParams.append(
       "page_id",
-      payload?.pageNo === 1 || !payload?.pageNo ? "*" : payload?.pageNo - 1
+      payload?.pageNo === 1 || !payload?.pageNo ? "*" : payload?.pageNo - 1,
     );
     url.searchParams.append("page_size", payload?.first);
 

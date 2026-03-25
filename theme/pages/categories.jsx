@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import CategoriesSection from "../sections/categories";
-import { CATEGORIES_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { CATEGORIES_PAGE_SECTIONS } from "../props/categories";
 
 function Categories({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -15,10 +15,10 @@ function Categories({ fpi }) {
   const seoData = page?.seo || {};
   const { error, isLoading } = page || {};
   const fallbackTitle =
-    CATEGORIES_PAGE_DUMMY_SECTIONS.categories.props?.heading?.value ||
+    CATEGORIES_PAGE_SECTIONS.categories.props?.heading?.value ||
     t("resource.common.page_titles.categories");
   const fallbackDescription =
-    CATEGORIES_PAGE_DUMMY_SECTIONS.categories.props?.description?.value || "";
+    CATEGORIES_PAGE_SECTIONS.categories.props?.description?.value || "";
   const {
     brandName,
     canonicalUrl,
@@ -67,8 +67,8 @@ function Categories({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <CategoriesSection
           fpi={fpi}
-          props={CATEGORIES_PAGE_DUMMY_SECTIONS.categories.props}
-          blocks={CATEGORIES_PAGE_DUMMY_SECTIONS.categories.blocks}
+          props={CATEGORIES_PAGE_SECTIONS.categories.props}
+          blocks={CATEGORIES_PAGE_SECTIONS.categories.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

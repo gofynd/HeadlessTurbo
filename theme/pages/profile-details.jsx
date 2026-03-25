@@ -9,7 +9,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import ProfileDetailsFormSection from "../sections/profile-details-form";
-import { PROFILE_DETAILS_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { PROFILE_DETAILS_PAGE_SECTIONS } from "../props/profile-details";
 import { Helmet } from "react-helmet-async";
 
 function ProfileDetails({ fpi }) {
@@ -42,7 +42,7 @@ function ProfileDetails({ fpi }) {
     () => [
       {
         name: "profile-details-form",
-        props: PROFILE_DETAILS_PAGE_DUMMY_SECTIONS.profileDetailsForm.props,
+        props: PROFILE_DETAILS_PAGE_SECTIONS.profileDetailsForm.props,
         blocks: [],
       },
     ],
@@ -53,7 +53,7 @@ function ProfileDetails({ fpi }) {
     () => [
       {
         name: "profile-navigation-menu",
-        props: PROFILE_DETAILS_PAGE_DUMMY_SECTIONS.profileNavigationMenu.props,
+        props: PROFILE_DETAILS_PAGE_SECTIONS.profileNavigationMenu.props,
         blocks: [],
       },
     ],
@@ -103,8 +103,8 @@ function ProfileDetails({ fpi }) {
             <h1 className="visually-hidden">{title}</h1>
             <ProfileDetailsFormSection
               fpi={fpi}
-              props={PROFILE_DETAILS_PAGE_DUMMY_SECTIONS.profileDetailsForm.props}
-              blocks={PROFILE_DETAILS_PAGE_DUMMY_SECTIONS.profileDetailsForm.blocks}
+              props={PROFILE_DETAILS_PAGE_SECTIONS.profileDetailsForm.props}
+              blocks={PROFILE_DETAILS_PAGE_SECTIONS.profileDetailsForm.blocks}
               globalConfig={globalConfig}
             />
           </div>

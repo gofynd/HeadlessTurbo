@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import ForgotPasswordSection from "../sections/forgot-password";
-import { FORGOT_PASSWORD_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { FORGOT_PASSWORD_PAGE_SECTIONS } from "../props/forgot-password";
 
 function ForgetPassword({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -61,8 +61,8 @@ function ForgetPassword({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <ForgotPasswordSection
           fpi={fpi}
-          props={FORGOT_PASSWORD_PAGE_DUMMY_SECTIONS.forgotPassword.props}
-          blocks={FORGOT_PASSWORD_PAGE_DUMMY_SECTIONS.forgotPassword.blocks}
+          props={FORGOT_PASSWORD_PAGE_SECTIONS.forgotPassword.props}
+          blocks={FORGOT_PASSWORD_PAGE_SECTIONS.forgotPassword.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

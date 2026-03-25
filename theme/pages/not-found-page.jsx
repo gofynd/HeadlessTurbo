@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import PageNotFoundSection from "../sections/page-not-found";
-import { NOT_FOUND_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { NOT_FOUND_PAGE_SECTIONS } from "../props/not-found-page";
 
 function PageNotFound({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -15,10 +15,10 @@ function PageNotFound({ fpi }) {
   const seoData = page?.seo || {};
   const { error, isLoading } = page || {};
   const fallbackTitle =
-    NOT_FOUND_PAGE_DUMMY_SECTIONS.pageNotFound.props?.heading?.value ||
+    NOT_FOUND_PAGE_SECTIONS.pageNotFound.props?.heading?.value ||
     "Page Not Found";
   const fallbackDescription =
-    NOT_FOUND_PAGE_DUMMY_SECTIONS.pageNotFound.props?.message?.value ||
+    NOT_FOUND_PAGE_SECTIONS.pageNotFound.props?.message?.value ||
     "The page you are looking for does not exist.";
   const {
     brandName,
@@ -68,8 +68,8 @@ function PageNotFound({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <PageNotFoundSection
           fpi={fpi}
-          props={NOT_FOUND_PAGE_DUMMY_SECTIONS.pageNotFound.props}
-          blocks={NOT_FOUND_PAGE_DUMMY_SECTIONS.pageNotFound.blocks}
+          props={NOT_FOUND_PAGE_SECTIONS.pageNotFound.props}
+          blocks={NOT_FOUND_PAGE_SECTIONS.pageNotFound.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

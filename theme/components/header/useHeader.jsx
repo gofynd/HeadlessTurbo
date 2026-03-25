@@ -3,13 +3,13 @@ import { useLocation } from "react-router-dom";
 import { useGlobalStore } from "fdk-core/utils";
 import { isRunningOnClient } from "../../helper/utils";
 import { useThemeConfig } from "../../helper/hooks";
+import { APP_INFO } from "../../props/app-info";
+import { FOOTER_NAVIGATION } from "../../props/footer";
+import { HEADER_NAVIGATION } from "../../props/header";
 import {
-  DUMMY_APP_INFO,
-  DUMMY_CONTACT_INFO,
-  DUMMY_FOOTER_NAVIGATION,
-  DUMMY_HEADER_NAVIGATION,
-  DUMMY_SUPPORT_INFO,
-} from "../../helper/dummy-data";
+  CONTACT_INFO as DEFAULT_CONTACT_INFO,
+  SUPPORT_INFO as DEFAULT_SUPPORT_INFO,
+} from "../../props/support";
 
 function filterActiveNavigation(navigation = []) {
   return navigation.reduce((acc, item) => {
@@ -36,8 +36,8 @@ const useHeader = (fpi) => {
   const BUY_NOW = useGlobalStore(fpi.getters.BUY_NOW_CART_ITEMS);
   const { globalConfig } = useThemeConfig({ fpi });
   const HeaderNavigation = useMemo(() => {
-    // Always use hardcoded dummy data instead of API
-    return DUMMY_HEADER_NAVIGATION;
+    // Always use hardcoded fallback navigation instead of API
+    return HEADER_NAVIGATION;
   }, []);
 
   const FooterNavigation = useMemo(() => {
@@ -48,7 +48,7 @@ const useHeader = (fpi) => {
     const activeNavigation = filterActiveNavigation(navigation);
     return activeNavigation.length > 0
       ? activeNavigation
-      : DUMMY_FOOTER_NAVIGATION;
+      : FOOTER_NAVIGATION;
   }, [NAVIGATION]);
 
   const [buyNowParam, setBuyNowParam] = useState(null);
@@ -87,9 +87,9 @@ const useHeader = (fpi) => {
     FooterNavigation,
     cartItemCount,
     globalConfig,
-    appInfo: CONFIGURATION?.application || DUMMY_APP_INFO,
-    contactInfo: hasContactInfo ? CONTACT_INFO : DUMMY_CONTACT_INFO,
-    supportInfo: hasSupportInfo ? SUPPORT_INFO : DUMMY_SUPPORT_INFO,
+    appInfo: CONFIGURATION?.application || APP_INFO,
+    contactInfo: hasContactInfo ? CONTACT_INFO : DEFAULT_CONTACT_INFO,
+    supportInfo: hasSupportInfo ? SUPPORT_INFO : DEFAULT_SUPPORT_INFO,
     wishlistIds,
     wishlistCount: wishlistCount ?? 0,
     loggedIn,

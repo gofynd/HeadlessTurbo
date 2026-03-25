@@ -9,7 +9,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import ProfilePhoneSection from "../sections/profile-phone";
-import { PROFILE_PHONE_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { PROFILE_PHONE_PAGE_SECTIONS } from "../props/profile-phone";
 import "@gofynd/theme-template/components/profile-navigation/profile-navigation.css";
 
 function ProfilePhone({ fpi }) {
@@ -42,7 +42,7 @@ function ProfilePhone({ fpi }) {
     () => [
       {
         name: "profile-phone",
-        props: PROFILE_PHONE_PAGE_DUMMY_SECTIONS.profilePhone.props,
+        props: PROFILE_PHONE_PAGE_SECTIONS.profilePhone.props,
         blocks: [],
       },
     ],
@@ -53,7 +53,7 @@ function ProfilePhone({ fpi }) {
     () => [
       {
         name: "profile-navigation-menu",
-        props: PROFILE_PHONE_PAGE_DUMMY_SECTIONS.profileNavigationMenu.props,
+        props: PROFILE_PHONE_PAGE_SECTIONS.profileNavigationMenu.props,
         blocks: [],
       },
     ],
@@ -101,8 +101,8 @@ function ProfilePhone({ fpi }) {
             <h1 className="visually-hidden">{title}</h1>
             <ProfilePhoneSection
               fpi={fpi}
-              props={PROFILE_PHONE_PAGE_DUMMY_SECTIONS.profilePhone.props}
-              blocks={PROFILE_PHONE_PAGE_DUMMY_SECTIONS.profilePhone.blocks}
+              props={PROFILE_PHONE_PAGE_SECTIONS.profilePhone.props}
+              blocks={PROFILE_PHONE_PAGE_SECTIONS.profilePhone.blocks}
               globalConfig={globalConfig}
             />
           </div>

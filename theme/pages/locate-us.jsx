@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import StoreLocator from "../sections/store-locator";
-import { LOCATE_US_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { LOCATE_US_PAGE_SECTIONS } from "../props/locate-us";
 
 function LocateUsPage({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -62,8 +62,8 @@ function LocateUsPage({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <StoreLocator
           fpi={fpi}
-          props={LOCATE_US_PAGE_DUMMY_SECTIONS.storeLocator.props}
-          blocks={LOCATE_US_PAGE_DUMMY_SECTIONS.storeLocator.blocks}
+          props={LOCATE_US_PAGE_SECTIONS.storeLocator.props}
+          blocks={LOCATE_US_PAGE_SECTIONS.storeLocator.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

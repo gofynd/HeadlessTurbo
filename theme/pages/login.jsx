@@ -7,7 +7,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import LoginSection from "../sections/login";
-import { LOGIN_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { LOGIN_PAGE_SECTIONS } from "../props/login";
 
 function Login({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -62,8 +62,8 @@ function Login({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <LoginSection
           fpi={fpi}
-          props={LOGIN_PAGE_DUMMY_SECTIONS.login.props}
-          blocks={LOGIN_PAGE_DUMMY_SECTIONS.login.blocks}
+          props={LOGIN_PAGE_SECTIONS.login.props}
+          blocks={LOGIN_PAGE_SECTIONS.login.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

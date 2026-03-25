@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import EditProfileSection from "../sections/edit-profile";
-import { EDIT_PROFILE_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { EDIT_PROFILE_PAGE_SECTIONS } from "../props/edit-profile";
 
 function EditProfile({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -61,8 +61,8 @@ function EditProfile({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <EditProfileSection
           fpi={fpi}
-          props={EDIT_PROFILE_PAGE_DUMMY_SECTIONS.editProfile.props}
-          blocks={EDIT_PROFILE_PAGE_DUMMY_SECTIONS.editProfile.blocks}
+          props={EDIT_PROFILE_PAGE_SECTIONS.editProfile.props}
+          blocks={EDIT_PROFILE_PAGE_SECTIONS.editProfile.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

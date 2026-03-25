@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import VerifyEmailLinkSection from "../sections/verify-email-link";
-import { VERIFY_EMAIL_LINK_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { VERIFY_EMAIL_LINK_PAGE_SECTIONS } from "../props/verify-email-link";
 
 function VerifyEmailLink({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -61,8 +61,8 @@ function VerifyEmailLink({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <VerifyEmailLinkSection
           fpi={fpi}
-          props={VERIFY_EMAIL_LINK_PAGE_DUMMY_SECTIONS.verifyEmailLink.props}
-          blocks={VERIFY_EMAIL_LINK_PAGE_DUMMY_SECTIONS.verifyEmailLink.blocks}
+          props={VERIFY_EMAIL_LINK_PAGE_SECTIONS.verifyEmailLink.props}
+          blocks={VERIFY_EMAIL_LINK_PAGE_SECTIONS.verifyEmailLink.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

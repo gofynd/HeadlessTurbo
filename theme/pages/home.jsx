@@ -10,7 +10,7 @@ import AnimatedDistortedText from "../sections/animated-distorted-text";
 import ImageSlideshow from "../sections/image-slideshow";
 import MediaWithText from "../sections/media-with-text";
 import Testimonials from "../sections/testimonials";
-import { HOME_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { HOME_PAGE_SECTIONS } from "../props/home";
 import { globalDataResolver } from "../helper/lib";
 
 function Home({ fpi }) {
@@ -81,29 +81,29 @@ function Home({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <HeroImage
           fpi={fpi}
-          props={HOME_PAGE_DUMMY_SECTIONS.heroImage.props}
-          blocks={HOME_PAGE_DUMMY_SECTIONS.heroImage.blocks}
+          props={HOME_PAGE_SECTIONS.heroImage.props}
+          blocks={HOME_PAGE_SECTIONS.heroImage.blocks}
           globalConfig={globalConfig}
         />
         <AnimatedDistortedText
-          props={HOME_PAGE_DUMMY_SECTIONS.animatedDistortedText.props}
+          props={HOME_PAGE_SECTIONS.animatedDistortedText.props}
         />
         <ImageSlideshow
           fpi={fpi}
-          props={HOME_PAGE_DUMMY_SECTIONS.imageSlideshow.props}
-          blocks={HOME_PAGE_DUMMY_SECTIONS.imageSlideshow.blocks}
+          props={HOME_PAGE_SECTIONS.imageSlideshow.props}
+          blocks={HOME_PAGE_SECTIONS.imageSlideshow.blocks}
           globalConfig={globalConfig}
         />
         <MediaWithText
           fpi={fpi}
-          props={HOME_PAGE_DUMMY_SECTIONS.mediaWithText.props}
-          blocks={HOME_PAGE_DUMMY_SECTIONS.mediaWithText.blocks}
+          props={HOME_PAGE_SECTIONS.mediaWithText.props}
+          blocks={HOME_PAGE_SECTIONS.mediaWithText.blocks}
           globalConfig={globalConfig}
         />
         <Testimonials
           fpi={fpi}
-          props={HOME_PAGE_DUMMY_SECTIONS.testimonials.props}
-          blocks={HOME_PAGE_DUMMY_SECTIONS.testimonials.blocks}
+          props={HOME_PAGE_SECTIONS.testimonials.props}
+          blocks={HOME_PAGE_SECTIONS.testimonials.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

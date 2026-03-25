@@ -45,3 +45,9 @@
 - Fynd Storefront API requires a session **cookie** for user-associated operations (e.g. `followById`). The Bearer header is app credentials only; user identity is via cookie.
 - When proxying to the API from localhost, the API’s `Set-Cookie` often has `Domain=<api host>`, so the browser does not send that cookie to localhost. Fix: in the dev proxy, set `cookieDomainRewrite: ""` so the cookie becomes host-only for localhost and is sent on subsequent requests.
 - "Copy as cURL" from DevTools usually omits HttpOnly cookies, so pasted curl can get 401 even when the same request works in the browser.
+
+## 2026-03-13: Page props naming + modularization
+
+- Avoid temporary naming in production-facing constants. Use domain names like `HOME_PAGE_SECTIONS` instead of `*_DUMMY_*`.
+- Keep page modules thin and explicit: each page should import from its own `theme/props/<page>.js` module instead of a monolithic helper.
+- For shared UI fallback data, split by concern (`header`, `footer`, `app-info`, `support`) so consuming components only depend on what they need.

@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import CollectionsSection from "../sections/collections";
-import { COLLECTIONS_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { COLLECTIONS_PAGE_SECTIONS } from "../props/collections";
 
 function Collections({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -15,10 +15,10 @@ function Collections({ fpi }) {
   const seoData = page?.seo || {};
   const { error, isLoading } = page || {};
   const fallbackTitle =
-    COLLECTIONS_PAGE_DUMMY_SECTIONS.collections.props?.title?.value ||
+    COLLECTIONS_PAGE_SECTIONS.collections.props?.title?.value ||
     "Collections";
   const fallbackDescription =
-    COLLECTIONS_PAGE_DUMMY_SECTIONS.collections.props?.description?.value || "";
+    COLLECTIONS_PAGE_SECTIONS.collections.props?.description?.value || "";
   const {
     brandName,
     canonicalUrl,
@@ -66,8 +66,8 @@ function Collections({ fpi }) {
       <div className="margin0auto basePageContainer">
         <h1 className="visually-hidden">{title}</h1>
         <CollectionsSection
-          props={COLLECTIONS_PAGE_DUMMY_SECTIONS.collections.props}
-          blocks={COLLECTIONS_PAGE_DUMMY_SECTIONS.collections.blocks}
+          props={COLLECTIONS_PAGE_SECTIONS.collections.props}
+          blocks={COLLECTIONS_PAGE_SECTIONS.collections.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

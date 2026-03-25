@@ -8,7 +8,7 @@ import Loader from "../components/loader/loader";
 import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
-import { PROFILE_PAGE_RIGHT_SECTIONS } from "../helper/dummy-data";
+import { PROFILE_PAGE_RIGHT_SECTIONS } from "../props/profile";
 import "@gofynd/theme-template/components/profile-navigation/profile-navigation.css";
 
 function Profile({ fpi }) {

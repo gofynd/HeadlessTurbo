@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import FaqSection from "../sections/faq";
-import { FAQ_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { FAQ_PAGE_SECTIONS } from "../props/faq";
 
 function FaqPage({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -60,8 +60,8 @@ function FaqPage({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <FaqSection
           fpi={fpi}
-          props={FAQ_PAGE_DUMMY_SECTIONS.faq.props}
-          blocks={FAQ_PAGE_DUMMY_SECTIONS.faq.blocks}
+          props={FAQ_PAGE_SECTIONS.faq.props}
+          blocks={FAQ_PAGE_SECTIONS.faq.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

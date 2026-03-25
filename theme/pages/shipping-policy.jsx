@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import ShippingPolicy from "../sections/shipping-policy";
-import { SHIPPING_POLICY_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { SHIPPING_POLICY_PAGE_SECTIONS } from "../props/shipping-policy";
 
 function ShippingPolicyPage({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -62,8 +62,8 @@ function ShippingPolicyPage({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <ShippingPolicy
           fpi={fpi}
-          props={SHIPPING_POLICY_PAGE_DUMMY_SECTIONS.shippingPolicy.props}
-          blocks={SHIPPING_POLICY_PAGE_DUMMY_SECTIONS.shippingPolicy.blocks}
+          props={SHIPPING_POLICY_PAGE_SECTIONS.shippingPolicy.props}
+          blocks={SHIPPING_POLICY_PAGE_SECTIONS.shippingPolicy.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

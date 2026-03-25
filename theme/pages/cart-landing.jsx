@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import CartLanding from "../sections/cart-landing";
-import { CART_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { CART_PAGE_SECTIONS } from "../props/cart-landing";
 import styles from "../styles/cart-landing.less";
 
 function CartPage({ fpi }) {
@@ -69,8 +69,8 @@ function CartPage({ fpi }) {
       <div className={`${styles.cart} basePageContainer margin0auto`}>
         <h1 className="visually-hidden">{title}</h1>
         <CartLanding
-          props={CART_PAGE_DUMMY_SECTIONS.cartLanding.props}
-          blocks={CART_PAGE_DUMMY_SECTIONS.cartLanding.blocks}
+          props={CART_PAGE_SECTIONS.cartLanding.props}
+          blocks={CART_PAGE_SECTIONS.cartLanding.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

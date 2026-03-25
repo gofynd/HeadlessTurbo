@@ -57,3 +57,23 @@ Also: `.env` was listed in `.gitignore` so boltic excluded it from the Docker bu
 
 - Three-layer defense so PROXY_TARGET is always set: (1) `.env` baked into image, (2) boltic.yaml runtime injection, (3) `"https://api.fynd.com"` fallback in server.js
 - boltctl v1 serverless has no `deploy` command — redeploy must be triggered from boltic dashboard
+
+---
+
+# Page-Wise Props Refactor (2026-03-13)
+
+## Plan
+
+- [x] Create `theme/props/` and move page props access to page-wise modules.
+- [x] Remove `DUMMY` naming from exported props constants.
+- [x] Update page files to import from `theme/props/*` instead of `theme/helper/dummy-data.js`.
+- [x] Split shared header/footer/app/support props into dedicated modules under `theme/props/`.
+- [x] Update header hook to consume shared props modules.
+- [x] Verify production build after refactor.
+
+## Review
+
+- Added page-specific props modules in `theme/props/` (e.g. `home.js`, `product-listing.js`, `product-description.js`, profile/auth/policy/order page files).
+- Renamed helper exports to production naming (`*_PAGE_SECTIONS`, `HEADER_NAVIGATION`, `FOOTER_NAVIGATION`, `APP_INFO`, `CONTACT_INFO`, `SUPPORT_INFO`) and removed `DUMMY` constant usage.
+- Updated all affected pages and `theme/components/header/useHeader.jsx` to consume props from page/shared props modules.
+- Build passed successfully with existing webpack asset-size warnings only.

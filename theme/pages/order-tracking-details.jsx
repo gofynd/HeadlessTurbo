@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import OrderTrackingDetailsSection from "../sections/order-tracking-details";
-import { ORDER_TRACKING_DETAILS_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { ORDER_TRACKING_DETAILS_PAGE_SECTIONS } from "../props/order-tracking-details";
 
 function OrderTrackingDetails({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -59,8 +59,8 @@ function OrderTrackingDetails({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <OrderTrackingDetailsSection
           fpi={fpi}
-          props={ORDER_TRACKING_DETAILS_PAGE_DUMMY_SECTIONS.orderTrackingDetails.props}
-          blocks={ORDER_TRACKING_DETAILS_PAGE_DUMMY_SECTIONS.orderTrackingDetails.blocks}
+          props={ORDER_TRACKING_DETAILS_PAGE_SECTIONS.orderTrackingDetails.props}
+          blocks={ORDER_TRACKING_DETAILS_PAGE_SECTIONS.orderTrackingDetails.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

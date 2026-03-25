@@ -7,7 +7,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import RegisterSection from "../sections/register";
-import { REGISTER_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { REGISTER_PAGE_SECTIONS } from "../props/register";
 
 function Register({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -62,8 +62,8 @@ function Register({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <RegisterSection
           fpi={fpi}
-          props={REGISTER_PAGE_DUMMY_SECTIONS.register.props}
-          blocks={REGISTER_PAGE_DUMMY_SECTIONS.register.blocks}
+          props={REGISTER_PAGE_SECTIONS.register.props}
+          blocks={REGISTER_PAGE_SECTIONS.register.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

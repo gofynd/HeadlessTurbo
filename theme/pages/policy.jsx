@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import PrivacyPolicy from "../sections/privacy-policy";
-import { POLICY_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { POLICY_PAGE_SECTIONS } from "../props/policy";
 
 function Policy({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -60,8 +60,8 @@ function Policy({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <PrivacyPolicy
           fpi={fpi}
-          props={POLICY_PAGE_DUMMY_SECTIONS.privacyPolicy.props}
-          blocks={POLICY_PAGE_DUMMY_SECTIONS.privacyPolicy.blocks}
+          props={POLICY_PAGE_SECTIONS.privacyPolicy.props}
+          blocks={POLICY_PAGE_SECTIONS.privacyPolicy.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

@@ -9,7 +9,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import ProfileOrdersSection from "../sections/profile-orders";
-import { ORDERS_LIST_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { ORDERS_LIST_PAGE_SECTIONS } from "../props/orders-list";
 import "@gofynd/theme-template/components/profile-navigation/profile-navigation.css";
 
 function OrdersList({ fpi }) {
@@ -42,7 +42,7 @@ function OrdersList({ fpi }) {
     () => [
       {
         name: "profile-orders",
-        props: ORDERS_LIST_PAGE_DUMMY_SECTIONS.profileOrders.props,
+        props: ORDERS_LIST_PAGE_SECTIONS.profileOrders.props,
         blocks: [],
       },
     ],
@@ -53,7 +53,7 @@ function OrdersList({ fpi }) {
     () => [
       {
         name: "profile-navigation-menu",
-        props: ORDERS_LIST_PAGE_DUMMY_SECTIONS.profileNavigationMenu.props,
+        props: ORDERS_LIST_PAGE_SECTIONS.profileNavigationMenu.props,
         blocks: [],
       },
     ],
@@ -100,8 +100,8 @@ function OrdersList({ fpi }) {
           <h1 className="visually-hidden">{title}</h1>
           <ProfileOrdersSection
             fpi={fpi}
-            props={ORDERS_LIST_PAGE_DUMMY_SECTIONS.profileOrders.props}
-            blocks={ORDERS_LIST_PAGE_DUMMY_SECTIONS.profileOrders.blocks}
+            props={ORDERS_LIST_PAGE_SECTIONS.profileOrders.props}
+            blocks={ORDERS_LIST_PAGE_SECTIONS.profileOrders.blocks}
             globalConfig={globalConfig}
           />
         </motion.div>

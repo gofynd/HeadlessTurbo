@@ -126,8 +126,11 @@ const useOrdersListing = (fpi) => {
           if (res?.data?.orders) {
             const data = res?.data?.orders;
             setOrders(data);
+          } else if (res?.errors?.length) {
+            showSnackbar(res.errors[0]?.message || t("resource.common.something_went_wrong"), "error");
           }
         })
+        .catch(() => {})
         .finally(() => {
           setIsLoading(false);
         });

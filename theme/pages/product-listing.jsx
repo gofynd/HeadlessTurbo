@@ -7,7 +7,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import ProductListingSection from "../sections/product-listing";
-import { PLP_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { PLP_PAGE_SECTIONS } from "../props/product-listing";
 
 function ProductListing({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -81,8 +81,8 @@ function ProductListing({ fpi }) {
       <div className="margin0auto basePageContainer">
         <h1 className="visually-hidden">{title}</h1>
         <ProductListingSection
-          props={PLP_PAGE_DUMMY_SECTIONS.productListing.props}
-          blocks={PLP_PAGE_DUMMY_SECTIONS.productListing.blocks}
+          props={PLP_PAGE_SECTIONS.productListing.props}
+          blocks={PLP_PAGE_SECTIONS.productListing.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

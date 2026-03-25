@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import AccountLockedSection from "../sections/account-locked";
-import { ACCOUNT_LOCKED_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { ACCOUNT_LOCKED_PAGE_SECTIONS } from "../props/account-locked";
 
 function AccountLocked({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -61,8 +61,8 @@ function AccountLocked({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <AccountLockedSection
           fpi={fpi}
-          props={ACCOUNT_LOCKED_PAGE_DUMMY_SECTIONS.accountLocked.props}
-          blocks={ACCOUNT_LOCKED_PAGE_DUMMY_SECTIONS.accountLocked.blocks}
+          props={ACCOUNT_LOCKED_PAGE_SECTIONS.accountLocked.props}
+          blocks={ACCOUNT_LOCKED_PAGE_SECTIONS.accountLocked.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import CollectionListingSection from "../sections/collection-listing";
-import { COLLECTION_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { COLLECTION_PAGE_SECTIONS } from "../props/collection-listing";
 
 function CollectionListing({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -16,7 +16,7 @@ function CollectionListing({ fpi }) {
   const seoData = customValues?.customCollection?.seo || page?.seo || {};
   const { error, isLoading } = page || {};
   const fallbackImage = useMemo(() => {
-    const props = COLLECTION_PAGE_DUMMY_SECTIONS.collectionListing.props;
+    const props = COLLECTION_PAGE_SECTIONS.collectionListing.props;
     return props?.desktop_banner?.value || props?.mobile_banner?.value || "";
   }, []);
 
@@ -79,8 +79,8 @@ function CollectionListing({ fpi }) {
       <div className="margin0auto basePageContainer">
         <h1 className="visually-hidden">{title}</h1>
         <CollectionListingSection
-          props={COLLECTION_PAGE_DUMMY_SECTIONS.collectionListing.props}
-          blocks={COLLECTION_PAGE_DUMMY_SECTIONS.collectionListing.blocks}
+          props={COLLECTION_PAGE_SECTIONS.collectionListing.props}
+          blocks={COLLECTION_PAGE_SECTIONS.collectionListing.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

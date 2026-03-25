@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import SetPasswordSection from "../sections/set-password";
-import { SET_PASSWORD_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { SET_PASSWORD_PAGE_SECTIONS } from "../props/set-password";
 
 function SetPassword({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -61,8 +61,8 @@ function SetPassword({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <SetPasswordSection
           fpi={fpi}
-          props={SET_PASSWORD_PAGE_DUMMY_SECTIONS.setPassword.props}
-          blocks={SET_PASSWORD_PAGE_DUMMY_SECTIONS.setPassword.blocks}
+          props={SET_PASSWORD_PAGE_SECTIONS.setPassword.props}
+          blocks={SET_PASSWORD_PAGE_SECTIONS.setPassword.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

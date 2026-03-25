@@ -9,7 +9,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import ProfileAddressSection from "../sections/profile-address";
-import { PROFILE_ADDRESS_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { PROFILE_ADDRESS_PAGE_SECTIONS } from "../props/profile-address";
 import "@gofynd/theme-template/components/profile-navigation/profile-navigation.css";
 
 function ProfileAddress({ fpi }) {
@@ -42,7 +42,7 @@ function ProfileAddress({ fpi }) {
     () => [
       {
         name: "profile-address",
-        props: PROFILE_ADDRESS_PAGE_DUMMY_SECTIONS.profileAddress.props,
+        props: PROFILE_ADDRESS_PAGE_SECTIONS.profileAddress.props,
         blocks: [],
       },
     ],
@@ -53,7 +53,7 @@ function ProfileAddress({ fpi }) {
     () => [
       {
         name: "profile-navigation-menu",
-        props: PROFILE_ADDRESS_PAGE_DUMMY_SECTIONS.profileNavigationMenu.props,
+        props: PROFILE_ADDRESS_PAGE_SECTIONS.profileNavigationMenu.props,
         blocks: [],
       },
     ],
@@ -101,8 +101,8 @@ function ProfileAddress({ fpi }) {
             <h1 className="visually-hidden">{title}</h1>
             <ProfileAddressSection
               fpi={fpi}
-              props={PROFILE_ADDRESS_PAGE_DUMMY_SECTIONS.profileAddress.props}
-              blocks={PROFILE_ADDRESS_PAGE_DUMMY_SECTIONS.profileAddress.blocks}
+              props={PROFILE_ADDRESS_PAGE_SECTIONS.profileAddress.props}
+              blocks={PROFILE_ADDRESS_PAGE_SECTIONS.profileAddress.blocks}
               globalConfig={globalConfig}
             />
           </div>

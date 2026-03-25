@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import BrandsLandingSection from "../sections/brands-landing";
-import { BRANDS_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { BRANDS_PAGE_SECTIONS } from "../props/brands";
 
 function Brands({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -24,7 +24,7 @@ function Brands({ fpi }) {
 
   const title = useMemo(() => {
     const fallbackTitle =
-      BRANDS_PAGE_DUMMY_SECTIONS.brandsLanding.props?.title?.value ||
+      BRANDS_PAGE_SECTIONS.brandsLanding.props?.title?.value ||
       t("resource.common.breadcrumb.brands");
     const raw = sanitizeHTMLTag(
       seoData?.title || fallbackTitle || t("resource.common.breadcrumb.brands"),
@@ -35,7 +35,7 @@ function Brands({ fpi }) {
 
   const description = useMemo(() => {
     const fallbackDescription =
-      BRANDS_PAGE_DUMMY_SECTIONS.brandsLanding.props?.description?.value || "";
+      BRANDS_PAGE_SECTIONS.brandsLanding.props?.description?.value || "";
     const raw = sanitizeHTMLTag(
       seoData?.description || fallbackDescription || "",
     );
@@ -66,7 +66,7 @@ function Brands({ fpi }) {
       <div className="margin0auto basePageContainer">
         <h1 className="visually-hidden">{title}</h1>
         <BrandsLandingSection
-          props={BRANDS_PAGE_DUMMY_SECTIONS.brandsLanding.props}
+          props={BRANDS_PAGE_SECTIONS.brandsLanding.props}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

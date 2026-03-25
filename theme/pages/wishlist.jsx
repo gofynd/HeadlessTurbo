@@ -10,7 +10,7 @@ import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import ProfileWishlist from "../sections/profile-wishlist";
 import ProfileNavigationMenu from "../sections/profile-navigation-menu";
-import { WISHLIST_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { WISHLIST_PAGE_SECTIONS } from "../props/wishlist";
 import "@gofynd/theme-template/components/profile-navigation/profile-navigation.css";
 
 function WishlistPage({ fpi }) {
@@ -47,7 +47,7 @@ function WishlistPage({ fpi }) {
     () => [
       {
         name: "profile-wishlist",
-        props: WISHLIST_PAGE_DUMMY_SECTIONS.profileWishlist.props,
+        props: WISHLIST_PAGE_SECTIONS.profileWishlist.props,
         blocks: [],
       },
     ],
@@ -58,7 +58,7 @@ function WishlistPage({ fpi }) {
     () => [
       {
         name: "profile-navigation-menu",
-        props: WISHLIST_PAGE_DUMMY_SECTIONS.profileNavigationMenu.props,
+        props: WISHLIST_PAGE_SECTIONS.profileNavigationMenu.props,
         blocks: [],
       },
     ],
@@ -105,8 +105,8 @@ function WishlistPage({ fpi }) {
             <h1 className="visually-hidden">{title}</h1>
             <ProfileWishlist
               fpi={fpi}
-              props={WISHLIST_PAGE_DUMMY_SECTIONS.profileWishlist.props}
-              blocks={WISHLIST_PAGE_DUMMY_SECTIONS.profileWishlist.blocks}
+              props={WISHLIST_PAGE_SECTIONS.profileWishlist.props}
+              blocks={WISHLIST_PAGE_SECTIONS.profileWishlist.blocks}
               globalConfig={globalConfig}
             />
           </div>

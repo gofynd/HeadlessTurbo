@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import ReturnPolicy from "../sections/return-policy";
-import { RETURN_POLICY_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { RETURN_POLICY_PAGE_SECTIONS } from "../props/return-policy";
 
 function ReturnPolicyPage({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -62,8 +62,8 @@ function ReturnPolicyPage({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <ReturnPolicy
           fpi={fpi}
-          props={RETURN_POLICY_PAGE_DUMMY_SECTIONS.returnPolicy.props}
-          blocks={RETURN_POLICY_PAGE_DUMMY_SECTIONS.returnPolicy.blocks}
+          props={RETURN_POLICY_PAGE_SECTIONS.returnPolicy.props}
+          blocks={RETURN_POLICY_PAGE_SECTIONS.returnPolicy.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

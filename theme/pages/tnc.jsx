@@ -6,7 +6,7 @@ import { sanitizeHTMLTag } from "../helper/utils";
 import { getHelmet } from "../providers/global-provider";
 import useSeoMeta from "../helper/hooks/useSeoMeta";
 import Tnc from "../sections/tnc";
-import { TNC_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { TNC_PAGE_SECTIONS } from "../props/tnc";
 
 function TncPage({ fpi }) {
   const { t } = useGlobalTranslation("translation");
@@ -62,8 +62,8 @@ function TncPage({ fpi }) {
         <h1 className="visually-hidden">{title}</h1>
         <Tnc
           fpi={fpi}
-          props={TNC_PAGE_DUMMY_SECTIONS.tnc.props}
-          blocks={TNC_PAGE_DUMMY_SECTIONS.tnc.blocks}
+          props={TNC_PAGE_SECTIONS.tnc.props}
+          blocks={TNC_PAGE_SECTIONS.tnc.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}

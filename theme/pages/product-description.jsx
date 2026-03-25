@@ -10,7 +10,7 @@ import {
   sanitizeMetaDescription,
 } from "../helper/utils";
 import ProductDescriptionSection from "../sections/product-description";
-import { PDP_PAGE_DUMMY_SECTIONS } from "../helper/dummy-data";
+import { PDP_PAGE_SECTIONS } from "../props/product-description";
 import { useGlobalTranslation } from "fdk-core/utils";
 
 function ProductDescription({ fpi }) {
@@ -82,8 +82,8 @@ function ProductDescription({ fpi }) {
       >
         <h1 className="visually-hidden">{title}</h1>
         <ProductDescriptionSection
-          props={PDP_PAGE_DUMMY_SECTIONS.productDescription.props}
-          blocks={PDP_PAGE_DUMMY_SECTIONS.productDescription.blocks}
+          props={PDP_PAGE_SECTIONS.productDescription.props}
+          blocks={PDP_PAGE_SECTIONS.productDescription.blocks}
           globalConfig={globalConfig}
         />
         {isLoading && <Loader />}
