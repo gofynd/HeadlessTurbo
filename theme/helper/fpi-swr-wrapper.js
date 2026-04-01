@@ -502,10 +502,12 @@ export function setupAutoRevalidation(fpi) {
   // Store queries that should be revalidated
   const originalExecuteGQL = fpi.executeGQL;
   if (originalExecuteGQL) {
-    const queryTracker = new Proxy(originalExecuteGQL, {
+    fpi.executeGQL = new Proxy(originalExecuteGQL, {
       apply(target, thisArg, argumentsList) {
         const [query, variables] = argumentsList;
-        const cacheKey = fpi.getCacheKey(query, variables);
+        const cacheKey = typeof fpi.getCacheKey === "function"
+          ? fpi.getCacheKey(query, variables)
+          : JSON.stringify({ q: query, v: variables });
         recentQueries.set(cacheKey, { query, variables });
 
         // Keep only last 20 queries
