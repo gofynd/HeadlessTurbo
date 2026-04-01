@@ -1,11 +1,15 @@
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const path = require("path");
-const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const Dotenv = require("dotenv-webpack");
-const { readFileSync } = require("node:fs");
-const ReactRefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
-const { createProxyMiddleware } = require("http-proxy-middleware");
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import path from "path";
+import { fileURLToPath } from "url";
+import { createRequire } from "module";
+import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import Dotenv from "dotenv-webpack";
+import { readFileSync } from "node:fs";
+import ReactRefreshWebpackPlugin from "@pmmmwh/react-refresh-webpack-plugin";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
 
 function readEnvFromFile(filePath) {
   try {
@@ -25,7 +29,7 @@ function readEnvFromFile(filePath) {
   }
 }
 
-module.exports = (env = {}, argv = {}) => {
+export default (env = {}, argv = {}) => {
   const mode = argv.mode || env.mode || process.env.NODE_ENV || "development";
   const isDev = mode === "development";
   const context = __dirname;
@@ -38,11 +42,10 @@ module.exports = (env = {}, argv = {}) => {
   // When USE_PROXY is true, force client bundle to use same-origin for API (avoids CORS on Boltic/serverless).
   const useProxy =
     envFromFile.USE_PROXY === "true" || process.env.USE_PROXY === "true";
-  const clientDomainForBundle = useProxy
-    ? ""
-    : domain || "api.fynd.com";
+  const clientDomainForBundle = useProxy ? "" : domain || "api.fynd.com";
 
-  const proxyTargetRaw = envFromFile.PROXY_TARGET || process.env.PROXY_TARGET || domain;
+  const proxyTargetRaw =
+    envFromFile.PROXY_TARGET || process.env.PROXY_TARGET || domain;
   const proxyTarget = !proxyTargetRaw
     ? ""
     : /^https?:\/\//i.test(String(proxyTargetRaw).trim())
@@ -126,15 +129,6 @@ module.exports = (env = {}, argv = {}) => {
             MiniCssExtractPlugin.loader,
             { loader: "css-loader", options: { modules: false } },
           ],
-          exclude: /\.global\.css$/,
-        },
-        {
-          test: /\.css$/i,
-          use: [
-            MiniCssExtractPlugin.loader,
-            { loader: "css-loader", options: { modules: false } },
-          ],
-          include: /\.global\.css$/,
         },
         {
           test: /\.less$/i,
@@ -215,35 +209,26 @@ module.exports = (env = {}, argv = {}) => {
         directory: path.resolve(context, "public"),
       },
       historyApiFallback: {
-        // Enable history API fallback for client-side routing
-        // This ensures all routes are handled by index.html
         disableDotRule: true,
         htmlAcceptHeaders: ["text/html", "application/xhtml+xml"],
       },
       hot: true,
       port: Number.isNaN(devServerPort) ? 5002 : devServerPort,
       open: false,
-      // API proxy is handled by `Turbo/server.js` (single proxy source). Avoid a second proxy here.
+      proxy:
+        useProxy && proxyTarget
+          ? [
+              {
+                context: ["/service", "/ext", "/graphql"],
+                target: proxyTarget,
+                changeOrigin: true,
+                secure: true,
+                cookieDomainRewrite: "",
+              },
+            ]
+          : [],
       setupMiddlewares: (middlewares, devServer) => {
         if (devServer?.app) {
-          // In local dev, users typically browse the webpack-dev-server port directly (e.g. :5001).
-          // Mount the API proxy here too so `/service|/ext|/graphql` works on the same origin/port.
-          //
-          // IMPORTANT:
-          // `http-proxy-middleware@3` only supports `createProxyMiddleware(options)`.
-          // Use `options.pathFilter` instead of the legacy `(context, options)` signature.
-          if (useProxy && proxyTarget) {
-            const apiProxyOptions = {
-              target: proxyTarget,
-              changeOrigin: true,
-              secure: true,
-              cookieDomainRewrite: "",
-              pathFilter: ["/service", "/ext", "/graphql"],
-            };
-
-            devServer.app.use(createProxyMiddleware(apiProxyOptions));
-          }
-
           devServer.app.get("/favicon.ico", (_, res) => res.status(204).end());
         }
         return middlewares;

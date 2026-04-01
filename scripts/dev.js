@@ -55,7 +55,7 @@ const appPort = Number(env.PORT) || 8080;
 console.log(`Starting webpack-dev-server on ${wdsPort}...`);
 const wds = spawn(
   "npx",
-  ["webpack", "serve", "--config", "webpack.config.cjs", "--mode", "development"],
+  ["webpack", "serve", "--config", "webpack.config.js", "--mode", "development"],
   {
     stdio: "inherit",
     env: process.env,
