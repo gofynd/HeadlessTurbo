@@ -1,0 +1,10 @@
+node_modules
+dist
+dist_sections
+.git
+.env*
+*.md
+tasks/
+debug.log
+.DS_Store
+copilot/
