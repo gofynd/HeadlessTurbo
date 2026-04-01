@@ -90,9 +90,32 @@ function RenderWithFPI({ Component }) {
   return <AuthCheck Component={Component} fpi={fpi} />;
 }
 
+const PageLoader = () => (
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      minHeight: "50vh",
+    }}
+  >
+    <div
+      style={{
+        width: "32px",
+        height: "32px",
+        border: "3px solid #e0e0e0",
+        borderTopColor: "#333",
+        borderRadius: "50%",
+        animation: "spin 0.6s linear infinite",
+      }}
+    />
+    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+  </div>
+);
+
 function page(Component) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageLoader />}>
       <RenderWithFPI Component={Component} />
     </Suspense>
   );

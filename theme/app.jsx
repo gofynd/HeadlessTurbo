@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Component } from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { Provider as ReduxProvider } from "react-redux";
@@ -9,6 +9,43 @@ import initializeTheme from "./index";
 import { routes } from "./routes";
 import { getPersistedAuth } from "./helper/auth-persistence";
 import { getAppCredentials } from "./helper/getAppCredentials";
+
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Uncaught error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: "2rem", textAlign: "center" }}>
+          <h1>Something went wrong</h1>
+          <p>{this.state.error?.message}</p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: "1rem",
+              padding: "0.5rem 1rem",
+              cursor: "pointer",
+            }}
+          >
+            Reload Page
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const isBrowser = typeof window !== "undefined";
 
@@ -93,13 +130,15 @@ async function bootstrap() {
   const root = ReactDOM.createRoot(app);
 
   root.render(
-    <HelmetProvider>
-      <ReduxProvider store={fpi.store}>
-        <FPIProvider value={fpi}>
-          <RouterProvider router={routes} />
-        </FPIProvider>
-      </ReduxProvider>
-    </HelmetProvider>,
+    <ErrorBoundary>
+      <HelmetProvider>
+        <ReduxProvider store={fpi.store}>
+          <FPIProvider value={fpi}>
+            <RouterProvider router={routes} />
+          </FPIProvider>
+        </ReduxProvider>
+      </HelmetProvider>
+    </ErrorBoundary>,
   );
 }
 
