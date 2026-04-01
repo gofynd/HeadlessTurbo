@@ -1,5 +1,8 @@
-import express from "express";
-import { createProxyMiddleware } from "http-proxy-middleware";
+import Fastify from "fastify";
+import fastifyStatic from "@fastify/static";
+import fastifyCompress from "@fastify/compress";
+import fastifyHelmet from "@fastify/helmet";
+import fastifyHttpProxy from "@fastify/http-proxy";
 import { resolve, join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
@@ -44,22 +47,31 @@ const WDS_URL = env.WDS_URL || `http://localhost:${WDS_PORT}`;
 const distPath = resolve(join(__dirname, "dist"));
 const indexHtmlPath = resolve(join(distPath, "index.html"));
 
-const BUILD_ID = env.BUILD_ID || "turbo-proxy-v8-container-20260313";
+const BUILD_ID = env.BUILD_ID || "turbo-fastify-v1";
 const APP_CREDENTIAL_KEYS = ["APPLICATION_ID", "APPLICATION_TOKEN"];
 
-const app = express();
+const app = Fastify({ logger: true });
 
+// --- Plugins ---
+app.register(fastifyCompress);
+app.register(fastifyHelmet, {
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+});
+
+// --- Helpers ---
 function getRuntimeAppCredentials() {
-  const applicationID = env.APPLICATION_ID || "";
-  const applicationToken = env.APPLICATION_TOKEN || "";
-
   return {
-    applicationID,
-    applicationToken,
+    applicationID: env.APPLICATION_ID || "",
+    applicationToken: env.APPLICATION_TOKEN || "",
   };
 }
 
+let cachedIndexHtml = null;
+
 function renderIndexHtml() {
+  if (cachedIndexHtml) return cachedIndexHtml;
+
   const rawIndexHtml = readFileSync(indexHtmlPath, "utf-8");
   const { applicationID, applicationToken } = getRuntimeAppCredentials();
   const inlineCredentialsScript =
@@ -73,84 +85,103 @@ function renderIndexHtml() {
       .replace(/&/g, "\\u0026")};` +
     "</script>";
 
-  return rawIndexHtml.includes("</head>")
+  const html = rawIndexHtml.includes("</head>")
     ? rawIndexHtml.replace("</head>", `${inlineCredentialsScript}</head>`)
     : `${inlineCredentialsScript}${rawIndexHtml}`;
+
+  if (!isDev) cachedIndexHtml = html;
+  return html;
 }
 
 for (const key of APP_CREDENTIAL_KEYS) {
   if (!env[key]) {
-    console.warn(`${key} is not set. Client bootstrap will fail without it.`);
+    app.log.warn(`${key} is not set. Client bootstrap will fail without it.`);
   }
 }
 
-app.get("/__version", (_req, res) => {
-  res.json({ build: BUILD_ID, proxy: PROXY_TARGET || "not configured" });
-});
+// --- Routes ---
+app.get("/__health", async () => ({ status: "ok" }));
+app.get("/__version", async () => ({
+  build: BUILD_ID,
+  proxy: PROXY_TARGET || "not configured",
+}));
 
-app.get("/__health", (_req, res) => {
-  res.json({ build: BUILD_ID, proxy: PROXY_TARGET || "not configured" });
-});
-
-// Single API proxy for both dev and prod: /service, /ext and /graphql -> Fynd API
+// --- API Proxy: /service, /ext, /graphql -> Fynd API ---
 if (PROXY_TARGET) {
-  const apiProxyOptions = {
-    target: PROXY_TARGET,
-    changeOrigin: true,
-    secure: true,
-    cookieDomainRewrite: "",
-    pathFilter: ["/service", "/ext", "/graphql"],
-    on: {
-      proxyRes(proxyRes) {
-        const setCookie = proxyRes.headers["set-cookie"];
-        if (!setCookie) return;
-        const cookies = Array.isArray(setCookie) ? setCookie : [setCookie];
-        proxyRes.headers["set-cookie"] = cookies.map((header) =>
-          header.replace(/;\s*[Dd]omain=[^;]+/g, ""),
-        );
-      },
-      error(err, req, res) {
-        console.error(`Proxy error for ${req.method} ${req.url}:`, err.message);
-        if (!res.headersSent) {
-          res.writeHead(502, { "Content-Type": "text/plain" });
-          res.end("Bad Gateway: proxy error");
-        }
-      },
+  const proxyReplyOptions = {
+    rewriteHeaders: (headers) => {
+      const setCookie = headers["set-cookie"];
+      if (!setCookie) return headers;
+      const cookies = Array.isArray(setCookie) ? setCookie : [setCookie];
+      return {
+        ...headers,
+        "set-cookie": cookies.map((h) =>
+          h.replace(/;\s*[Dd]omain=[^;]+/g, ""),
+        ),
+      };
     },
   };
-  app.use(createProxyMiddleware(apiProxyOptions));
-  console.log(`Proxy: /service, /ext, /graphql -> ${PROXY_TARGET}`);
+
+  for (const prefix of ["/service", "/ext", "/graphql"]) {
+    app.register(fastifyHttpProxy, {
+      upstream: PROXY_TARGET,
+      prefix,
+      rewritePrefix: prefix,
+      http2: false,
+      replyOptions: proxyReplyOptions,
+    });
+  }
+
+  app.log.info(`Proxy: /service, /ext, /graphql -> ${PROXY_TARGET}`);
 } else {
-  console.warn(
+  app.log.warn(
     "PROXY_TARGET (or DOMAIN) not set. API proxy disabled for /service, /ext, /graphql.",
   );
 }
 
+// --- Dev: forward all other traffic to webpack-dev-server ---
 if (isDev) {
-  // Dev: forward all other traffic to webpack-dev-server (HMR, live reload)
-  app.use(
-    createProxyMiddleware({
-      target: WDS_URL,
-      ws: true,
-    }),
-  );
-  console.log(`Dev mode: app traffic -> ${WDS_URL}`);
+  app.register(fastifyHttpProxy, {
+    upstream: WDS_URL,
+    prefix: "/",
+    websocket: true,
+  });
+  app.log.info(`Dev mode: app traffic -> ${WDS_URL}`);
 } else {
-  // Prod: serve static + SPA fallback
-  app.use(
-    express.static(distPath, {
-      maxAge: "1y",
-      immutable: true,
-      index: false,
-    }),
-  );
-  // Use regex to avoid path-to-regexp wildcard differences across Express versions
-  app.get(/.*/, (_req, res) => {
-    res.set("Cache-Control", "no-cache");
-    res.type("html").send(renderIndexHtml());
+  // --- Prod: serve static files + SPA fallback ---
+  app.register(fastifyStatic, {
+    root: distPath,
+    wildcard: false,
+  });
+
+  app.setNotFoundHandler((request, reply) => {
+    const urlPath = request.url.split("?")[0];
+    // Requests with a file extension: try serving the static file
+    if (/\.\w{2,}$/.test(urlPath)) {
+      reply.header("Cache-Control", "public, max-age=31536000, immutable");
+      return reply.sendFile(urlPath);
+    }
+    // SPA fallback: serve index.html for all route paths
+    return reply
+      .header("Cache-Control", "no-cache")
+      .type("text/html")
+      .send(renderIndexHtml());
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+// --- Graceful shutdown ---
+const shutdown = async (signal) => {
+  app.log.info(`${signal} received, shutting down`);
+  await app.close();
+  process.exit(0);
+};
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
+
+// --- Start ---
+try {
+  await app.listen({ port: PORT, host: "0.0.0.0" });
+} catch (err) {
+  app.log.error(err);
+  process.exit(1);
+}
