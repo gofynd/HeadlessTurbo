@@ -10,11 +10,11 @@ export const HOME_PAGE_SECTIONS = {
       button_text: asField("Shop Bestsellers"),
       button_link: asField("/collections"),
       desktop_banner: asField(
-        "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=1920&q=80",
+        "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/organization/6527750ff1060f72326269df/theme/assets/5a61961b46773dba81f8.jpg?auto=format&fit=crop&w=1920&q=80",
         "image_picker",
       ),
       mobile_banner: asField(
-        "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=900&q=80",
+        "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/organization/6527750ff1060f72326269df/theme/assets/5a61961b46773dba81f8.jpg?auto=format&fit=crop&w=900&q=80",
         "image_picker",
       ),
       text_alignment_desktop: asField("left", "select"),
@@ -74,11 +74,11 @@ export const HOME_PAGE_SECTIONS = {
         type: "gallery",
         props: {
           image: asField(
-            "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=1920&q=80",
+            "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/organization/6527750ff1060f72326269df/theme/assets/ff223fc1483415d96e68.jpg?auto=format&fit=crop&w=1920&q=80",
             "image_picker",
           ),
           mobile_image: asField(
-            "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=900&q=80",
+            "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/organization/6527750ff1060f72326269df/theme/assets/ff223fc1483415d96e68.jpg?auto=format&fit=crop&w=900&q=80",
             "image_picker",
           ),
           image_text: asField("Glow starts with consistency."),
@@ -95,11 +95,11 @@ export const HOME_PAGE_SECTIONS = {
         type: "gallery",
         props: {
           image: asField(
-            "https://images.unsplash.com/photo-1573461160327-b450ce3d8e7f?auto=format&fit=crop&w=1920&q=80",
+            "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/company/10059/applications/68a80b2b10603c4ea596e252/theme/pictures/free/resize-w:700/photo-1573461160327-b450ce3d8e7f.jpeg?dpr=1",
             "image_picker",
           ),
           mobile_image: asField(
-            "https://images.unsplash.com/photo-1573461160327-b450ce3d8e7f?auto=format&fit=crop&w=900&q=80",
+            "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/company/10059/applications/68a80b2b10603c4ea596e252/theme/pictures/free/resize-w:700/photo-1573461160327-b450ce3d8e7f.jpeg?dpr=1",
             "image_picker",
           ),
           image_text: asField("Hydration your skin will remember."),
@@ -124,11 +124,11 @@ export const HOME_PAGE_SECTIONS = {
       button_text: asField("Learn More"),
       banner_link: asField("/about-us", "url"),
       image_desktop: asField(
-        "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=1600&q=80",
+        "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/organization/6527750ff1060f72326269df/theme/assets/843f105cff6369377148.jpg?auto=format&fit=crop&w=1600&q=80",
         "image_picker",
       ),
       image_mobile: asField(
-        "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=900&q=80",
+        "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/organization/6527750ff1060f72326269df/theme/assets/843f105cff6369377148.jpg?auto=format&fit=crop&w=900&q=80",
         "image_picker",
       ),
       align_text_desktop: asField(false, "checkbox"),
@@ -157,7 +157,7 @@ export const HOME_PAGE_SECTIONS = {
           author_name: asField("Riya S."),
           author_description: asField("Verified Customer"),
           author_image: asField(
-            "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=200&q=80",
+            "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/company/10059/applications/68a80b2b10603c4ea596e252/theme/pictures/free/resize-w:700/232.jpeg?auto=format&fit=crop&w=200&q=80",
             "image_picker",
           ),
         },
@@ -168,10 +168,10 @@ export const HOME_PAGE_SECTIONS = {
           author_testimonial: asField(
             "Packaging, fragrance, and finish all feel premium without being harsh on skin.",
           ),
-          author_name: asField("Akshay M."),
+          author_name: asField("Divya M."),
           author_description: asField("Repeat Buyer"),
           author_image: asField(
-            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
+            "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/company/10059/applications/68a80b2b10603c4ea596e252/theme/pictures/free/resize-w:700/232.jpeg?auto=format&fit=crop&w=200&q=80",
             "image_picker",
           ),
         },
