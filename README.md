@@ -1,300 +1,420 @@
-# FDK React Theme
+# Turbo - Fynd Commerce React Theme
 
-## Overview
+A production-ready, high-performance React storefront theme built for the **Fynd Commerce Platform**. Turbo provides a complete e-commerce experience with dynamic product listings, checkout, user accounts, blog, and AI-powered search — all powered by GraphQL via the Fynd FDK SDK.
 
-FDK React Theme is a React Theme designed specifically for Fynd Commerce. It includes a collection of reusable components, tools, and utilities to streamline the development process. Its is built with Webpack to handle JavaScript, TypeScript, CSS, and other assets, making it efficient and easy to maintain.
+## Documentation
+
+### Getting Started
+
+- **[Getting Started](#quick-start)** - Setup and run locally
+- **[Deployment Guide](./DEPLOYMENT.md)** - Deploy to Boltic, AWS EC2, or Cloudflare Workers
+
+### Architecture & Core Concepts
+
+- **[Project Structure](#project-structure)** - Codebase organization
+- **[Server Architecture](#server-architecture)** - Fastify server and proxy setup
+- **[Webpack Configuration](#webpack-configuration)** - Build pipeline details
+- **[Global Configuration](#global-configuration)** - Theme customization via Fynd Platform
+- **[Copilot.live Integration](#copilotlive-integration)** - AI chatbot setup
 
 ## Features
 
-- **Dynamic Entry Points:** Automatically includes all `.jsx` files from `pages` and `sections` directory.
-- **Support for CSS and Less:** Handles both CSS modules and global CSS, as well as Less files.
-- **Comprehensive Asset Management:** Supports various asset types including fonts and SVGs.
-- **Powerful Plugins:** Utilizes `MiniCssExtractPlugin` for efficient build processes.
-- **Advanced Optimization:** Configured with `CssMinimizerPlugin` for CSS minification and faster load times in production.
+- **Full E-commerce Storefront** — Product catalog, collections, categories, cart, checkout, wishlists, and order tracking
+- **GraphQL Integration** — All data fetching via `@gofynd/fdk-store-gql` for fast, typed API communication
+- **Section-based Page Builder** — 59 drag-and-drop sections for visual page composition via Fynd Platform
+- **AI-Powered Copilot** — Copilot.live chatbot with 11+ actions (product search, add to cart, navigation)
+- **Multi-language Support** — i18n with 46 language locales
+- **Responsive Design** — Mobile-first, works across all screen sizes
+- **Hyperlocal Delivery** — Delivery promise display (minutes, hours, date range)
+- **User Accounts** — Login (OTP + password), registration, profile, addresses, order history, refunds
+- **Blog & Content** — Blog with categories, contact forms, FAQ, policy pages
+- **Performance Optimized** — Code splitting, lazy loading, CSS extraction, asset hashing, LRU caching
+- **Fastify Server** — Lightweight production server with compression, security headers, API proxy, and SPA fallback
+- **Developer Experience** — HMR, ESLint + Prettier, Husky pre-commit hooks, hot reload
 
-## Development
+## Tech Stack
 
-### Prerequisites
+| Category | Technology |
+|---|---|
+| **Frontend** | React 18, React Router v6, Redux, React Hook Form |
+| **Styling** | LESS, CSS Modules, Framer Motion |
+| **Build** | Webpack 5, Babel 7, MiniCssExtractPlugin |
+| **Server** | Fastify 5, with compress/helmet/static/proxy plugins |
+| **API** | GraphQL via @gofynd/fdk-store-gql |
+| **Images** | PixelBin CDN (@pixelbin/core) |
+| **Carousel** | Embla Carousel |
+| **Maps** | React Google Maps API, Google Model Viewer |
+| **Auth** | JWT (jwt-decode), OTP & password-based |
+| **Linting** | ESLint (Airbnb config), Prettier |
+| **Containerization** | Docker (multi-stage, distroless) |
 
-Before you begin creating a theme, you need:
+## Prerequisites
 
-1. To [create](https://partners.fynd.com/help/docs/guide/become-fynd-partner) or have access to a Partner account on Fynd Partners. To have at least 1 development account or live account available in your partner organization.
+Before you begin, ensure you have:
 
-2. [Click here](https://partners.fynd.com/help/docs/guide/partner-panel/accounts) to know how to create development account or get access to a live account through your partner panel. It is recommended to use development account for this tutorial.
+1. **Node.js** v16.19 or above — [Download](https://nodejs.org/)
+2. **Git** installed — [Download](https://git-scm.com/)
+3. **FDK CLI** latest version — [GitHub](https://github.com/gofynd/fdk-cli)
+4. A **Fynd Partner account** — [Create one](https://partners.fynd.com/help/docs/guide/become-fynd-partner)
+5. At least one **development or live account** in your partner organization — [Learn more](https://partners.fynd.com/help/docs/partners/themes/vuejs/theme-creation)
 
-3. [FDK-CLI](https://github.com/gofynd/fdk-cli) latest version.
+## Quick Start
 
-4. [Node.js](https://nodejs.org/en) v16.19 or above.
+### 1. Install FDK CLI
 
-5. [Git](https://git-scm.com/) installed.
+```bash
+npm install -g @gofynd/fdk-cli
+fdk --version
+```
 
-6. [ReactJS](https://react.dev/).
+### 2. Login to your Partner Account
 
-### Initialize new theme using base theme template
+```bash
+fdk login
+```
 
-1. **Install FDK CLI**
+You will be redirected to the Fynd Partners panel to authenticate. Select your Partner Organization when prompted.
 
-   ```bash
-   npm install -g @gofynd/fdk-cli
-   fdk --version
-   ```
+### 3. Initialize a New Theme
 
-2. **Login your partner account into FDK/CLI**
+```bash
+fdk theme new --name my-turbo-store
+```
 
-   ```bash
-      fdk login
-   ```
+Select your account type (`development` or `live`), then choose the account and sales channel.
 
-   And after running the login command you will be redirected to the homepage of the partner’s panel of that specific env.
+### 4. Navigate to the Project
 
-3. **Select Partner Organization**
+```bash
+cd my-turbo-store
+```
 
-   Select the Partner Organization through which you want to create your theme.
+### 5. Install Dependencies
 
-4. **Login Successful**
+```bash
+npm install
+```
 
-   As soon as you select the partner organization you will be redirected to the Login Successful page in browser. You will get User logged in successfully message in terminal
+### 6. Environment Configuration
 
-5. **Initialize a new theme**
+Create a `.env` file in the root directory:
 
-   ```bash
-      fdk theme new --name name-of-the-theme
-   ```
+```env
+PROXY_TARGET=https://api.fynd.com
+DOMAIN=api.fynd.com
+PORT=8080
+APPLICATION_ID=your_application_id
+APPLICATION_TOKEN=your_application_token
+TURBO_DEV_PORT=5001
+USE_PROXY=true
+```
 
-6. **Select account type**
+> **Important**: Never commit your `.env` file with real credentials to version control.
 
-   Select account type as `development` or `live` depending on the account type you want to use for creating your theme.
+### 7. Start Development Server
 
-7. **Select Account**
+```bash
+npm run dev
+```
 
-   FDK-CLI will list the development accounts available in your partner organization. Select the account in which you want to create the theme.
+This starts:
+- **Webpack Dev Server** on port `5001` (hot reload enabled)
+- **Fastify proxy server** on port `8080` (proxies API calls to Fynd)
 
-8. **Select Sales Channel**
+Open `http://localhost:8080` in your browser.
 
-   FDK-CLI will list the sales channels available in the account chosen. Select the sales channel in which you want to create your theme.
+### 8. Preview via FDK CLI
 
-   A folder with the theme name will be created into your machine with theme code cloned into it.
+Alternatively, use the FDK CLI to serve the theme with full platform integration:
 
-9. **Navigate to your project folder**
+```bash
+fdk theme serve
+```
 
-   ```bash
-      cd theme-name
-   ```
+> **Note**: `fdk theme serve` requires the `.fdk` folder, which is created by `fdk theme init`.
 
-10. **Preview your theme**
+## Available Scripts
 
-    Once you are into your theme’s directory, run the following command to serve your theme locally and preview your theme.
-
-    ```bash
-       fdk theme serve
-    ```
-
-**NOTE:** `fdk theme serve` wouldn't work without the `.fdk` folder setup, which needs the `fdk theme init` command.
-
-For more information [click here](https://partners.fynd.com/help/docs/partners/themes/vuejs/theme-creation)
+| Command | Description |
+|---|---|
+| `npm run dev` | Start dev environment (Webpack + Fastify proxy) |
+| `npm run build` | Production build (clean + Webpack minification) |
+| `npm start` | Start Fastify server in production mode |
+| `npm run webpack:serve` | Start Webpack Dev Server only |
+| `npm run build:dev` | Development build with watch mode |
+| `npm run clean` | Remove `dist/` and `dist_sections/` directories |
+| `npm run start:static` | Serve built `dist/` folder via `npx serve` |
+| `npm run lint` | Run ESLint on `.js`/`.jsx` files |
+| `npm run lint:fix` | Auto-fix linting issues |
+| `npm run format` | Format code with Prettier |
 
 ## Project Structure
 
-- **theme/**: Source files including JavaScript/TypeScript, CSS, Less, and assets.
-- **webpack.config.js**: Webpack configuration file.
+```
+Turbo/
+├── theme/                          # Main theme source code
+│   ├── app.jsx                     # React entry (ErrorBoundary, providers, router)
+│   ├── index.jsx                   # FPI client setup, GraphQL config
+│   ├── routes.jsx                  # React Router (lazy-loaded pages)
+│   │
+│   ├── pages/                      # 45 page components
+│   │   ├── home.jsx
+│   │   ├── product-listing.jsx
+│   │   ├── product-description.jsx
+│   │   ├── cart-landing.jsx
+│   │   ├── single-page-checkout.jsx
+│   │   ├── login.jsx
+│   │   ├── orders-list.jsx
+│   │   ├── blog.jsx
+│   │   └── ...
+│   │
+│   ├── sections/                   # 59 drag-and-drop sections
+│   │   ├── hero-section.jsx
+│   │   ├── featured-collection.jsx
+│   │   ├── featured-products.jsx
+│   │   ├── testimonials.jsx
+│   │   ├── application-banner.jsx
+│   │   └── ...
+│   │
+│   ├── components/                 # 70+ reusable UI components
+│   │   ├── header/
+│   │   ├── footer/
+│   │   ├── cart/
+│   │   ├── product/
+│   │   ├── auth/
+│   │   ├── breadcrumb/
+│   │   ├── carousel/
+│   │   └── ...
+│   │
+│   ├── page-layouts/               # 30+ page layout variants
+│   │   ├── pdp/                    # Product detail page
+│   │   ├── plp/                    # Product listing page
+│   │   ├── cart/
+│   │   ├── checkout/
+│   │   ├── profile/
+│   │   └── ...
+│   │
+│   ├── queries/                    # 38 GraphQL query definitions
+│   │   ├── productQuery.js
+│   │   ├── cartQuery.js
+│   │   ├── checkoutQuery.js
+│   │   └── ...
+│   │
+│   ├── styles/                     # 37 LESS/CSS stylesheets
+│   │   ├── base.global.less
+│   │   ├── mixins.less
+│   │   ├── media.less
+│   │   └── ...
+│   │
+│   ├── helper/                     # Utility functions & business logic
+│   │   ├── utils.js
+│   │   ├── copilot-utils.js
+│   │   ├── api-config.js
+│   │   ├── auth-guard.js
+│   │   ├── constant.js
+│   │   └── ...
+│   │
+│   ├── providers/                  # Context providers
+│   │   └── global-provider.jsx     # Redux/FPI/Copilot initialization
+│   │
+│   ├── layouts/
+│   │   └── RootLayout.jsx          # Main app shell
+│   │
+│   ├── locales/                    # 46 language translation files
+│   ├── assets/                     # Static images, icons, fonts
+│   ├── config/                     # Theme configuration schemas
+│   │   ├── settings_schema.json    # Global config UI schema
+│   │   └── settings_data.json      # Default config values
+│   └── custom-templates/           # Custom template extensions
+│
+├── public/
+│   └── index.html                  # HTML template
+│
+├── dist/                           # Production build output
+├── dist_sections/                  # Section-specific chunk builds
+├── scripts/
+│   └── dev.js                      # Dev server orchestration
+│
+├── server.js                       # Fastify production server
+├── webpack.config.js               # Webpack 5 configuration
+├── Dockerfile                      # Multi-stage Docker build
+├── boltic.yaml                     # Boltic deployment config
+├── config.json                     # Font & styling metadata
+├── package.json                    # Dependencies & scripts
+├── .env                            # Environment variables (not committed)
+└── copilot/                        # Copilot.live AI configuration
+```
+
+## Server Architecture
+
+Turbo uses a **Fastify 5** server (`server.js`) that serves two purposes:
+
+### Development Mode (`DEV=1`)
+
+All traffic is forwarded to the Webpack Dev Server, enabling hot module reloading.
+
+### Production Mode
+
+- **Static file serving** — Serves built assets from `dist/` with immutable cache headers
+- **SPA fallback** — All non-file routes serve `index.html` with runtime credential injection
+- **API proxy** — Proxies `/service`, `/ext`, `/graphql` routes to Fynd API (`PROXY_TARGET`)
+- **Security** — Helmet headers, response compression (gzip/brotli)
+- **Health checks** — `/__health` and `/__version` endpoints
+
+### Runtime Credential Injection
+
+The server injects `APPLICATION_ID` and `APPLICATION_TOKEN` into the HTML at request time via `window.__APP_CREDENTIALS__`, so credentials are never baked into the build.
 
 ## Webpack Configuration
 
-### Entry Points
+### Entry & Output
 
-The entry points are dynamically generated by including all `.jsx` files from the `src` directory:
-
-```javascript
-entry: () => {
-    const entryFiles = glob.sync('./src/**/*.jsx');
-    const entry = {};
-    entryFiles.forEach(file => {
-        entry[file.replace('src', '')] = file;
-    });
-    return entry;
-},
-```
-
-### Output
-
-This specifies that the entry point for the Webpack build process is the `index.jsx` file located in the theme directory.:
-
-```javascript
-entry: {
-  themeBundle: [path.resolve(context, "theme/index.jsx")],
-}
-```
-
-### Plugins
-
-The configuration includes several plugins to enhance the build process:
-
-- [MiniCssExtractPlugin](https://www.npmjs.com/package/mini-css-extract-plugin):Extracts CSS into separate files, allowing for parallel loading of CSS and JavaScript.
-- [NodeJSPolyfill](https://www.npmjs.com/package/node-polyfill-webpack-plugin): Adds polyfills for Node.js features to ensure compatibility in the browser environment.
-- [Overlay](https://www.npmjs.com/package/react-hydration-overlay): Provides a development overlay for React hydration, useful for debugging during development.
+- **Entry**: `theme/app.jsx`
+- **Output**: `dist/[name].[contenthash].js` with content-hash cache busting
 
 ### Loaders
 
-Various loaders are configured to handle different types of files:
+| Loader | Purpose |
+|---|---|
+| `babel-loader` | Transpile JSX/ES6+ via `@babel/preset-env` and `@babel/preset-react` |
+| `css-loader` | CSS Modules support (`.module.css` files) |
+| `less-loader` | LESS compilation with module and global style support |
+| `@svgr/webpack` | Import SVGs as React components |
+| `asset/resource` | Manage fonts, images, and static assets |
 
-- [babel-loader](https://www.npmjs.com/package/babel-loader): Transpiles JavaScript and TypeScript files using Babel presets.
-- [css-loader](https://www.npmjs.com/package/css-loader): Handles CSS files with support for CSS modules.
-- [less-loader](https://www.npmjs.com/package/less-loader): Compiles Less files, with support for both modules and global styles.
-- [svgr/webpack](https://www.npmjs.com/package/@svgr/webpack): Processes SVG files to be used as React components.
-- `asset/resource`: Manages font files and other static assets.
+### Plugins
+
+- **MiniCssExtractPlugin** — Extract CSS into separate files for parallel loading
+- **HtmlWebpackPlugin** — Generate `index.html` with asset injection
+- **DotenvWebpackPlugin** — Inject environment variables into the client bundle
+- **ReactRefreshWebpackPlugin** — Fast refresh during development
 
 ### Optimization
 
-The project uses `CssMinimizerPlugin to minimize CSS files, reducing their size for faster load times in production:
-
-```javascript
-  optimization: {
-      minimizer: [`...`, new CssMinimizerPlugin()],
-    },
-```
+- **CssMinimizerPlugin** for CSS minification in production
+- **Code splitting** with dynamic `import()` for lazy-loaded pages
+- **Section chunking** enabled via `fdk_feature.enable_section_chunking`
 
 ## Global Configuration
 
-The following table provides a detailed overview of all **Global Configurations** available for this component. These configurations allow for customization of typography, header, footer, product cards, and other storefront design elements. The settings are grouped into categories for easy reference and can be modified via the Fynd Platform.
+The following configurations are customizable via the **Fynd Platform** dashboard under **Appearance > Themes > Edit > Settings**.
 
-| **Configuration**       | **Type**       | **Default Value**    | **Category**                | **Description**                                                                                                                         |
-| ----------------------- | -------------- | -------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `font_header`           | `font`         | `false`              | Typography                  | Defines the font styling for header elements across the site.                                                                           |
-| `font_body`             | `font`         | `false`              | Typography                  | Defines the font styling for body text content.                                                                                         |
-| `header_layout`         | `select`       | `"single"`           | Header                      | Configures the layout of the header. Options include: **Single Row Navigation** and **Double Row Navigation**.                          |
-| `logo_menu_alignment`   | `select`       | `"layout_1"`         | Header                      | Determines the alignment of the logo and menu on desktop. Options include: logo left/menu center, menu left, or menu right.             |
-| `header_mega_menu`      | `checkbox`     | `false`              | Header                      | Enables the mega menu layout for navigation. This option is applicable only when the header layout is set to **Double Row Navigation**. |
-| `extension`             | `extension`    | `{}`                 | Header                      | Allows you to add and manage extensions in specific positions within the header, such as before or after header icons.                  |
-| `is_hyperlocal`         | `checkbox`     | `false`              | Header                      | Activates hyperlocal functionality to personalize content based on the user's location.                                                 |
-| `is_delivery_minutes`   | `checkbox`     | `false`              | Header                      | Displays the delivery promise in terms of minutes on applicable pages.                                                                  |
-| `max_delivery_min`      | `text`         | `"60"`               | Header                      | Specifies the threshold value (in minutes) for displaying the delivery promise.                                                         |
-| `is_delivery_hours`     | `checkbox`     | `false`              | Header                      | Displays the delivery promise in terms of hours on applicable pages.                                                                    |
-| `max_delivery_hours`    | `text`         | `"2"`                | Header                      | Specifies the threshold value (in hours) for displaying the delivery promise.                                                           |
-| `is_delivery_day`       | `checkbox`     | `false`              | Header                      | Shows delivery promise as a simple **Today/Tomorrow** format.                                                                           |
-| `is_delivery_date`      | `checkbox`     | `false`              | Header                      | Displays delivery promise as a date range. Useful for deliveries expected over multiple days.                                           |
-| `logo`                  | `image_picker` | `""`                 | Footer                      | Allows uploading a custom logo for display in the footer.                                                                               |
-| `footer_description`    | `text`         | `""`                 | Footer                      | Adds a text description in the footer area, typically used for branding or additional information.                                      |
-| `payments_logo`         | `image_picker` | `""`                 | Footer                      | Allows adding an image in the footer to showcase payment options or any relevant footer image.                                          |
-| `footer_image`          | `checkbox`     | `false`              | Footer                      | Enables an image to be displayed within the footer section.                                                                             |
-| `footer_image_desktop`  | `image_picker` | `""`                 | Footer                      | Specifies an image to display in the footer for desktop devices.                                                                        |
-| `footer_image_mobile`   | `image_picker` | `""`                 | Footer                      | Specifies an image to display in the footer for mobile and tablet devices.                                                              |
-| `disable_cart`          | `checkbox`     | `false`              | Cart & Button Configuration | Disables the shopping cart and checkout functionality across the site.                                                                  |
-| `show_price`            | `checkbox`     | `true`               | Cart & Button Configuration | Toggles the visibility of product prices on Product Cards, Product Details Pages (PDP), and Featured Product sections.                  |
-| `button_options`        | `select`       | `"addtocart_buynow"` | Cart & Button Configuration | Configures the available options for product action buttons. Options include combinations of Add to Cart, Buy Now, or custom buttons.   |
-| `custom_button_text`    | `text`         | `"Enquire now"`      | Cart & Button Configuration | Specifies the text to display on a custom button for specific product actions.                                                          |
-| `custom_button_link`    | `url`          | `""`                 | Cart & Button Configuration | Adds a URL that the custom button will redirect to when clicked.                                                                        |
-| `custom_button_icon`    | `image_picker` | `""`                 | Cart & Button Configuration | Allows uploading an icon for the custom button, applicable to Product Details Pages (PDP) and Featured Product sections.                |
-| `product_img_width`     | `text`         | `""`                 | Product Card Configuration  | Configures the width of product card images. Applicable to product listing, detail, and featured sections.                              |
-| `product_img_height`    | `text`         | `""`                 | Product Card Configuration  | Configures the height of product card images, maintaining their aspect ratio.                                                           |
-| `show_sale_badge`       | `checkbox`     | `true`               | Product Card Configuration  | Displays a **Sale** badge on discounted products.                                                                                       |
-| `image_border_radius`   | `range`        | `24`                 | Product Card Configuration  | Sets the corner radius for product images, enhancing the visual style.                                                                  |
-| `img_fill`              | `checkbox`     | `false`              | Product Card Configuration  | Ensures the image fully fits its container by clipping parts of the image if necessary.                                                 |
-| `img_container_bg`      | `color`        | `""`                 | Product Card Configuration  | Specifies the background color of image containers for products, collections, and categories.                                           |
-| `show_image_on_hover`   | `checkbox`     | `false`              | Product Card Configuration  | Displays an additional image of the product when hovering over the product card.                                                        |
-| `img_hd`                | `checkbox`     | `false`              | Other Page Configuration    | Enhances image quality by upscaling, which may affect page performance. Applicable on the homepage.                                     |
-| `section_margin_bottom` | `range`        | `16`                 | Other Page Configuration    | Sets the bottom margin for page sections, useful for spacing adjustments.                                                               |
-| `button_border_radius`  | `range`        | `4`                  | Other Page Configuration    | Defines the corner radius for buttons, improving their visual style and user experience.                                                |
+| Configuration | Type | Default | Category | Description |
+|---|---|---|---|---|
+| `font_header` | font | — | Typography | Font styling for header elements |
+| `font_body` | font | — | Typography | Font styling for body text |
+| `header_layout` | select | `single` | Header | Single or Double row navigation |
+| `logo_menu_alignment` | select | `layout_1` | Header | Logo and menu alignment on desktop |
+| `header_mega_menu` | checkbox | `false` | Header | Enable mega menu (double row only) |
+| `is_hyperlocal` | checkbox | `false` | Header | Location-based content personalization |
+| `is_delivery_minutes` | checkbox | `false` | Header | Show delivery promise in minutes |
+| `is_delivery_hours` | checkbox | `false` | Header | Show delivery promise in hours |
+| `is_delivery_day` | checkbox | `false` | Header | Show delivery as Today/Tomorrow |
+| `is_delivery_date` | checkbox | `false` | Header | Show delivery as date range |
+| `logo` | image_picker | — | Footer | Custom footer logo |
+| `footer_description` | text | — | Footer | Footer branding text |
+| `disable_cart` | checkbox | `false` | Cart & Buttons | Disable cart and checkout |
+| `show_price` | checkbox | `true` | Cart & Buttons | Toggle price visibility |
+| `button_options` | select | `addtocart_buynow` | Cart & Buttons | Product action button configuration |
+| `product_img_width` | text | — | Product Card | Product card image width |
+| `product_img_height` | text | — | Product Card | Product card image height |
+| `show_sale_badge` | checkbox | `true` | Product Card | Show sale badge on discounted items |
+| `image_border_radius` | range | `24` | Product Card | Corner radius for product images |
+| `img_fill` | checkbox | `false` | Product Card | Image fill/cover mode |
+| `show_image_on_hover` | checkbox | `false` | Product Card | Show alternate image on hover |
+| `section_margin_bottom` | range | `16` | Other | Bottom margin for page sections |
+| `button_border_radius` | range | `4` | Other | Corner radius for buttons |
 
-### Steps to Modify Global Configuration via Fynd Platform
+### Modifying Global Configuration
 
-1. **Log in to the Fynd Platform:**
-
-   - Go to [Fynd Platform](https://platform.fynd.com) and log in with your credentials.
-
-2. **Navigate to Your Company:**
-
-   - Once logged in, select your compay from the list.
-
-3. **Select the Theme**
-
-   - In the sidebar, under **Sales Channel**, select your sales channel.
-   - Then, under **Appearance**, click on **Themes**.
-   - In the current theme, click on **Edit**. Here, you can preview and configure the theme.  
-     Here's a sample [theme](https://platform.fynd.com/company/5178/application/668765e1c984016d78222a21/themes/668768e7e21c099a562b5d56/edit).
-
-4. **Locate Global Configuration Section:**
-
-   - Within the Theme, find the **Settings** section under **Configuration**. This is where the configurations described are accessible.
-
-5. **Modify Configurations:**
-
-   - Select and update the configurations based on your requirements, such as:
-     - Fonts under **Typography**.
-     - Header layouts under **Header**.
-     - Button styles under **Cart & Button Configuration**.
-
-6. **Preview Changes:**
-
-   - Preview the updates made to the page in real time to ensure they look and function as expected.
-
-7. **Save and Publish:**
-
-   - After confirming your changes, click on **Save**. This will publish the updated configurations.
-
-8. **Test Your Storefront:**
-   - Visit your store's live URL to confirm the updates are functioning as expected.
-
----
+1. Log in to the [Fynd Platform](https://platform.fynd.com)
+2. Navigate to **Sales Channel > Appearance > Themes**
+3. Click **Edit** on your active theme
+4. Open **Settings** under **Configuration**
+5. Modify settings (Typography, Header, Cart, Product Card, etc.)
+6. Preview changes in real time
+7. Click **Save** to publish
 
 ## Copilot.live Integration
 
-This theme includes integration with Copilot.live AI actions for enhanced user experience. The integration provides various tools for product search, cart management, and navigation.
+Turbo includes built-in **Copilot.live** AI chatbot integration for enhanced shopping experience.
 
-### Available Copilot Tools
+### Available Copilot Actions
 
-- `search_product` - Search for products on the website
-- `add_to_cart` - Add products to the shopping cart
-- `redirect_to_cart` - Navigate to the cart page
-- `redirect_to_product` - Navigate to a specific product page
-- `redirect_to_home` - Navigate to the home page
-- `redirect_to_contact_support` - Navigate to the contact/support page
-- `redirect_to_policies` - Navigate to policy pages (terms, privacy, shipping, returns)
-- `redirect_to_checkout` - Navigate to the checkout page
-- `redirect_to_collections` - Navigate to collections page or specific collection
-- `redirect_to_categories` - Navigate to categories page or specific category
-- `redirect_to_blogs` - Navigate to blogs page or specific blog post
+| Action | Description |
+|---|---|
+| `search_product` | Search for products on the store |
+| `add_to_cart` | Add products to the shopping cart |
+| `redirect_to_cart` | Navigate to the cart page |
+| `redirect_to_product` | Navigate to a specific product page |
+| `redirect_to_home` | Navigate to the home page |
+| `redirect_to_contact_support` | Navigate to contact/support page |
+| `redirect_to_policies` | Navigate to policy pages |
+| `redirect_to_checkout` | Navigate to checkout |
+| `redirect_to_collections` | Navigate to collections or specific collection |
+| `redirect_to_categories` | Navigate to categories or specific category |
+| `redirect_to_blogs` | Navigate to blogs or specific blog post |
 
 ### Configuration
 
-The Copilot widget is automatically loaded and configured in the `ThemeProvider`. You can customize the configuration by modifying the `copilotConfig` object in `theme/providers/global-provider.jsx`:
+Customize the Copilot widget in `theme/providers/global-provider.jsx`:
 
 ```javascript
 const copilotConfig = {
-  // apiKey: "your-api-key", // Add your API key if required
-  // apiBaseUrl: "your-api-base-url", // Add custom API URL if needed
-  // Add other configuration options as needed
+  // apiKey: "your-api-key",
+  // apiBaseUrl: "your-api-base-url",
 };
 ```
 
-### Testing Locally
+### Verifying Copilot
 
-1. Start your development server:
-   ```bash
-   npm run dev
-   ```
+1. Start the dev server: `npm run dev`
+2. Open browser console — look for:
+   - `"Copilot script loaded successfully"`
+   - `"Successfully registered X copilot tools!"`
+3. If issues arise, check network access to `cdn.copilot.live` and console errors.
 
-2. Open your browser's developer console to see Copilot initialization logs:
-   - "Loading Copilot.live widget script..."
-   - "Copilot script loaded successfully"
-   - "Copilot widget is ready"
-   - "Successfully registered X copilot tools!"
+## Troubleshooting
 
-3. If you see any errors, check:
-   - Network connectivity to cdn.copilot.live
-   - Browser console for specific error messages
-   - Proper script loading timing
+| Issue | Solution |
+|---|---|
+| `fdk theme serve` fails | Ensure `.fdk` folder exists (run `fdk theme init` first) |
+| Dev server not loading | Check that ports `5001` and `8080` are free |
+| API calls failing | Verify `PROXY_TARGET` and `APPLICATION_ID`/`APPLICATION_TOKEN` in `.env` |
+| Copilot not initializing | Check network access to `cdn.copilot.live`; retries happen automatically (5x with backoff) |
+| Build errors | Run `npm run clean` then `npm run build` |
+| Styles not updating | Clear browser cache; ensure LESS files are imported correctly |
 
-### Troubleshooting
+## Contributing
 
-- **"Copilot is not available on window object"**: The Copilot script may not have loaded yet. The system will automatically retry up to 5 times with exponential backoff.
-- **Script loading failures**: Check your internet connection and ensure cdn.copilot.live is accessible.
-- **Tools not registering**: Verify that the Copilot widget script loads before tool registration.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Follow linting rules: `npm run lint`
+4. Format code: `npm run format`
+5. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
 
-### Files Modified
+### Commit Convention
 
-- `copilot-actions.js` - Contains all tool definitions and registration logic
-- `theme/providers/global-provider.jsx` - Handles Copilot script loading and initialization
+Use [Conventional Commits](https://www.conventionalcommits.org/):
 
-For more information about Copilot.live, visit [docs.copilot.live](https://docs.copilot.live/).
+- `feat:` — New feature
+- `fix:` — Bug fix
+- `refactor:` — Code restructuring
+- `docs:` — Documentation changes
+- `chore:` — Build/tooling changes
 
-This README provides a detailed overview of the FDK React Theme, including installation, usage, and configuration details. Ensure to update any placeholders with actual information specific to your project.
+## License
+
+This project is licensed under the ISC License.
+
+## Support
+
+- Create an issue in the repository
+- Check the [Fynd Documentation](https://docs.fynd.com)
+- Visit [Fynd Partners Help](https://partners.fynd.com/help/docs)
+
+---
+
+Made with the Fynd Team
