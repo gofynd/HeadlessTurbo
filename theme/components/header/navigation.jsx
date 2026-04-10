@@ -120,10 +120,9 @@ function Navigation({
     globalConfig?.header_layout === "double";
   const getNavigation = navigationList?.slice(0, maxMenuLength);
 
-  const getShopLogoMobile = () =>
-    appInfo?.mobile_logo?.secure_url ||
-    appInfo?.logo?.secure_url ||
-    fallbackLogo;
+  // TODO: restore dynamic logo once Fynd Platform is serving a valid logo URL.
+  // Temporarily always use the bundled static logo.
+  const getShopLogoMobile = () => fallbackLogo;
 
   const openSidebarNav = () => {
     setShowSidebar(true);

@@ -5,6 +5,20 @@ import styles from "./card-list.less";
 import CategoriesCard from "../categories-card/categories-card";
 import { convertActionToUrl } from "fdk-core/utils";
 
+function getCategoryUrl(item) {
+  const actionUrl = convertActionToUrl(item?.action);
+  if (actionUrl) return actionUrl;
+  // Fallback: platform sometimes omits action on category nodes. Build the
+  // PLP URL from the slug so cards remain clickable.
+  if (item?.slug) {
+    const department = item?.action?.page?.query?.department?.[0];
+    return department
+      ? `/products?category=${item.slug}&department=${department}`
+      : `/products?category=${item.slug}`;
+  }
+  return "";
+}
+
 function CardList({
   cardList,
   cardType,
@@ -33,8 +47,9 @@ function CardList({
           : cardList?.map((item, index) =>
               cardType === "CATEGORIES" ? (
                 <CategoriesCard
+                  key={`${cardType}${item?.uid ?? index}`}
                   config={pageConfig}
-                  url={convertActionToUrl(item?.action)}
+                  url={getCategoryUrl(item)}
                   category={item}
                   img={{
                     src: item?.banners?.portrait?.url,

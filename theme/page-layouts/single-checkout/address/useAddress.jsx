@@ -70,17 +70,28 @@ const useAddress = (setShowShipment, setShowPayment, fpi) => {
   // Track country details for the address being edited
   const [editingAddressCountryDetails, setEditingAddressCountryDetails] = useState(null);
 
+  // Once the add-address modal has been auto-opened (or dismissed), don't auto-open
+  // it again on re-renders. Without this, effects below can re-fire when their
+  // dependency references change (e.g. a fresh `selectedAddress` object from the
+  // store) and silently reopen the popup, making the close/back/cancel buttons
+  // appear broken — especially in guest checkout.
+  const hasAutoOpenedModalRef = useRef(false);
+
   useEffect(() => {
     // Don't open modal if:
     // 1. Address has been successfully added (address_id exists in URL)
     // 2. We're on order-status or order-tracking page
-    const isOrderStatusPage = location.pathname.includes('/order-status') || 
+    const isOrderStatusPage = location.pathname.includes('/order-status') ||
                                location.pathname.includes('/order-tracking');
-    
+
     if (address_id || isOrderStatusPage) {
       return;
     }
-    
+
+    if (hasAutoOpenedModalRef.current) {
+      return;
+    }
+
     if (
       (cart_items?.checkout_mode === "other" && !hideAddress) ||
       (allAddresses && !allAddresses.length)
@@ -93,13 +104,17 @@ const useAddress = (setShowShipment, setShowPayment, fpi) => {
     // Don't open modal if:
     // 1. Address has been successfully added (address_id exists in URL)
     // 2. We're on order-status or order-tracking page
-    const isOrderStatusPage = location.pathname.includes('/order-status') || 
+    const isOrderStatusPage = location.pathname.includes('/order-status') ||
                                location.pathname.includes('/order-tracking');
-    
+
     if (address_id || isOrderStatusPage) {
       return;
     }
-    
+
+    if (hasAutoOpenedModalRef.current) {
+      return;
+    }
+
     if (isServiceability && selectedAddress && !selectedAddress.id) {
       showAddNewAddressModal();
     }
@@ -793,6 +808,7 @@ const useAddress = (setShowShipment, setShowPayment, fpi) => {
   }
 
   function showAddNewAddressModal() {
+    hasAutoOpenedModalRef.current = true;
     setIssNewAddress(true);
     setAddressItem(false);
     setModalTitle(t("resource.common.address.add_new_address"));

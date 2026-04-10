@@ -161,7 +161,7 @@ export default (env = {}, argv = {}) => {
           test: /\.(png|jpg|jpeg|gif|webp)$/i,
           type: "asset/resource",
           generator: {
-            publicPath: "/",
+            publicPath: "/assets/images/",
             outputPath: "assets/images/",
           },
         },
@@ -169,7 +169,7 @@ export default (env = {}, argv = {}) => {
           test: /\.(ttf|otf|woff|woff2)$/i,
           type: "asset/resource",
           generator: {
-            publicPath: "/",
+            publicPath: "/assets/fonts/",
             outputPath: "assets/fonts/",
           },
         },

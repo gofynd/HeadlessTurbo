@@ -52,52 +52,35 @@ A production-ready, high-performance React storefront theme built for the **Fynd
 
 Before you begin, ensure you have:
 
-1. **Node.js** v16.19 or above — [Download](https://nodejs.org/)
+1. **Node.js** v20 or above (Fastify 5 requires Node 20+) — [Download](https://nodejs.org/)
 2. **Git** installed — [Download](https://git-scm.com/)
-3. **FDK CLI** latest version — [GitHub](https://github.com/gofynd/fdk-cli)
-4. A **Fynd Partner account** — [Create one](https://partners.fynd.com/help/docs/guide/become-fynd-partner)
-5. At least one **development or live account** in your partner organization — [Learn more](https://partners.fynd.com/help/docs/partners/themes/vuejs/theme-creation)
+3. **FDK CLI** latest version (optional, for platform preview) — [GitHub](https://github.com/gofynd/fdk-cli)
+4. A **Fynd Partner account** (optional, only if you plan to preview against the platform) — [Create one](https://partners.fynd.com/help/docs/guide/become-fynd-partner)
 
 ## Quick Start
 
-### 1. Install FDK CLI
+### 1. Clone the Repository
 
 ```bash
-npm install -g @gofynd/fdk-cli
-fdk --version
+git clone <repository-url> Turbo
+cd Turbo
 ```
 
-### 2. Login to your Partner Account
-
-```bash
-fdk login
-```
-
-You will be redirected to the Fynd Partners panel to authenticate. Select your Partner Organization when prompted.
-
-### 3. Initialize a New Theme
-
-```bash
-fdk theme new --name my-turbo-store
-```
-
-Select your account type (`development` or `live`), then choose the account and sales channel.
-
-### 4. Navigate to the Project
-
-```bash
-cd my-turbo-store
-```
-
-### 5. Install Dependencies
+### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 6. Environment Configuration
+### 3. Environment Configuration
 
-Create a `.env` file in the root directory:
+Copy the example env file and fill in your credentials:
+
+```bash
+cp .env.example .env
+```
+
+The `.env` should contain:
 
 ```env
 PROXY_TARGET=https://api.fynd.com
@@ -109,25 +92,33 @@ TURBO_DEV_PORT=5001
 USE_PROXY=true
 ```
 
-> **Important**: Never commit your `.env` file with real credentials to version control.
+- `PORT` — Fastify app port (the one you open in the browser)
+- `TURBO_DEV_PORT` — Webpack Dev Server port that Fastify proxies to in dev
+- `USE_PROXY=true` — Fastify proxies `/service`, `/ext`, `/graphql` to `PROXY_TARGET`
+- `APPLICATION_ID` / `APPLICATION_TOKEN` — injected into the HTML at request time via `window.__APP_CREDENTIALS__`
 
-### 7. Start Development Server
+> **Important**: Never commit your `.env` file with real credentials. Use `.env.example` as the template.
+
+### 4. Start Development Server
 
 ```bash
 npm run dev
 ```
 
-This starts:
-- **Webpack Dev Server** on port `5001` (hot reload enabled)
-- **Fastify proxy server** on port `8080` (proxies API calls to Fynd)
+`scripts/dev.js` boots both processes in the right order:
+
+- **Webpack Dev Server** on port `5001` (HMR + React Refresh)
+- **Fastify proxy server** on port `8080` — forwards HTML to WDS and API calls to `PROXY_TARGET`
 
 Open `http://localhost:8080` in your browser.
 
-### 8. Preview via FDK CLI
+### 5. (Optional) Preview via FDK CLI
 
-Alternatively, use the FDK CLI to serve the theme with full platform integration:
+If you have a Fynd Partner account and the FDK CLI installed, you can preview the theme against the live platform:
 
 ```bash
+npm install -g @gofynd/fdk-cli
+fdk login
 fdk theme serve
 ```
 
@@ -276,11 +267,11 @@ The server injects `APPLICATION_ID` and `APPLICATION_TOKEN` into the HTML at req
 
 | Loader | Purpose |
 |---|---|
-| `babel-loader` | Transpile JSX/ES6+ via `@babel/preset-env` and `@babel/preset-react` |
-| `css-loader` | CSS Modules support (`.module.css` files) |
+| `babel-loader` | Transpile JSX/ES6+ via `@babel/preset-env` and `@babel/preset-react` (+ `@babel/preset-typescript` for `.ts`/`.tsx`) |
+| `css-loader` | Processes CSS — modules disabled for plain `.css` and `*.global.less`, enabled for all other `.less` files |
 | `less-loader` | LESS compilation with module and global style support |
 | `@svgr/webpack` | Import SVGs as React components |
-| `asset/resource` | Manage fonts, images, and static assets |
+| `asset/resource` | Manage fonts, images, and static assets (`assets/images/` and `assets/fonts/`) |
 
 ### Plugins
 
@@ -379,7 +370,7 @@ const copilotConfig = {
 | Issue | Solution |
 |---|---|
 | `fdk theme serve` fails | Ensure `.fdk` folder exists (run `fdk theme init` first) |
-| Dev server not loading | Check that ports `5001` and `8080` are free |
+| Dev server not loading | Check that ports `5001` (WDS) and `8080` (Fastify) are free, or override `TURBO_DEV_PORT` / `PORT` in `.env` |
 | API calls failing | Verify `PROXY_TARGET` and `APPLICATION_ID`/`APPLICATION_TOKEN` in `.env` |
 | Copilot not initializing | Check network access to `cdn.copilot.live`; retries happen automatically (5x with backoff) |
 | Build errors | Run `npm run clean` then `npm run build` |

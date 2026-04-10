@@ -58,9 +58,9 @@ function HeaderDesktop({
     }[logoMenuAlignment];
   };
 
-  const getShopLogo = () =>
-    appInfo?.logo?.secure_url?.replace("original", "resize-h:165") ||
-    fallbackLogo;
+  // TODO: restore dynamic logo once Fynd Platform is serving a valid logo URL.
+  // Temporarily always use the bundled static logo.
+  const getShopLogo = () => fallbackLogo;
 
   const staticHeight =
     isDoubleRowHeader && globalConfig?.always_on_search

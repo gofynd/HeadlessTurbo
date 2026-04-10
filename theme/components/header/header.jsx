@@ -272,10 +272,9 @@ function Header({ fpi }) {
     }
   }, [headerHeight]);
 
-  const getShopLogoMobile = () =>
-    appInfo?.mobile_logo?.secure_url?.replace("original", "resize-h:165") ||
-    appInfo?.logo?.secure_url?.replace("original", "resize-h:165") ||
-    fallbackLogo;
+  // TODO: restore dynamic logo once Fynd Platform is serving a valid logo URL.
+  // Temporarily always use the bundled static logo.
+  const getShopLogoMobile = () => fallbackLogo;
 
   const checkLogin = (type) => {
     if (type === "cart") {
