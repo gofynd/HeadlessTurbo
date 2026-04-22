@@ -54,8 +54,6 @@ Before you begin, ensure you have:
 
 1. **Node.js** v20 or above (Fastify 5 requires Node 20+) — [Download](https://nodejs.org/)
 2. **Git** installed — [Download](https://git-scm.com/)
-3. **FDK CLI** latest version (optional, for platform preview) — [GitHub](https://github.com/gofynd/fdk-cli)
-4. A **Fynd Partner account** (optional, only if you plan to preview against the platform) — [Create one](https://partners.fynd.com/help/docs/guide/become-fynd-partner)
 
 ## Quick Start
 
@@ -111,18 +109,6 @@ npm run dev
 - **Fastify proxy server** on port `8080` — forwards HTML to WDS and API calls to `PROXY_TARGET`
 
 Open `http://localhost:8080` in your browser.
-
-### 5. (Optional) Preview via FDK CLI
-
-If you have a Fynd Partner account and the FDK CLI installed, you can preview the theme against the live platform:
-
-```bash
-npm install -g @gofynd/fdk-cli
-fdk login
-fdk theme serve
-```
-
-> **Note**: `fdk theme serve` requires the `.fdk` folder, which is created by `fdk theme init`.
 
 ## Available Scripts
 
@@ -369,7 +355,6 @@ const copilotConfig = {
 
 | Issue | Solution |
 |---|---|
-| `fdk theme serve` fails | Ensure `.fdk` folder exists (run `fdk theme init` first) |
 | Dev server not loading | Check that ports `5001` (WDS) and `8080` (Fastify) are free, or override `TURBO_DEV_PORT` / `PORT` in `.env` |
 | API calls failing | Verify `PROXY_TARGET` and `APPLICATION_ID`/`APPLICATION_TOKEN` in `.env` |
 | Copilot not initializing | Check network access to `cdn.copilot.live`; retries happen automatically (5x with backoff) |
