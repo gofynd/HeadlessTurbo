@@ -2,9 +2,29 @@ import React from "react";
 import useHeader from "../components/header/useHeader";
 import { CREATE_TICKET } from "../queries/supportQuery";
 import { useSnackbar } from "../helper/hooks";
-import Base64 from "crypto-js/enc-base64";
-import Utf8 from "crypto-js/enc-utf8";
 import { useFPI, useGlobalTranslation } from "fdk-core/utils";
+
+// SECURITY (report FND-07): every interpolated user value is HTML-escaped
+// before it lands in the ticket description. Otherwise a Name field of
+// `<img src=x onerror=alert(document.cookie)>` would execute inside the
+// support agent UI when it renders the ticket.
+const HTML_ENTITY_MAP = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
+function escapeHtml(value) {
+  if (value == null) return "";
+  return String(value).replace(/[&<>"']/g, (ch) => HTML_ENTITY_MAP[ch]);
+}
+
+// SECURITY (report FND-27): native base64 in place of crypto-js (~150KB
+// import for a one-line operation).
+function toBase64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
 import ContactPage from "@gofynd/theme-template/pages/contact-us/contact-us";
 import SocailMedia from "../components/socail-media/socail-media";
 import "@gofynd/theme-template/pages/contact-us/contact-us.css";
@@ -67,20 +87,19 @@ function Component({ props = {} }) {
     try {
       let finalText = "";
       if (data?.name) {
-        finalText += `<b>${t("resource.header.shop_logo_alt_text")}: </b>${data?.name}<br>`;
+        finalText += `<b>${t("resource.header.shop_logo_alt_text")}: </b>${escapeHtml(data?.name)}<br>`;
       }
       if (data?.phone) {
-        finalText += `<b>${t("resource.header.contact")}: </b>${data?.phone}<br>`;
+        finalText += `<b>${t("resource.header.contact")}: </b>${escapeHtml(data?.phone)}<br>`;
       }
       if (data?.email) {
-        finalText += `<b>${t("resource.common.email")}: </b>${data?.email}<br>`;
+        finalText += `<b>${t("resource.common.email")}: </b>${escapeHtml(data?.email)}<br>`;
       }
       if (data?.comment) {
-        finalText += `<b>${t("resource.header.comment")}: </b>${data?.comment}<br>`;
+        finalText += `<b>${t("resource.header.comment")}: </b>${escapeHtml(data?.comment)}<br>`;
       }
       finalText = `<div>${finalText}</div>`;
-      const wordArray = Utf8.parse(finalText);
-      finalText = Base64.stringify(wordArray);
+      finalText = toBase64(finalText);
       const values = {
         addTicketPayloadInput: {
           _custom_json: {

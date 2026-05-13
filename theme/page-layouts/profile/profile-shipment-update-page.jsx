@@ -1111,9 +1111,38 @@ function ProfileShipmentUpdatePage({ fpi }) {
         })
       );
 
+      // SECURITY (report FND-17): the upload URL is supplied by the upstream
+      // GraphQL response and was previously trusted blindly. If the response
+      // is ever tampered with (compromised upstream, misconfigured proxy,
+      // MITM in a flaky environment), the browser would POST private user
+      // files to an attacker-controlled origin. Pin the host allowlist here.
+      const UPLOAD_HOST_ALLOWLIST = [
+        /\.fynd\.com$/i,
+        /\.fyndx\d+\.de$/i,
+        /\.amazonaws\.com$/i,
+        /\.cloudfront\.net$/i,
+      ];
+      const isAllowedUploadUrl = (urlStr) => {
+        if (!urlStr) return false;
+        try {
+          const u = new URL(urlStr);
+          if (u.protocol !== "https:") return false;
+          return UPLOAD_HOST_ALLOWLIST.some((re) => re.test(u.hostname));
+        } catch {
+          return false;
+        }
+      };
+
       await Promise.all(
         startUploadResponse.map((mediaObj, index) => {
           const item = mediaObj.data?.startUpload || {};
+          if (!isAllowedUploadUrl(item.upload?.url)) {
+            return Promise.reject(
+              new Error(
+                `Upload rejected: untrusted URL ${item.upload?.url ?? ""}`,
+              ),
+            );
+          }
           return fetch(item.upload?.url, {
             method: item.method,
             body: imageList[index].file,

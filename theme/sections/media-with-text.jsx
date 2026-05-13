@@ -3,6 +3,7 @@ import FyImage from "@gofynd/theme-template/components/core/fy-image/fy-image";
 import "@gofynd/theme-template/components/core/fy-image/fy-image.css";
 import styles from "../styles/sections/media-with-text.less";
 import { getProductImgAspectRatio } from "../helper/utils";
+import { sanitizeHtml } from "../helper/security/sanitize-html";
 import Hotspot from "../components/hotspot/product-hotspot";
 import { FEATURE_PRODUCT_DETAILS } from "../queries/featureProductQuery";
 import { useViewport } from "../helper/hooks";
@@ -54,36 +55,10 @@ export function Component({ props, globalConfig, blocks, fpi }) {
   const originalContent =
     typeof description?.value === "string" ? description.value : "";
 
-  const styleMatches = [
-    ...originalContent.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi),
-  ];
-  const extractedStyles = styleMatches.map((match) => match[1]);
-
-  const scriptMatches = [
-    ...originalContent.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi),
-  ];
-  const extractedScripts = scriptMatches.map((match) => match[1]);
-
-  let cleanedContent = originalContent
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      extractedScripts.forEach((scriptContent) => {
-        try {
-          const script = document.createElement("script");
-          script.type = "text/javascript";
-          script.textContent = scriptContent;
-          descriptionRef.current?.appendChild(script);
-        } catch (err) {
-          console.error("Script injection failed:", err);
-        }
-      });
-    }, 300);
-
-    return () => clearTimeout(timeout);
-  }, [description?.value]);
+  // SECURITY (report FND-02 / FND-05): CMS-supplied script tags are no longer
+  // re-executed. We sanitize the entire description through DOMPurify and
+  // render the result. <style> blocks and <script> elements are stripped.
+  const cleanedContent = sanitizeHtml(originalContent, { allowIframes: true });
 
   const getProductSlugs = () => {
     return (
@@ -293,13 +268,6 @@ export function Component({ props, globalConfig, blocks, fpi }) {
             ref={descriptionRef}
             className={`fx-description ${styles.media_text__description}`}
           >
-            {extractedStyles.map((css, index) => (
-              <style
-                key={`style-${index}`}
-                dangerouslySetInnerHTML={{ __html: css }}
-              />
-            ))}
-
             <div
               data-testid="html-content"
               dangerouslySetInnerHTML={{ __html: cleanedContent }}

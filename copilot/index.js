@@ -61,10 +61,15 @@ const registerCopilotTools = async (
     // Attempt to register tools
     await copilot.tools.add(allCopilotActions);
 
-    console.log("✅ [COPILOT] Copilot tools registered successfully", {
-      actionsCount: Object.keys(allCopilotActions).length,
-      attempt: retryCount + 1,
-    });
+    // SECURITY (report FND-29): the registered tool count is mild
+    // fingerprinting that helps an attacker narrow exploitation when chained
+    // with other findings. Keep this in dev only.
+    if (process.env.NODE_ENV === "development") {
+      console.debug("[COPILOT] tools registered", {
+        actionsCount: Object.keys(allCopilotActions).length,
+        attempt: retryCount + 1,
+      });
+    }
 
     return true;
   } catch (error) {

@@ -1,33 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { sanitizeHtml } from "../../helper/security/sanitize-html";
 
-const stripScripts = (html) => {
-  const div = document.createElement("div");
-  div.innerHTML = html;
-
-  const scripts = div.getElementsByTagName("script");
-  for (let i = scripts.length - 1; i >= 0; i--) {
-    scripts[i].parentNode.removeChild(scripts[i]);
-  }
-
-  return div.innerHTML;
-};
-
-export const HTMLContent = React.forwardRef(({ content }, ref) => {
-  const [safeContent, setSafeContent] = useState(content);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const clean = stripScripts(content);
-      setSafeContent(clean);
-    }
-  }, [content]);
-
-  return (
-    <div
-      ref={ref}
-      data-testid="html-content"
-      suppressHydrationWarning
-      dangerouslySetInnerHTML={{ __html: safeContent }}
-    />
-  );
-});
+// SECURITY (report FND-05): the previous `stripScripts` helper only removed
+// <script> elements via innerHTML parsing — it left <img onerror>,
+// <svg onload>, <iframe src="javascript:...">, and `<a href="javascript:">`
+// fully intact. Pipe through DOMPurify instead.
+export const HTMLContent = React.forwardRef(({ content }, ref) => (
+  <div
+    ref={ref}
+    data-testid="html-content"
+    suppressHydrationWarning
+    dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
+  />
+));

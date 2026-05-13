@@ -88,8 +88,51 @@ function LocationModal({
     );
   }, [i18nDetails, currentAddress]);
 
+  // SECURITY (report FND-21): GDPR/CCPA require a clear purpose disclosure
+  // BEFORE the browser-level geolocation prompt fires. Until a custom Dialog
+  // is wired into the design system here, gate the call behind a single
+  // explicit confirm() prompt and persist the answer for the session so we
+  // do not re-prompt on every interaction.
+  const LOCATION_CONSENT_KEY = "turbo_location_consent";
+  const ensureLocationConsent = () => {
+    try {
+      const stored = window.sessionStorage?.getItem(LOCATION_CONSENT_KEY);
+      if (stored === "granted") return true;
+      if (stored === "denied") return false;
+    } catch {
+      /* sessionStorage unavailable — fall through to prompt */
+    }
+    const granted = window.confirm(
+      "We use your location to show delivery options and nearby stores. " +
+        "Allow this site to access your device location?",
+    );
+    try {
+      window.sessionStorage?.setItem(
+        LOCATION_CONSENT_KEY,
+        granted ? "granted" : "denied",
+      );
+    } catch {
+      /* ignore */
+    }
+    return granted;
+  };
+
+  // SECURITY (report FND-24): build geocode URLs via URL + URLSearchParams.
+  // The previous string interpolation broke when area_code or other input
+  // contained `&` / spaces and made it easy for future edits to introduce
+  // injection bugs.
+  const buildGeocodeUrl = (params) => {
+    const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
+    Object.entries(params).forEach(([k, v]) => {
+      if (v != null) url.searchParams.set(k, String(v));
+    });
+    if (mapApiKey) url.searchParams.set("key", mapApiKey);
+    return url.toString();
+  };
+
   const handleCurrentLocClick = () => {
     if (!navigator?.geolocation || !mapApiKey) return;
+    if (!ensureLocationConsent()) return;
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -104,7 +147,9 @@ function LocationModal({
         } else {
           try {
             const response = await fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.coords.latitude},${position.coords.longitude}&key=${mapApiKey}`
+              buildGeocodeUrl({
+                latlng: `${position.coords.latitude},${position.coords.longitude}`,
+              }),
             );
             const data = await response.json();
             if (data.results.length > 0) {
@@ -258,7 +303,7 @@ function LocationModal({
     if (!address.geo_location && address.area_code && isHeaderMap) {
       try {
         const response = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?address=${address.area_code}&key=${mapApiKey}`
+          buildGeocodeUrl({ address: address.area_code }),
         );
         const data = await response.json();
         if (data.results.length > 0) {

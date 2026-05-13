@@ -13,6 +13,7 @@ import useHeader from "../header/useHeader";
 import { FDKLink } from "fdk-core/components";
 import { useFPI, useGlobalStore } from "fdk-core/utils";
 import { useGlobalTranslation } from "fdk-core/utils";
+import { safeUrl } from "../../helper/security/sanitize-html";
 
 const iconMap = {
   social_twitter: SocailTwitter,
@@ -44,7 +45,7 @@ export default function SocailMedia({ social_links, customClassName }) {
           (openSameTab ? (
             <a
               key={key}
-              href={link}
+              href={safeUrl(link)}
               title={title}
               className={styles.socialLink}
             >

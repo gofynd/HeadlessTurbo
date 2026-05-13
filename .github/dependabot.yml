@@ -1,0 +1,21 @@
+# SECURITY (report FND-19 / FND-34): weekly Dependabot scan for npm and GitHub
+# Actions. Combined with the audit step in ci.yml this catches new advisories
+# without manual triage.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      eslint:
+        patterns: ["eslint*", "@typescript-eslint/*"]
+      babel:
+        patterns: ["@babel/*"]
+      webpack:
+        patterns: ["webpack", "webpack-*", "*-webpack-plugin"]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly

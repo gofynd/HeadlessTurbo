@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { FDKLink } from "fdk-core/components";
+import { safeUrl } from "../helper/security/sanitize-html";
 
 export function Component({ props, globalConfig }) {
   const { label, url, target } = props;
@@ -22,12 +23,21 @@ export function Component({ props, globalConfig }) {
 
   const style = { display: "block", padding };
 
+  // SECURITY (report FND-10): validate href and force `rel='noopener
+  // noreferrer'` on _blank links so a CMS-supplied `javascript:` URL or a
+  // window.opener tab-nabbing attack is blocked at the source.
+  const safeHref = safeUrl(url?.value);
   return target.value === "_blank" ? (
-    <a href={url.value} target={target.value} style={style}>
+    <a
+      href={safeHref}
+      target={target.value}
+      rel="noopener noreferrer"
+      style={style}
+    >
       {label.value}
     </a>
   ) : (
-    <FDKLink to={url.value} style={style}>
+    <FDKLink to={safeHref} style={style}>
       {label.value}
     </FDKLink>
   );

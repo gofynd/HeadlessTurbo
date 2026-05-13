@@ -3,6 +3,7 @@ import FyAccordion from "../../../../components/core/fy-accordion/fy-accordion";
 import styles from "./prod-desc.less";
 //import { useRichText } from "../../../../helper/hooks";
 import { useGlobalTranslation } from "fdk-core/utils";
+import { sanitizeHtml } from "../../../../helper/security/sanitize-html";
 
 function ProdDesc({ product, config, customClass }) {
   const { t } = useGlobalTranslation("translation");
@@ -88,7 +89,7 @@ function ProdDesc({ product, config, customClass }) {
                     <div
                       className={`b2 ${styles.pdpDetail}`}
                       dangerouslySetInnerHTML={{
-                        __html: productDescription.details,
+                        __html: sanitizeHtml(productDescription.details),
                       }}
                     />
                   )}
@@ -131,7 +132,7 @@ function ProdDesc({ product, config, customClass }) {
                           </span>
                           <span
                             className={styles.val}
-                            dangerouslySetInnerHTML={{ __html: property.value }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(property.value) }}
                           />
                         </li>
                       ))}
@@ -198,7 +199,7 @@ function ProdDesc({ product, config, customClass }) {
                     <div
                       className={styles.pdpDetail}
                       dangerouslySetInnerHTML={{
-                        __html: productDescription.details,
+                        __html: sanitizeHtml(productDescription.details),
                       }}
                     />
                   </div>
@@ -219,7 +220,7 @@ function ProdDesc({ product, config, customClass }) {
                           </span>
                           <span
                             className={styles.val}
-                            dangerouslySetInnerHTML={{ __html: property.value }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(property.value) }}
                           />
                         </li>
                       )

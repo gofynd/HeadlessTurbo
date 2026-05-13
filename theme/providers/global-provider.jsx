@@ -8,6 +8,7 @@ import {
   isRunningOnClient,
   sanitizeHTMLTag,
 } from "../helper/utils";
+import { safeUrl } from "../helper/security/sanitize-html";
 import { useThemeConfig } from "../helper/hooks";
 import useInternational from "../components/header/useInternational";
 import { fetchCartDetails } from "../page-layouts/cart/useCart";
@@ -78,13 +79,22 @@ export function ThemeProvider({ children }) {
   }
   const baseUrl =
     domainUrl || (isRunningOnClient() ? window?.location?.origin : "");
-  const image = sanitizeHTMLTag(
+  // SECURITY (report FND-06): SEO image and canonical URL are CMS-controlled
+  // and flow into <meta property='og:image'> and <link rel='canonical'>.
+  // Validate with safeUrl, which rejects javascript: / data: / backslash
+  // bypasses that the misleading stripHtmlBrackets used to let through.
+  const rawImage =
     seoData?.image ||
-      seoData?.image_url ||
-      CONFIGURATION?.application?.logo?.secure_url ||
-      "",
-  );
-  const canonicalPath = sanitizeHTMLTag(seoData?.canonical_url);
+    seoData?.image_url ||
+    CONFIGURATION?.application?.logo?.secure_url ||
+    "";
+  const image = rawImage
+    ? safeUrl(rawImage, { fallback: "", allowRelative: true })
+    : "";
+  const rawCanonical = seoData?.canonical_url;
+  const canonicalPath = rawCanonical
+    ? safeUrl(rawCanonical, { fallback: "", allowRelative: true })
+    : "";
   let canonicalUrl = "";
   if (canonicalPath) {
     if (/^https?:\/\//i.test(canonicalPath)) {
@@ -500,13 +510,19 @@ export const getHelmet = ({
   const title = sanitizeHTMLTag(overrideTitle || seo?.title);
 
   const description = sanitizeHTMLTag(overrideDescription || seo?.description);
-  const image = sanitizeHTMLTag(
-    overrideImage || (seo?.image ? seo?.image : seo?.image_url),
-  );
-  const url = sanitizeHTMLTag(overrideUrl || seo?.url || seo?.canonical_url);
-  const canonicalPath = sanitizeHTMLTag(
-    overrideCanonicalUrl || seo?.canonical_url,
-  );
+  // SECURITY (report FND-06): og:image, og:url, canonical href all flow into
+  // <meta> / <link> tags. Validate via safeUrl so javascript:/data:/backslash
+  // payloads cannot survive.
+  const rawImage = overrideImage || seo?.image || seo?.image_url || "";
+  const image = rawImage
+    ? safeUrl(rawImage, { fallback: "", allowRelative: true })
+    : "";
+  const rawUrl = overrideUrl || seo?.url || seo?.canonical_url || "";
+  const url = rawUrl ? safeUrl(rawUrl, { fallback: "", allowRelative: true }) : "";
+  const rawCanonical = overrideCanonicalUrl || seo?.canonical_url || "";
+  const canonicalPath = rawCanonical
+    ? safeUrl(rawCanonical, { fallback: "", allowRelative: true })
+    : "";
   const siteName = sanitizeHTMLTag(
     overrideSiteName || seo?.site_name || seo?.brand || title,
   );

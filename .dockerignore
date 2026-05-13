@@ -2,9 +2,14 @@ node_modules
 dist
 dist_sections
 .git
-.env*
-*.md
-tasks/
+.github
+.env
+.env.*
+!.env.example
+*.log
 debug.log
 .DS_Store
-copilot/
+coverage
+tasks/
+# NOTE (security report FND-20): copilot/ MUST NOT be excluded — it is
+# imported at runtime via theme/providers/global-provider.jsx.

@@ -262,7 +262,12 @@ function Header({ fpi }) {
         .replaceAll(",", ";")
         .replace(/"/g, "");
       const str = `:root, ::before, ::after${variables}`;
-      styleElement.innerHTML = str;
+      // SECURITY (report FND-31): use textContent rather than innerHTML for
+      // CSS string assignment. innerHTML on a <style> element is currently
+      // safe because the value is built from numeric measurements, but the
+      // pattern becomes an XSS vector the moment any future edit lets a
+      // user-controlled string flow into `str`.
+      styleElement.textContent = str;
 
       document.head.appendChild(styleElement);
 

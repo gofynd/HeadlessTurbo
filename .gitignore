@@ -1,4 +1,14 @@
-package-lock.json
-azure-pipelines.yml
 node_modules
+dist
+dist_sections
+coverage
 .env
+.env.*
+!.env.example
+*.log
+npm-debug.log*
+debug.log
+extension.context.json
+theme/extension.context.json
+.DS_Store
+azure-pipelines.yml

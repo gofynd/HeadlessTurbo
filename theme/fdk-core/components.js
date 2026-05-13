@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import sectionsMap from "../sections";
 import { convertActionToUrl } from "./utils";
+import { safeUrl } from "../helper/security/sanitize-html";
 
 function isExternalUrl(url) {
   return /^(https?:)?\/\//i.test(url) || /^mailto:|^tel:/i.test(url);
@@ -30,12 +31,20 @@ export function FDKLink({
 }) {
   const resolvedTo = to || link || href || convertActionToUrl(action) || "#";
 
+  // SECURITY (report FND-10): central wrapper for every link in the theme.
+  // Validate the URL via safeUrl (rejects javascript:/data:/backslash bypass)
+  // and force rel="noopener noreferrer" on every _blank link so window.opener
+  // tab-nabbing is impossible regardless of host.
   if (isExternalUrl(resolvedTo) || target === "_blank") {
+    const safeHref = safeUrl(resolvedTo);
+    const finalRel = target === "_blank"
+      ? `noopener noreferrer${rel ? ` ${rel}` : ""}`.trim()
+      : rel;
     return (
       <a
-        href={resolvedTo}
+        href={safeHref}
         target={target}
-        rel={rel || (target === "_blank" ? "noopener noreferrer" : undefined)}
+        rel={finalRel}
         {...rest}
       >
         {children}
@@ -44,7 +53,7 @@ export function FDKLink({
   }
 
   return (
-    <Link to={resolvedTo} target={target} rel={rel} {...rest}>
+    <Link to={safeUrl(resolvedTo)} target={target} rel={rel} {...rest}>
       {children}
     </Link>
   );

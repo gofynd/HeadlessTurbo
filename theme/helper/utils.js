@@ -332,9 +332,21 @@ export const detectMobileWidth = () => {
   }
 };
 
-export function sanitizeHTMLTag(data) {
+// SECURITY (report FND-06): this helper only strips `< > "` — it is NOT a
+// sanitizer. The misleading name caused 80+ call sites to skip real sanitation.
+// For HTML content use `sanitizeHtml` from `theme/helper/security/sanitize-html`;
+// for URL attributes use `safeUrl` from the same module. This export now
+// degrades safely to React-text-node escaping for plain text fields (titles,
+// descriptions, SEO meta values) — values still flow through React, which
+// HTML-escapes them at render time.
+export function stripHtmlBrackets(data) {
   return typeof data === "string" ? data.replace(/[<>"]/g, "") : "";
 }
+
+// Back-compat alias. New code must NOT use this name — it is preserved only so
+// existing pages don't break in one commit. Migrate URL-bearing sites to
+// `safeUrl` and remove this alias once all callers are updated.
+export const sanitizeHTMLTag = stripHtmlBrackets;
 
 export function sanitizeMetaDescription(data) {
   if (typeof data !== "string") return "";
@@ -748,20 +760,37 @@ export const getConfigFromProps = (props) => {
   );
 };
 
+// SECURITY (report FND-11): the previous implementation merely prefixed `/`
+// onto whatever string was passed in. That was an open redirect:
+//   - `/\evil.com` becomes `//evil.com` because browsers normalize `\` to `/`
+//   - `//evil.com` is already protocol-relative — `window.location.assign`
+//     follows it cross-origin
+//   - URL-encoded variants survive a naïve double-decode upstream
+// We reject any path that does not start with `/`, contains `\`, or starts
+// with `//`. The locale prefix is then applied to the validated path.
 export function getLocalizedRedirectUrl(path = "", currentLocale) {
-  // Ensure path starts with a slash
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const raw = typeof path === "string" ? path : "";
+  let safe;
+  if (!raw) {
+    safe = "/";
+  } else if (raw.includes("\\")) {
+    safe = "/";
+  } else if (raw.startsWith("//")) {
+    safe = "/";
+  } else if (!raw.startsWith("/")) {
+    safe = "/";
+  } else {
+    safe = raw;
+  }
 
-  // If we have a non-English locale and path doesn't already have it
   if (
     currentLocale &&
     currentLocale !== "en" &&
-    !normalizedPath.startsWith(`/${currentLocale}`)
+    !safe.startsWith(`/${currentLocale}`)
   ) {
-    return `/${currentLocale}${normalizedPath}`;
+    return `/${currentLocale}${safe}`;
   }
-
-  return normalizedPath;
+  return safe;
 }
 
 export const validateAccounHolder = (value) => {

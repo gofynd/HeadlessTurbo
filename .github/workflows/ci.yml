@@ -1,0 +1,43 @@
+name: CI
+# SECURITY (report FND-19): every push and PR runs lint + dependency audit so
+# transitive vulnerabilities are surfaced before merge instead of in a
+# quarterly review.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install (locked)
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Audit (high+critical only)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Better-npm-audit (paid advisories)
+        run: npx --yes better-npm-audit audit --level high
+        continue-on-error: false
+
+      - name: Bundle leak scan
+        # Fail the build if any APP_TOKEN/Bearer/HMAC pattern is shipped to dist/.
+        run: |
+          if grep -REn 'authorization: Bearer|x-fp-signature|APPLICATION_TOKEN' dist/; then
+            echo "Bundle contains a secret pattern. Aborting." >&2
+            exit 1
+          fi

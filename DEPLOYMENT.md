@@ -358,21 +358,33 @@ export default {
       path.startsWith("/graphql")
     ) {
       const proxyUrl = new URL(path + url.search, env.PROXY_TARGET);
+      // SECURITY (report FND-12 / FND-13): strip Origin/Referer/Host before
+      // forwarding so the upstream cannot echo them into
+      // Access-Control-Allow-Origin and weaken cross-origin protections.
+      const upstreamHeaders = new Headers(request.headers);
+      upstreamHeaders.delete("origin");
+      upstreamHeaders.delete("referer");
+      upstreamHeaders.delete("host");
       const proxyRequest = new Request(proxyUrl.toString(), {
         method: request.method,
-        headers: request.headers,
+        headers: upstreamHeaders,
         body: request.method !== "GET" ? request.body : undefined,
       });
       const response = await fetch(proxyRequest);
 
-      // Strip domain from set-cookie headers
+      // Strip domain from set-cookie headers and add Secure / SameSite=Lax
+      // (matches the production Fastify hardenSetCookie behavior).
       const newHeaders = new Headers(response.headers);
       const setCookie = newHeaders.get("set-cookie");
       if (setCookie) {
-        newHeaders.set(
-          "set-cookie",
-          setCookie.replace(/;\s*[Dd]omain=[^;]+/g, "")
-        );
+        let hardened = setCookie.replace(/;\s*[Dd]omain=[^;]+/g, "");
+        if (!/;\s*Secure(?:\s*;|\s*$)/i.test(hardened)) {
+          hardened = `${hardened}; Secure`;
+        }
+        if (!/;\s*SameSite=/i.test(hardened)) {
+          hardened = `${hardened}; SameSite=Lax`;
+        }
+        newHeaders.set("set-cookie", hardened);
       }
       return new Response(response.body, {
         status: response.status,
@@ -385,12 +397,10 @@ export default {
       return Response.json({ status: "ok" });
     }
 
-    // Version check
+    // SECURITY (report FND-23): /__version returns only the build id; never
+    // leak the upstream PROXY_TARGET hostname.
     if (path === "/__version") {
-      return Response.json({
-        build: "turbo-cf-worker-v1",
-        proxy: env.PROXY_TARGET,
-      });
+      return Response.json({ build: "turbo-cf-worker-v1" });
     }
 
     // Static assets: if the path has a file extension, let Cloudflare Assets handle it
@@ -405,14 +415,20 @@ export default {
     );
     let html = await indexResponse.text();
 
-    // Inject runtime credentials
+    // SECURITY (report FND-12): JSON.stringify alone does NOT escape `<`, `>`,
+    // or `&`, so a credential value containing the literal substring
+    // `</script>` would close the inline script tag and HTML-inject. The
+    // Fastify implementation in server.js performs these replacements via the
+    // escapeForInlineScript helper; the worker MUST mirror that behavior.
+    const credsLiteral = JSON.stringify({
+      applicationID: env.APPLICATION_ID || "",
+      applicationToken: env.APPLICATION_TOKEN || "",
+    })
+      .replace(/</g, "\\u003c")
+      .replace(/>/g, "\\u003e")
+      .replace(/&/g, "\\u0026");
     const credentialsScript =
-      "<script>" +
-      `window.__APP_CREDENTIALS__=${JSON.stringify({
-        applicationID: env.APPLICATION_ID || "",
-        applicationToken: env.APPLICATION_TOKEN || "",
-      })};` +
-      "</script>";
+      `<script>window.__APP_CREDENTIALS__=${credsLiteral};</script>`;
 
     html = html.replace("</head>", `${credentialsScript}</head>`);
 
@@ -425,6 +441,16 @@ export default {
   },
 };
 ```
+
+### Subresource Integrity for third-party scripts
+
+> **Security note (report FND-22):** any external `<script src="...">` injected
+> into the storefront — for example the Fynd platform's `cdn.copilot.live`
+> bootstrap — should pin a versioned URL and include
+> `integrity="sha384-..." crossorigin="anonymous"`. A CDN compromise without
+> SRI gives the attacker arbitrary JS execution with full storefront-origin
+> trust (credential exfiltration, payment data, session cookies). Update the
+> SRI hash whenever you roll the pinned version.
 
 ### 4. Build and Deploy
 

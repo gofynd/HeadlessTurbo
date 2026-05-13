@@ -137,17 +137,14 @@ const useLogin = ({ fpi, pageConfig = {} }) => {
       const queryParams = isRunningOnClient()
         ? new URLSearchParams(location.search)
         : null;
+      // SECURITY (report FND-11): single decode (URLSearchParams already
+      // decoded once); no manual second decodeURIComponent — the previous
+      // double-decode let `%252F%252Fevil.com` become `//evil.com` and slip
+      // past the locale prefix.
       const redirectUrl = queryParams?.get("redirectUrl") || "";
-      // URLSearchParams already decodes the value, but we try to decode again
-      // in case it was double-encoded. Use try-catch to handle edge cases.
-      let decodedUrl = redirectUrl;
-      try {
-        decodedUrl = decodeURIComponent(redirectUrl);
-      } catch (e) {
-        // If decoding fails, use the original value (already decoded by URLSearchParams)
-        decodedUrl = redirectUrl;
-      }
-      const finalUrl = getLocalizedRedirectUrl(decodedUrl, locale);
+      const finalUrl = getLocalizedRedirectUrl(redirectUrl, locale);
+      // getLocalizedRedirectUrl is fail-closed to "/" for unsafe input; we
+      // can safely assign against the current origin.
       window.location.href = window.location.origin + finalUrl;
     } else {
       const qs = isRunningOnClient() ? location.search : "";
@@ -180,6 +177,12 @@ const useLogin = ({ fpi, pageConfig = {} }) => {
   const onGoogleCredential = async (response) => {
     try {
       const userCred = response.credential;
+      // SECURITY (report FND-25): jwtDecode only base64-decodes — it does NOT
+      // verify signature, issuer, audience, nonce, or expiry. The decoded
+      // payload is used here ONLY to build the request body. The backend
+      // GraphQL mutation MUST independently verify the original id_token
+      // (response.credential) before issuing a session. Never trust this
+      // payload to grant authorization on the client.
       const payload = jwtDecode(userCred);
       const data = getGoogleUserInfo(response, payload);
       return fpi.executeGQL(GOOGLE_LOGIN, data).then((res) => {
@@ -239,6 +242,8 @@ const useLogin = ({ fpi, pageConfig = {} }) => {
     try {
       const idToken = response?.authorization?.id_token;
       if (!idToken) throw new Error("Missing Apple ID token");
+      // SECURITY (report FND-25): see Google handler above — backend MUST
+      // re-verify this id_token's signature, issuer, audience, and expiry.
       const payload = jwtDecode(idToken);
       const idTokenPayload = { ...payload, id_token: idToken };
       // `user` exists only on first sign-in, and includes { name: { firstName, lastName }, email? }

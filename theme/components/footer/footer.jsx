@@ -8,6 +8,7 @@ import SocialLinks from "../socail-media/socail-media";
 import { useGlobalTranslation } from "fdk-core/utils";
 import fallbackFooterLogo from "../../assets/images/logo-footer.png";
 import { useThemeConfig } from "../../helper/hooks";
+import { sanitizeHtml, safeUrl } from "../../helper/security/sanitize-html";
 import FooterContactLogo from "../../assets/images/footer-call-icon.svg";
 import FooterEmailLogo from "../../assets/images/footer-mail-icon.svg";
 import AccordionArrow from "../../assets/images/accordion-arrow.svg";
@@ -49,50 +50,19 @@ function Footer({ fpi }) {
     }
   }, []);
 
-  const processFooterDescription = useMemo(() => {
+  // SECURITY (report FND-02 / FND-05): footer_description used to extract
+  // <style>/<script> blocks and re-inject the scripts as live DOM. Now the
+  // entire CMS-provided HTML flows through DOMPurify; scripts and inline
+  // event handlers are stripped, iframes from trusted media hosts are kept.
+  const safeFooterDescription = useMemo(() => {
     const originalContent =
       typeof globalConfig?.footer_description === "string"
-        ? globalConfig?.footer_description
+        ? globalConfig.footer_description
         : "";
-
-    if (!originalContent)
-      return { cleanedContent: "", extractedStyles: [], extractedScripts: [] };
-
-    const styleMatches = [
-      ...originalContent.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi),
-    ];
-    const extractedStyles = styleMatches.map((match) => match[1]);
-
-    const scriptMatches = [
-      ...originalContent.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi),
-    ];
-    const extractedScripts = scriptMatches.map((match) => match[1]);
-
-    let cleanedContent = originalContent
-      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
-
-    return { cleanedContent, extractedStyles, extractedScripts };
+    return originalContent
+      ? sanitizeHtml(originalContent, { allowIframes: true })
+      : "";
   }, [globalConfig?.footer_description]);
-
-  useEffect(() => {
-    if (processFooterDescription.extractedScripts.length === 0) return;
-
-    const timeout = setTimeout(() => {
-      processFooterDescription.extractedScripts.forEach((scriptContent) => {
-        try {
-          const script = document.createElement("script");
-          script.type = "text/javascript";
-          script.textContent = scriptContent;
-          descriptionRef.current?.appendChild(script);
-        } catch (err) {
-          console.error("Footer script injection failed:", err);
-        }
-      });
-    }, 300);
-
-    return () => clearTimeout(timeout);
-  }, [processFooterDescription.extractedScripts]);
 
   const logoMaxHeightMobile = globalConfig?.footer_logo_max_height_mobile || 25;
   const logoMaxHeightDesktop =
@@ -198,19 +168,10 @@ function Footer({ fpi }) {
                         ref={descriptionRef}
                         className={`${styles.description} b1 ${styles.fontBody}`}
                       >
-                        {processFooterDescription.extractedStyles.map(
-                          (css, index) => (
-                            <style
-                              key={`footer-style-${index}`}
-                              dangerouslySetInnerHTML={{ __html: css }}
-                            />
-                          ),
-                        )}
-
                         <div
                           data-testid="footer-html-content"
                           dangerouslySetInnerHTML={{
-                            __html: processFooterDescription.cleanedContent,
+                            __html: safeFooterDescription,
                           }}
                         />
                       </div>
@@ -239,14 +200,14 @@ function Footer({ fpi }) {
                           {item?.action?.page?.type === "external" ? (
                             openInNewTab ? (
                               <a
-                                href={item?.action?.page?.query?.url[0]}
+                                href={safeUrl(item?.action?.page?.query?.url[0])}
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >
                                 {item.display}
                               </a>
                             ) : (
-                              <a href={item?.action?.page?.query?.url[0]}>
+                              <a href={safeUrl(item?.action?.page?.query?.url[0])}>
                                 {item.display}
                               </a>
                             )
@@ -284,7 +245,7 @@ function Footer({ fpi }) {
                             >
                               {subItem?.action?.page?.type === "external" ? (
                                 <a
-                                  href={subItem?.action?.page?.query?.url[0]}
+                                  href={safeUrl(subItem?.action?.page?.query?.url[0])}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                 >

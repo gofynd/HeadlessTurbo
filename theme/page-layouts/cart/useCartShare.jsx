@@ -44,32 +44,35 @@ const useCartShare = ({ fpi, cartData }) => {
     showSnackbar(t("resource.cart.link_copied"), "success");
   };
 
+  // SECURITY (report FND-10): URL-encode shareLink before interpolating into
+  // third-party share endpoints (& and # in the URL would otherwise terminate
+  // the query string or fragment), and harden popups against tab-nabbing
+  // (popup.opener = null) so the opened share dialog cannot navigate this tab.
+  const openSharePopup = (url, name) => {
+    const popup = window.open(url, name, "height=350,width=600,noopener,noreferrer");
+    if (popup) {
+      try { popup.opener = null; } catch { /* cross-origin */ }
+      if (popup.focus) popup.focus();
+    }
+    return false;
+  };
+
   const onFacebookShareClick = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    const facebookWindow = window.open(
-      `https://www.facebook.com/sharer/sharer.php?u=${shareLink}`,
+    return openSharePopup(
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareLink)}`,
       "facebook-popup",
-      "height=350,width=600"
     );
-    if (facebookWindow.focus) {
-      facebookWindow.focus();
-    }
-    return false;
   };
 
   const onTwitterShareClick = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    const twitterWindow = window.open(
-      `https://twitter.com/share?url=${shareLink}`,
+    return openSharePopup(
+      `https://twitter.com/share?url=${encodeURIComponent(shareLink)}`,
       "twitter-popup",
-      "height=350,width=600"
     );
-    if (twitterWindow.focus) {
-      twitterWindow.focus();
-    }
-    return false;
   };
 
   return {

@@ -563,9 +563,18 @@ const useStoreLocator = ({ fpi, stores: propStores = [] }) => {
     const coords = getStoreCoordinates(store);
     if (!coords) return;
 
-    // Open Google Maps with the store location
-    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lng}`;
-    window.open(googleMapsUrl, "_blank");
+    // SECURITY (report FND-10 / FND-24): build URL via URLSearchParams so
+    // coordinate values cannot break out of the query string, and open with
+    // noopener,noreferrer to prevent tab-nabbing.
+    const params = new URLSearchParams({
+      api: "1",
+      destination: `${coords.lat},${coords.lng}`,
+    });
+    const googleMapsUrl = `https://www.google.com/maps/dir/?${params.toString()}`;
+    const popup = window.open(googleMapsUrl, "_blank", "noopener,noreferrer");
+    if (popup) {
+      try { popup.opener = null; } catch { /* cross-origin */ }
+    }
   }, []);
 
   return {

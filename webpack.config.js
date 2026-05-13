@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 import { createRequire } from "module";
 import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
-import Dotenv from "dotenv-webpack";
+import webpack from "webpack";
 import { readFileSync } from "node:fs";
 import ReactRefreshWebpackPlugin from "@pmmmwh/react-refresh-webpack-plugin";
 
@@ -188,10 +188,19 @@ export default (env = {}, argv = {}) => {
         template: path.resolve(context, "public/index.html"),
         chunks: ["app"],
       }),
-      new Dotenv({
-        path: path.resolve(context, ".env"),
-        safe: false,
-        systemvars: true,
+      // Explicit allowlist (security report FND-08): we previously used
+      // dotenv-webpack with systemvars:true, which resolved EVERY process.env.*
+      // reference at build time and inlined the value into the public bundle.
+      // Any secret (APPLICATION_TOKEN, AWS_*, GITHUB_TOKEN, etc.) referenced
+      // anywhere in theme/ would leak. Only non-sensitive build-time toggles
+      // are permitted below.
+      new webpack.DefinePlugin({
+        "process.env.NODE_ENV": JSON.stringify(mode),
+        "process.env.PUBLIC_URL": JSON.stringify(
+          envFromFile.PUBLIC_URL || process.env.PUBLIC_URL || "",
+        ),
+        "process.env.DOMAIN": JSON.stringify(clientDomainForBundle),
+        "process.env.USE_PROXY": JSON.stringify(String(useProxy)),
       }),
       ...(isDev
         ? [
@@ -205,6 +214,12 @@ export default (env = {}, argv = {}) => {
       minimizer: [`...`, new CssMinimizerPlugin()],
     },
     devServer: {
+      // Bind to loopback only (security report FND-35). WDS proxies
+      // authenticated requests upstream using the developer's cookies; binding
+      // to 0.0.0.0 (the WDS default) exposes those to anyone on the same
+      // network/VPN.
+      host: "127.0.0.1",
+      allowedHosts: ["localhost", "127.0.0.1"],
       static: {
         directory: path.resolve(context, "public"),
       },

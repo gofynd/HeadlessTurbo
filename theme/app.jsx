@@ -49,16 +49,70 @@ class ErrorBoundary extends Component {
 
 const isBrowser = typeof window !== "undefined";
 
+// SECURITY (report FND-15): wrap window.fetch once on bootstrap so every
+// same-origin call to /service /ext /graphql carries the CSRF token. The
+// Fynd FPI SDK and any custom code that uses fetch go through this shim,
+// keeping the double-submit contract intact regardless of caller.
+function installCsrfFetchInterceptor() {
+  if (!isBrowser || typeof window.fetch !== "function") return;
+  if (window.__csrfFetchPatched) return;
+
+  const originalFetch = window.fetch.bind(window);
+
+  const isProxiedPath = (urlStr) => {
+    if (typeof urlStr !== "string") return false;
+    return (
+      urlStr.startsWith("/service") ||
+      urlStr.startsWith("/ext") ||
+      urlStr.startsWith("/graphql")
+    );
+  };
+
+  window.fetch = function csrfFetch(input, init) {
+    try {
+      const url =
+        typeof input === "string"
+          ? input
+          : input && typeof input.url === "string"
+            ? input.url
+            : "";
+      const method =
+        (init && init.method) ||
+        (input && input.method) ||
+        "GET";
+      const upper = String(method).toUpperCase();
+      const needsCsrf =
+        isProxiedPath(url) &&
+        upper !== "GET" &&
+        upper !== "HEAD" &&
+        upper !== "OPTIONS";
+      if (needsCsrf && window.__CSRF_TOKEN__) {
+        const headers = new Headers(
+          (init && init.headers) || (input && input.headers) || {},
+        );
+        if (!headers.has("X-CSRF-Token")) {
+          headers.set("X-CSRF-Token", window.__CSRF_TOKEN__);
+        }
+        const nextInit = { ...(init || {}), headers };
+        return originalFetch(input, nextInit);
+      }
+    } catch {
+      // fall through to unmodified fetch
+    }
+    return originalFetch(input, init);
+  };
+  window.__csrfFetchPatched = true;
+}
+
 function assertEnvVars() {
-  const runtimeCredentials = getAppCredentials();
-  const applicationID =
-    runtimeCredentials.applicationID || process.env.APPLICATION_ID;
-  const applicationToken =
-    runtimeCredentials.applicationToken || process.env.APPLICATION_TOKEN;
+  // Credentials flow ONLY through window.__APP_CREDENTIALS__ injected by server.js
+  // at request time. No process.env fallback — that path lets Webpack inline the
+  // token into the public bundle (see security report FND-01 / FND-08).
+  const { applicationID, applicationToken } = getAppCredentials();
 
   if (!applicationID || !applicationToken) {
     throw new Error(
-      "Missing env vars. Expected APPLICATION_ID, APPLICATION_TOKEN.",
+      "Missing app credentials. window.__APP_CREDENTIALS__ was not injected by the server.",
     );
   }
 
@@ -68,10 +122,15 @@ function assertEnvVars() {
 function getStoreInitialData() {
   if (!isBrowser) return {};
 
+  // SECURITY (report FND-03): we only bootstrap the non-sensitive logged_in
+  // hint here so the UI can render the right shell on first paint. User
+  // profile data (name, DOB, email, phone, etc.) is fetched from the server
+  // via USER_DATA_QUERY against the session cookie. The persisted hint is
+  // NEVER used as an authorization signal — see auth-guard.js.
   const persistedAuth = getPersistedAuth();
-  if (!persistedAuth || !Object.keys(persistedAuth).length) return {};
+  if (!persistedAuth?.logged_in) return {};
 
-  return { auth: { ...persistedAuth } };
+  return { auth: { logged_in: true } };
 }
 
 function assertInitializeThemeFn(fn) {
@@ -84,10 +143,12 @@ function assertInitializeThemeFn(fn) {
   );
 }
 
-function attachGlobals({ fpi, applicationID, applicationToken }) {
+function attachGlobals({ fpi }) {
   if (!isBrowser) return;
 
-  window.__APP_CREDENTIALS__ = { applicationID, applicationToken };
+  // Do NOT write back to window.__APP_CREDENTIALS__ — it's a server-injected,
+  // read-only value (see security report FND-09). Re-assigning here would let
+  // any earlier script on the page tamper with credential state.
   window.fpi = fpi;
 
   if (typeof window.FPI === "undefined") window.FPI = {};
@@ -98,6 +159,7 @@ function attachGlobals({ fpi, applicationID, applicationToken }) {
 }
 
 async function bootstrap() {
+  installCsrfFetchInterceptor();
   const { applicationID, applicationToken } = assertEnvVars();
   const storeInitialData = getStoreInitialData();
   const safeInitializeTheme = assertInitializeThemeFn(initializeTheme);
@@ -119,7 +181,7 @@ async function bootstrap() {
 
   const { fpi, globalDataResolver } = parsedTheme;
 
-  attachGlobals({ fpi, applicationID, applicationToken });
+  attachGlobals({ fpi });
   await globalDataResolver?.({ fpi, applicationID });
 
   const app = document.getElementById("app");

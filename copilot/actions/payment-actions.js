@@ -130,7 +130,11 @@ export const paymentActions = [
         const amountInPaise = totalAmount * 100; // Convert to paise as required by API
 
         // Get pincode from localStorage or address_id if available
-        let pincode = localStorage?.getItem("pincode") || "";
+        // SECURITY (report FND-30): localStorage pincode is attacker-poisonable
+        // via any successful XSS. Validate format before flowing into payment
+        // availability calls; fall back to empty string on bad input.
+        const _rawPincode130 = localStorage?.getItem("pincode") || "";
+        let pincode = /^\d{6}$/.test(_rawPincode130) ? _rawPincode130 : "";
 
         // If we have address_id, we might need to get pincode from there
         if (!pincode && finalAddressId) {
@@ -423,7 +427,11 @@ export const paymentActions = [
         const amountInPaise = totalAmount * 100;
 
         // Get pincode
-        let pincode = localStorage?.getItem("pincode") || "";
+        // SECURITY (report FND-30): localStorage pincode is attacker-poisonable
+        // via any successful XSS. Validate format before flowing into payment
+        // availability calls; fall back to empty string on bad input.
+        const _rawPincode130 = localStorage?.getItem("pincode") || "";
+        let pincode = /^\d{6}$/.test(_rawPincode130) ? _rawPincode130 : "";
         if (!pincode) {
           pincode = "400001"; // Default pincode
         }
@@ -890,7 +898,10 @@ export const paymentActions = [
         const breakupValues = [];
         let totalAmount = 0;
         let amountInPaise = 0;
-        let pincode = localStorage?.getItem("pincode") || "400001";
+        // SECURITY (report FND-30): validate format before flowing into the
+        // payment availability call.
+        const _rawPincode901 = localStorage?.getItem("pincode") || "";
+        let pincode = /^\d{6}$/.test(_rawPincode901) ? _rawPincode901 : "400001";
 
         // Get cart data for amount calculation
         const cartPayload = {

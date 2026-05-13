@@ -2,8 +2,8 @@ import { useGlobalStore } from "fdk-core/utils";
 import { useRef, useState, useEffect } from "react";
 import Snackbar from "awesome-snackbar";
 import { marked } from "marked";
-import DOMPurify from "dompurify";
 import { isRunningOnClient } from "../utils";
+import { sanitizeHtml } from "../security/sanitize-html";
 
 export function useLoggedInUser(fpi) {
   return {
@@ -101,6 +101,12 @@ export const useSnackbar = () => {
   return { showSnackbar };
 };
 
+// SECURITY (report FND-16): the previous YouTube shortcode handler accepted
+// any character in the captured id, so a value like `abc"></iframe><script>x`
+// broke out of the iframe src attribute and injected arbitrary HTML.
+// Validate the YouTube id strictly before substitution.
+const YOUTUBE_ID_RE = /^[A-Za-z0-9_-]{6,15}$/;
+
 export const useRichText = (htmlContent) => {
   const preprocessMarkdown = (markdown) => {
     return markdown
@@ -112,6 +118,7 @@ export const useRichText = (htmlContent) => {
       .replace(/\^\^([^^]+)\^\^/g, "<sup>$1</sup>")
       .replace(/,,(.*?),,/g, "<sub>$1</sub>")
       .replace(/{{youtube:(.*?)}}/g, (match, p1) => {
+        if (!YOUTUBE_ID_RE.test(p1)) return "";
         return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${p1}" frameborder="0" allowfullscreen></iframe>`;
       });
   };
@@ -120,10 +127,12 @@ export const useRichText = (htmlContent) => {
     if (!content) return "";
     const processedContent = preprocessMarkdown(content);
     const markedContent = marked(processedContent);
-    if (!isRunningOnClient()) {
-      return markedContent;
-    }
-    return DOMPurify.sanitize(markedContent);
+    // SECURITY (report FND-05): always sanitize, including on the SSR path.
+    // Previously this short-circuited `if (!isRunningOnClient()) return marked`
+    // which let an unsanitized payload reach SSR HTML if SSR were ever
+    // enabled. iframes are allowed only for trusted media hosts (enforced
+    // inside sanitizeHtml).
+    return sanitizeHtml(markedContent, { allowIframes: true });
   };
 
   const [clientMarkedContent, setClientMarkedContent] = useState(() =>
