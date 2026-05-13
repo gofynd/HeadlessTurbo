@@ -83,7 +83,7 @@
     "fastify": "^5.8.4",
     "framer-motion": "^11.3.28",
     "google-libphonenumber": "^3.2.38",
-    "html-react-parser": "^5.1.8",
+    "html-react-parser": "^6.1.0",
     "imask": "^6.4.3",
     "jwt-decode": "^4.0.0",
     "marked": "^13.0.3",
