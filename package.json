@@ -67,7 +67,7 @@
     "@fastify/http-proxy": "^11.4.3",
     "@fastify/static": "^9.1.3",
     "@gofynd/fdk-store-gql": "^3.0.67",
-    "@gofynd/theme-template": "~3.2.24",
+    "@gofynd/theme-template": "~3.2.35",
     "@google/model-viewer": "^3.5.0",
     "@pixelbin/core": "^7.0.0",
     "@react-google-maps/api": "^2.19.3",
