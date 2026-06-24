@@ -94,17 +94,11 @@ export const useAccounts = ({ fpi }) => {
       ? new URLSearchParams(location.search)
       : null;
     const redirectUrl = queryParams?.get("redirectUrl") || "";
-    // URLSearchParams already decodes the value, but we try to decode again
-    // in case it was double-encoded. Use try-catch to handle edge cases.
-    let decodedUrl = redirectUrl;
-    try {
-      decodedUrl = decodeURIComponent(redirectUrl);
-    } catch (e) {
-      // If decoding fails, use the original value (already decoded by URLSearchParams)
-      decodedUrl = redirectUrl;
-    }
-    // Use redirectUrl if available, otherwise default to "/" (homepage)
-    const finalUrl = getLocalizedRedirectUrl(decodedUrl || "", locale);
+    // SECURITY (report F-03): pass the raw query param (already decoded once by
+    // URLSearchParams) directly to getLocalizedRedirectUrl, which rejects
+    // protocol-relative ("//"), backslash, and non-"/"-prefixed paths. The
+    // removed second decodeURIComponent was an unnecessary decode step.
+    const finalUrl = getLocalizedRedirectUrl(redirectUrl, locale);
     window.location.href = window.location.origin + finalUrl;
   };
 
@@ -266,16 +260,9 @@ export const useAccounts = ({ fpi }) => {
             ? new URLSearchParams(location.search)
             : null;
           const redirectUrl = queryParams?.get("redirectUrl") || "";
-          // URLSearchParams already decodes the value, but we try to decode again
-          // in case it was double-encoded. Use try-catch to handle edge cases.
-          let decodedUrl = redirectUrl;
-          try {
-            decodedUrl = decodeURIComponent(redirectUrl);
-          } catch (e) {
-            // If decoding fails, use the original value (already decoded by URLSearchParams)
-            decodedUrl = redirectUrl;
-          }
-          const finalUrl = getLocalizedRedirectUrl(decodedUrl, locale);
+          // SECURITY (report F-03): no second decode — getLocalizedRedirectUrl
+          // validates the already-decoded query param against external redirects.
+          const finalUrl = getLocalizedRedirectUrl(redirectUrl, locale);
           window.location.href = window.location.origin + finalUrl;
         }
         return res?.data?.loginWithEmailAndPassword;
@@ -356,13 +343,9 @@ export const useAccounts = ({ fpi }) => {
           ? new URLSearchParams(location.search)
           : null;
         const redirectUrl = queryParams?.get("redirectUrl") || "";
-        let decodedUrl = redirectUrl;
-        try {
-          decodedUrl = decodeURIComponent(redirectUrl);
-        } catch (e) {
-          decodedUrl = redirectUrl;
-        }
-        const finalUrl = getLocalizedRedirectUrl(decodedUrl, locale);
+        // SECURITY (report F-03): no second decode — getLocalizedRedirectUrl
+        // validates the already-decoded query param against external redirects.
+        const finalUrl = getLocalizedRedirectUrl(redirectUrl, locale);
         window.location.href = window.location.origin + finalUrl;
       }
       return res.data.verifyMobileOTP;
@@ -621,13 +604,9 @@ export const useAccounts = ({ fpi }) => {
             ? new URLSearchParams(location.search)
             : null;
           const redirectUrl = queryParams?.get("redirectUrl") || "";
-          let decodedUrl = redirectUrl;
-          try {
-            decodedUrl = decodeURIComponent(redirectUrl);
-          } catch (e) {
-            decodedUrl = redirectUrl;
-          }
-          const finalUrl = getLocalizedRedirectUrl(decodedUrl, locale);
+          // SECURITY (report F-03): no second decode — getLocalizedRedirectUrl
+          // validates the already-decoded query param against external redirects.
+          const finalUrl = getLocalizedRedirectUrl(redirectUrl, locale);
           window.location.href = window.location.origin + finalUrl;
         }
       }
@@ -674,13 +653,9 @@ export const useAccounts = ({ fpi }) => {
             ? new URLSearchParams(location.search)
             : null;
           const redirectUrl = queryParams?.get("redirectUrl") || "";
-          let decodedUrl = redirectUrl;
-          try {
-            decodedUrl = decodeURIComponent(redirectUrl);
-          } catch (e) {
-            decodedUrl = redirectUrl;
-          }
-          const finalUrl = getLocalizedRedirectUrl(decodedUrl, locale);
+          // SECURITY (report F-03): no second decode — getLocalizedRedirectUrl
+          // validates the already-decoded query param against external redirects.
+          const finalUrl = getLocalizedRedirectUrl(redirectUrl, locale);
           window.location.href = window.location.origin + finalUrl;
         }
       }
