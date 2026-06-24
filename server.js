@@ -125,11 +125,14 @@ function hardenSetCookie(cookieStr) {
 const flipCspToEnforced = env.FLIP_CSP_TO_ENFORCED === "1";
 const cspDirectives = {
   defaultSrc: ["'self'"],
+  // SECURITY (report F-02): Google Tag Manager removed from scriptSrc. GTM is a
+  // tag-execution engine — whitelisting it lets any GTM container tag load
+  // arbitrary JS on the storefront origin, fully bypassing this script policy.
+  // It is not used anywhere in the codebase, so the entry is simply dropped.
   scriptSrc: [
     "'self'",
     "https://cdn.fynd.com",
     "https://cdn.copilot.live",
-    "https://www.googletagmanager.com",
     "https://accounts.google.com",
   ],
   styleSrc: ["'self'", "'unsafe-inline'"],
@@ -155,6 +158,14 @@ app.register(fastifyCompress);
 // (different upstream chain) and must not break clients that hit non-HTTPS
 // origins during local development. Helmet is scoped to skip the proxy paths.
 app.register(fastifyHelmet, {
+  // SECURITY (report F-01): generate a per-request CSP nonce. Without this, the
+  // inline boot <script> (and the inline loader <style>) are blocked the moment
+  // CSP is enforced (FLIP_CSP_TO_ENFORCED=1), leaving window.__APP_CREDENTIALS__
+  // and window.__CSRF_TOKEN__ undefined — a full storefront outage. Helmet
+  // appends 'nonce-<value>' to script-src/style-src per response; we stamp the
+  // matching nonce onto the inline tags at render time (see renderIndexHtml and
+  // the dev injector). reply.cspNonce.{script,style} carries the raw values.
+  enableCSPNonces: true,
   contentSecurityPolicy: {
     directives: cspDirectives,
     reportOnly: !flipCspToEnforced,
@@ -176,9 +187,14 @@ app.register(fastifyHelmet, {
 
 let cachedIndexHtml = null;
 
-function renderIndexHtml(csrfToken) {
-  // Cache only the static portion of the HTML. CSRF token is rotated per
-  // response so we splice it in at render time.
+// SECURITY (report F-01): stamp the per-request CSP nonce onto every inline tag
+// so it survives CSP enforcement. The boot <script> gets the script nonce; the
+// loader <style> in the template gets the style nonce (once style-src carries a
+// nonce, 'unsafe-inline' is ignored by CSP3 browsers, so the inline style needs
+// the nonce too). Nonces are spliced per request and never cached.
+function renderIndexHtml(csrfToken, cspNonce = { script: "", style: "" }) {
+  // Cache only the static portion of the HTML. CSRF token and CSP nonces are
+  // rotated per response so we splice them in at render time via placeholders.
   if (!cachedIndexHtml) {
     const rawIndexHtml = readFileSync(indexHtmlPath, "utf-8");
     const { applicationID, applicationToken } = getRuntimeAppCredentials();
@@ -187,19 +203,23 @@ function renderIndexHtml(csrfToken) {
       applicationToken,
     });
     const inlineBoot =
-      `<script>window.__APP_CREDENTIALS__=${credsLiteral};` +
+      `<script nonce="__SCRIPT_NONCE__">window.__APP_CREDENTIALS__=${credsLiteral};` +
       `window.__CSRF_TOKEN__=__CSRF_TOKEN_PLACEHOLDER__;</script>`;
-    cachedIndexHtml = rawIndexHtml.includes("</head>")
-      ? rawIndexHtml.replace("</head>", `${inlineBoot}</head>`)
-      : `${inlineBoot}${rawIndexHtml}`;
+    const withNoncedStyle = rawIndexHtml.replace(
+      "<style>",
+      '<style nonce="__STYLE_NONCE__">',
+    );
+    cachedIndexHtml = withNoncedStyle.includes("</head>")
+      ? withNoncedStyle.replace("</head>", `${inlineBoot}</head>`)
+      : `${inlineBoot}${withNoncedStyle}`;
     if (isDev) cachedIndexHtml = null; // do not cache in dev
   }
-  // Re-render on each request in dev; in prod splice the per-request token in.
+  // Re-render on each request in dev; in prod splice the per-request values in.
   const base = cachedIndexHtml || readFileSync(indexHtmlPath, "utf-8");
-  return base.replace(
-    "__CSRF_TOKEN_PLACEHOLDER__",
-    JSON.stringify(csrfToken),
-  );
+  return base
+    .replace("__CSRF_TOKEN_PLACEHOLDER__", JSON.stringify(csrfToken))
+    .replace("__SCRIPT_NONCE__", cspNonce.script || "")
+    .replace("__STYLE_NONCE__", cspNonce.style || "");
 }
 
 for (const key of APP_CREDENTIAL_KEYS) {
@@ -269,10 +289,62 @@ if (PROXY_TARGET) {
 
 // --- Dev: forward all other traffic to webpack-dev-server ---
 if (isDev) {
+  // SECURITY (report FND-01 / FND-08): credentials must never be baked into the
+  // bundle that WDS serves. So for top-level HTML navigations we fetch the
+  // document from WDS and splice in window.__APP_CREDENTIALS__ + CSRF at request
+  // time, mirroring the prod renderIndexHtml() path. Assets, HMR and websocket
+  // traffic fall through to the proxy untouched.
+  const injectDevCredentials = async (req, reply) => {
+    const method = (req.method || "GET").toUpperCase();
+    const accept = req.headers.accept || "";
+    if (method !== "GET" || !accept.includes("text/html")) return;
+
+    let html;
+    try {
+      const upstream = await fetch(`${WDS_URL}${req.url}`, {
+        headers: { accept: "text/html" },
+      });
+      const contentType = upstream.headers.get("content-type") || "";
+      if (!contentType.includes("text/html")) return; // real asset: let proxy handle
+      html = await upstream.text();
+    } catch {
+      return; // WDS unreachable: let the proxy surface the error
+    }
+
+    const csrfToken = generateCsrfToken();
+    // SECURITY (report F-01): stamp the per-request CSP nonce onto the injected
+    // boot <script> and the loader <style> so they survive CSP enforcement,
+    // mirroring the prod renderIndexHtml() path.
+    const nonce = reply.cspNonce || { script: "", style: "" };
+    const { applicationID, applicationToken } = getRuntimeAppCredentials();
+    const credsLiteral = escapeForInlineScript({ applicationID, applicationToken });
+    const inlineBoot =
+      `<script nonce="${nonce.script || ""}">window.__APP_CREDENTIALS__=${credsLiteral};` +
+      `window.__CSRF_TOKEN__=${JSON.stringify(csrfToken)};</script>`;
+    const withNoncedStyle = html.replace(
+      "<style>",
+      `<style nonce="${nonce.style || ""}">`,
+    );
+    const injected = withNoncedStyle.includes("</head>")
+      ? withNoncedStyle.replace("</head>", `${inlineBoot}</head>`)
+      : `${inlineBoot}${withNoncedStyle}`;
+
+    reply
+      .header("Cache-Control", "no-cache")
+      .header(
+        "Set-Cookie",
+        `${CSRF_COOKIE_NAME}=${csrfToken}; Path=/; SameSite=Lax`,
+      )
+      .type("text/html")
+      .send(injected);
+    return reply;
+  };
+
   app.register(fastifyHttpProxy, {
     upstream: WDS_URL,
     prefix: "/",
     websocket: true,
+    preHandler: injectDevCredentials,
   });
   app.log.info(`Dev mode: app traffic -> ${WDS_URL}`);
 } else {
@@ -308,7 +380,7 @@ if (isDev) {
       .header("Cache-Control", "no-cache")
       .header("Set-Cookie", cookieAttrs.join("; "))
       .type("text/html")
-      .send(renderIndexHtml(csrfToken));
+      .send(renderIndexHtml(csrfToken, reply.cspNonce));
   });
 }
 

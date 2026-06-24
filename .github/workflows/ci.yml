@@ -34,10 +34,64 @@ jobs:
         run: npx --yes better-npm-audit audit --level high
         continue-on-error: false
 
-      - name: Bundle leak scan
-        # Fail the build if any APP_TOKEN/Bearer/HMAC pattern is shipped to dist/.
+      - name: App credential scope guard
+        # SECURITY (report F-04): APPLICATION_TOKEN is injected into the HTML and
+        # is readable by every script the CSP allows. It MUST be public-scope
+        # only. This guard fails the build unless the deployment explicitly
+        # acknowledges the scope via APP_TOKEN_PUBLIC_SCOPE=true, preventing a
+        # privileged token from silently being shipped to the browser.
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        env:
+          APP_TOKEN_PUBLIC_SCOPE: ${{ vars.APP_TOKEN_PUBLIC_SCOPE }}
         run: |
-          if grep -REn 'authorization: Bearer|x-fp-signature|APPLICATION_TOKEN' dist/; then
-            echo "Bundle contains a secret pattern. Aborting." >&2
+          if [ "$APP_TOKEN_PUBLIC_SCOPE" != "true" ]; then
+            echo "APP_TOKEN_PUBLIC_SCOPE is not set to 'true'. Confirm APPLICATION_TOKEN" >&2
+            echo "is a PUBLIC-scope token and set the repo variable to acknowledge." >&2
             exit 1
           fi
+
+      - name: Bundle leak scan
+        # SECURITY (report F-05): scan dist/ for secrets by VALUE and FORMAT, not
+        # only by variable name — a renamed variable would otherwise ship a live
+        # secret undetected. Covers: known credential variable names, the literal
+        # configured token value (when provided as a secret), and common secret
+        # formats (JWT, AWS keys, GitHub tokens, private keys, bearer headers).
+        env:
+          APPLICATION_TOKEN: ${{ secrets.APPLICATION_TOKEN }}
+        run: |
+          set -euo pipefail
+          fail=0
+
+          # 1. Known variable-name / header patterns.
+          if grep -REn 'authorization: Bearer|x-fp-signature|APPLICATION_TOKEN' dist/; then
+            echo "Bundle contains a known secret variable/header pattern. Aborting." >&2
+            fail=1
+          fi
+
+          # 2. The literal configured token value, if available as a CI secret.
+          if [ -n "${APPLICATION_TOKEN:-}" ]; then
+            if grep -REn -F "$APPLICATION_TOKEN" dist/; then
+              echo "Bundle contains the literal APPLICATION_TOKEN value. Aborting." >&2
+              fail=1
+            fi
+          fi
+
+          # 3. Common secret value formats (renamed-variable defence).
+          if grep -REn \
+            -e 'eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]+' \
+            -e 'AKIA[0-9A-Z]{16}' \
+            -e 'gh[pousr]_[A-Za-z0-9]{20,}' \
+            -e '-----BEGIN [A-Z ]*PRIVATE KEY-----' \
+            dist/; then
+            echo "Bundle contains a high-confidence secret value format. Aborting." >&2
+            fail=1
+          fi
+
+          exit $fail
+
+      - name: Gitleaks secret scan
+        # SECURITY (report F-05): scan the repo/diff for any committed secrets
+        # using the full gitleaks ruleset, complementing the bundle-only scan.
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -136,12 +136,12 @@ export const paymentActions = [
         const _rawPincode130 = localStorage?.getItem("pincode") || "";
         let pincode = /^\d{6}$/.test(_rawPincode130) ? _rawPincode130 : "";
 
-        // If we have address_id, we might need to get pincode from there
-        if (!pincode && finalAddressId) {
-          // For now, use a default pincode - in real scenario, would get from selected address
-          pincode = "400001"; // This should be retrieved from selected address
-        }
-
+        // SECURITY (report F-06): no hardcoded pincode fallback. A hardcoded
+        // Mumbai pincode (400001) sent the wrong serviceability zone for any
+        // customer without a resolvable pincode, silently accepting/rejecting
+        // orders. When no valid pincode is available we now return the explicit
+        // pincode_required error below so the agent prompts for a delivery
+        // address instead of guessing.
         if (!pincode) {
           return {
             success: false,

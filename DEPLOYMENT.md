@@ -26,6 +26,24 @@ All deployments serve the same production build — a static SPA bundle with a F
 - **Git** installed
 - Fynd Platform credentials: `APPLICATION_ID` and `APPLICATION_TOKEN`
 
+> ### ⚠️ `APPLICATION_TOKEN` must be PUBLIC-scope only (security finding F-04)
+>
+> The server injects `APPLICATION_TOKEN` into the storefront HTML at request time
+> via `window.__APP_CREDENTIALS__` so the FPI client can initialise in the
+> browser. This means the token is **readable by every script the CSP allows**
+> (e.g. `cdn.fynd.com`, `cdn.copilot.live`, `accounts.google.com`) and by anyone
+> who opens DevTools. This exposure is an **accepted risk** *only* because the
+> token is public-scope.
+>
+> - **Never** place a partner-level, private, or otherwise privileged token in
+>   `APPLICATION_TOKEN`. If the token scope ever expands, this becomes a
+>   high-severity credential-exposure issue.
+> - A CDN supply-chain compromise of any allowed script origin can read the
+>   token; keep the CSP `scriptSrc` allowlist as small as possible.
+> - CI enforces acknowledgement of this constraint: set the repository variable
+>   `APP_TOKEN_PUBLIC_SCOPE=true` to confirm the configured token is public-scope
+>   before deploys to `main`/`master` (see `.github/workflows/ci.yml`).
+
 ## Build for Production
 
 Before deploying to any platform, create a production build:

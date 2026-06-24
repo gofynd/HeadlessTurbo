@@ -1,5 +1,4 @@
 {
-  "_comment": "SECURITY (report FND-32): eslint-plugin-security catches several patterns flagged by the SAST review (eval, dangerouslySetInnerHTML, unsafe regex, child_process). Keep airbnb base for general code quality. Most rules are warnings to avoid blocking CI on legacy code; promote to errors as the codebase is cleaned up.",
   "root": true,
   "env": {
     "browser": true,

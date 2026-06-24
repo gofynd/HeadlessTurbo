@@ -146,7 +146,7 @@ function Footer({ fpi }) {
               <div className={`${styles["footer__top--wrapper"]}`}>
                 {(getLogo?.length > 0 || globalConfig?.footer_description) && (
                   <div
-                    className={`${styles["footer__top--info"]} ${processFooterDescription.cleanedContent?.length < 83 ? styles["footer__top--unsetFlexWidth"] : ""}`}
+                    className={`${styles["footer__top--info"]} ${safeFooterDescription?.length < 83 ? styles["footer__top--unsetFlexWidth"] : ""}`}
                   >
                     {getLogo?.length > 0 && (
                       <div className={`fx-footer-logo ${styles.logo}`}>
