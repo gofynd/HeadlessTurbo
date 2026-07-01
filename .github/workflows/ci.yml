@@ -92,6 +92,6 @@ jobs:
       - name: Gitleaks secret scan
         # SECURITY (report F-05): scan the repo/diff for any committed secrets
         # using the full gitleaks ruleset, complementing the bundle-only scan.
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
