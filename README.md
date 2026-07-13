@@ -14,16 +14,16 @@ A production-ready, high-performance React storefront theme built for the **Fynd
 - **[Project Structure](#project-structure)** - Codebase organization
 - **[Server Architecture](#server-architecture)** - Fastify server and proxy setup
 - **[Webpack Configuration](#webpack-configuration)** - Build pipeline details
-- **[Global Configuration](#global-configuration)** - Theme customization via Fynd Platform
+- **[Global Configuration](#global-configuration)** - Theme customization via local config files
 - **[Copilot.live Integration](#copilotlive-integration)** - AI chatbot setup
 
 ## Features
 
 - **Full E-commerce Storefront** — Product catalog, collections, categories, cart, checkout, wishlists, and order tracking
 - **GraphQL Integration** — All data fetching via `@gofynd/fdk-store-gql` for fast, typed API communication
-- **Section-based Page Builder** — 59 drag-and-drop sections for visual page composition via Fynd Platform
+- **Section-based Architecture** — 58 prebuilt, reusable section components composed in code per page
 - **AI-Powered Copilot** — Copilot.live chatbot with 11+ actions (product search, add to cart, navigation)
-- **Multi-language Support** — i18n with 46 language locales
+- **Multi-language Support** — i18n with 22 language locales
 - **Responsive Design** — Mobile-first, works across all screen sizes
 - **Hyperlocal Delivery** — Delivery promise display (minutes, hours, date range)
 - **User Accounts** — Login (OTP + password), registration, profile, addresses, order history, refunds
@@ -85,15 +85,15 @@ PROXY_TARGET=https://api.fynd.com
 DOMAIN=api.fynd.com
 PORT=8080
 APPLICATION_ID=your_application_id
-APPLICATION_TOKEN=your_application_token
-TURBO_DEV_PORT=5001
+APPLICATION_TOKEN=your_public_application_token
+TURBO_DEV_PORT=5002
 USE_PROXY=true
 ```
 
 - `PORT` — Fastify app port (the one you open in the browser)
 - `TURBO_DEV_PORT` — Webpack Dev Server port that Fastify proxies to in dev
 - `USE_PROXY=true` — Fastify proxies `/service`, `/ext`, `/graphql` to `PROXY_TARGET`
-- `APPLICATION_ID` / `APPLICATION_TOKEN` — injected into the HTML at request time via `window.__APP_CREDENTIALS__`
+- `APPLICATION_ID` / `APPLICATION_TOKEN` — injected into the HTML at request time via `window.__APP_CREDENTIALS__`. The token is readable by every visitor, so it **must be a public-scope token only** — never a partner-level or privileged token
 
 > **Important**: Never commit your `.env` file with real credentials. Use `.env.example` as the template.
 
@@ -105,7 +105,7 @@ npm run dev
 
 `scripts/dev.js` boots both processes in the right order:
 
-- **Webpack Dev Server** on port `5001` (HMR + React Refresh)
+- **Webpack Dev Server** on port `5002` (HMR + React Refresh)
 - **Fastify proxy server** on port `8080` — forwards HTML to WDS and API calls to `PROXY_TARGET`
 
 Open `http://localhost:8080` in your browser.
@@ -145,7 +145,7 @@ Turbo/
 │   │   ├── blog.jsx
 │   │   └── ...
 │   │
-│   ├── sections/                   # 59 drag-and-drop sections
+│   ├── sections/                   # 58 reusable section components
 │   │   ├── hero-section.jsx
 │   │   ├── featured-collection.jsx
 │   │   ├── featured-products.jsx
@@ -171,13 +171,13 @@ Turbo/
 │   │   ├── profile/
 │   │   └── ...
 │   │
-│   ├── queries/                    # 38 GraphQL query definitions
+│   ├── queries/                    # 36 GraphQL query definitions
 │   │   ├── productQuery.js
 │   │   ├── cartQuery.js
 │   │   ├── checkoutQuery.js
 │   │   └── ...
 │   │
-│   ├── styles/                     # 37 LESS/CSS stylesheets
+│   ├── styles/                     # 35 LESS/CSS stylesheets
 │   │   ├── base.global.less
 │   │   ├── mixins.less
 │   │   ├── media.less
@@ -197,18 +197,17 @@ Turbo/
 │   ├── layouts/
 │   │   └── RootLayout.jsx          # Main app shell
 │   │
-│   ├── locales/                    # 46 language translation files
+│   ├── locales/                    # 22 language locales (translation + schema files)
 │   ├── assets/                     # Static images, icons, fonts
 │   ├── config/                     # Theme configuration schemas
-│   │   ├── settings_schema.json    # Global config UI schema
-│   │   └── settings_data.json      # Default config values
+│   │   ├── settings_schema.json    # Global settings schema (reference)
+│   │   └── settings_data.json      # Active theme settings (read at runtime)
 │   └── custom-templates/           # Custom template extensions
 │
 ├── public/
 │   └── index.html                  # HTML template
 │
 ├── dist/                           # Production build output
-├── dist_sections/                  # Section-specific chunk builds
 ├── scripts/
 │   └── dev.js                      # Dev server orchestration
 │
@@ -263,18 +262,19 @@ The server injects `APPLICATION_ID` and `APPLICATION_TOKEN` into the HTML at req
 
 - **MiniCssExtractPlugin** — Extract CSS into separate files for parallel loading
 - **HtmlWebpackPlugin** — Generate `index.html` with asset injection
-- **DotenvWebpackPlugin** — Inject environment variables into the client bundle
+- **DefinePlugin** — Injects only an explicit allowlist of non-sensitive build-time values (`NODE_ENV`, `PUBLIC_URL`, `DOMAIN`, `USE_PROXY`) into the client bundle; secrets like `APPLICATION_TOKEN` are never baked into the build (they are injected at request time by the server)
 - **ReactRefreshWebpackPlugin** — Fast refresh during development
 
 ### Optimization
 
 - **CssMinimizerPlugin** for CSS minification in production
 - **Code splitting** with dynamic `import()` for lazy-loaded pages
-- **Section chunking** enabled via `fdk_feature.enable_section_chunking`
 
 ## Global Configuration
 
-The following configurations are customizable via the **Fynd Platform** dashboard under **Appearance > Themes > Edit > Settings**.
+Global theme settings are defined locally in the repository — this headless setup does **not** use the Fynd Platform theme editor. Settings are read at runtime from [`theme/config/settings_data.json`](./theme/config/settings_data.json) (via the `useThemeConfig` hook). [`theme/config/settings_schema.json`](./theme/config/settings_schema.json) documents most available options; a few flags (e.g. the hyperlocal/delivery-promise toggles) are read directly by components from `settings_data.json`.
+
+The following configurations are available:
 
 | Configuration | Type | Default | Category | Description |
 |---|---|---|---|---|
@@ -282,7 +282,7 @@ The following configurations are customizable via the **Fynd Platform** dashboar
 | `font_body` | font | — | Typography | Font styling for body text |
 | `header_layout` | select | `single` | Header | Single or Double row navigation |
 | `logo_menu_alignment` | select | `layout_1` | Header | Logo and menu alignment on desktop |
-| `header_mega_menu` | checkbox | `false` | Header | Enable mega menu (double row only) |
+| `header_mega_menu` | radio | default menu | Header | Enable mega menu (double row only) |
 | `is_hyperlocal` | checkbox | `false` | Header | Location-based content personalization |
 | `is_delivery_minutes` | checkbox | `false` | Header | Show delivery promise in minutes |
 | `is_delivery_hours` | checkbox | `false` | Header | Show delivery promise in hours |
@@ -304,17 +304,17 @@ The following configurations are customizable via the **Fynd Platform** dashboar
 
 ### Modifying Global Configuration
 
-1. Log in to the [Fynd Platform](https://platform.fynd.com)
-2. Navigate to **Sales Channel > Appearance > Themes**
-3. Click **Edit** on your active theme
-4. Open **Settings** under **Configuration**
-5. Modify settings (Typography, Header, Cart, Product Card, etc.)
-6. Preview changes in real time
-7. Click **Save** to publish
+1. Open `theme/config/settings_data.json`
+2. Locate the active mode in `list` (matched by the `current` field, e.g. `"Default"`)
+3. Edit values under `global_config` (Typography, Header, Cart, Product Card, etc.) — refer to `theme/config/settings_schema.json` for available options and types
+4. Per-page section settings live under each mode's `page` array
+5. Restart the dev server (or rebuild for production) to see the changes
 
 ## Copilot.live Integration
 
 Turbo includes built-in **Copilot.live** AI chatbot integration for enhanced shopping experience.
+
+> **Note**: The theme does not load the Copilot widget itself. It registers storefront actions with an already-present `window.copilot` object — the Copilot.live widget script must be embedded separately (e.g. via your Copilot.live account). If `window.copilot` is not present, initialization is silently skipped.
 
 ### Available Copilot Actions
 
@@ -332,32 +332,30 @@ Turbo includes built-in **Copilot.live** AI chatbot integration for enhanced sho
 | `redirect_to_categories` | Navigate to categories or specific category |
 | `redirect_to_blogs` | Navigate to blogs or specific blog post |
 
+The full action list (including wishlist, order, and additional cart/product actions) is documented in [`copilot/README.md`](./copilot/README.md).
+
 ### Configuration
 
-Customize the Copilot widget in `theme/providers/global-provider.jsx`:
-
-```javascript
-const copilotConfig = {
-  // apiKey: "your-api-key",
-  // apiBaseUrl: "your-api-base-url",
-};
-```
+Storefront action registration is controlled by the `storefront_copilot_actions` setting in `theme/config/settings_data.json` (default: `false`). When disabled, the Copilot widget still works but uses backend API results instead of storefront actions. The action implementations live in [`copilot/actions/`](./copilot/actions/), and registration is triggered from `theme/providers/global-provider.jsx` via `initializeCopilot()`.
 
 ### Verifying Copilot
 
-1. Start the dev server: `npm run dev`
-2. Open browser console — look for:
-   - `"Copilot script loaded successfully"`
-   - `"Successfully registered X copilot tools!"`
-3. If issues arise, check network access to `cdn.copilot.live` and console errors.
+1. Ensure the Copilot.live widget script is embedded so `window.copilot` exists
+2. Set `storefront_copilot_actions` to `true` in `theme/config/settings_data.json`
+3. Start the dev server: `npm run dev`
+4. Open the browser console — look for:
+   - `"🚀 [COPILOT] Initializing copilot registration..."`
+   - `"🎉 [COPILOT] Copilot initialization completed successfully"`
+   - (If the setting is disabled you'll see `"ℹ️ [COPILOT] Storefront Copilot Actions disabled..."` instead)
+5. Registration retries up to 3 times with exponential backoff; failures are logged to the console.
 
 ## Troubleshooting
 
 | Issue | Solution |
 |---|---|
-| Dev server not loading | Check that ports `5001` (WDS) and `8080` (Fastify) are free, or override `TURBO_DEV_PORT` / `PORT` in `.env` |
+| Dev server not loading | Check that ports `5002` (WDS) and `8080` (Fastify) are free, or override `TURBO_DEV_PORT` / `PORT` in `.env` |
 | API calls failing | Verify `PROXY_TARGET` and `APPLICATION_ID`/`APPLICATION_TOKEN` in `.env` |
-| Copilot not initializing | Check network access to `cdn.copilot.live`; retries happen automatically (5x with backoff) |
+| Copilot not initializing | Ensure the Copilot.live widget script is embedded (`window.copilot` must exist) and `storefront_copilot_actions` is `true` in `settings_data.json`; registration retries automatically (3x with backoff) |
 | Build errors | Run `npm run clean` then `npm run build` |
 | Styles not updating | Clear browser cache; ensure LESS files are imported correctly |
 
