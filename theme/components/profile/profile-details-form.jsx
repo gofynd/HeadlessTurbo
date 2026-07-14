@@ -11,7 +11,12 @@ import styles from "./profile-details-form.less";
 import RadioIcon from "../../assets/images/radio";
 import { convertISOToDDMMYYYY, convertDDMMYYYYToISO } from "../../helper/utils";
 
-function ProfileDetailsForm({ userData, onSave, isLoading }) {
+function ProfileDetailsForm({
+  userData,
+  onSave,
+  isLoading,
+  isEmailRequired = false,
+}) {
   const { t } = useGlobalTranslation("translation");
 
   // Check if email and phone are verified
@@ -288,14 +293,14 @@ function ProfileDetailsForm({ userData, onSave, isLoading }) {
           </div>
         </div>
 
-        {userData?.email && (
+        {(userData?.email || isEmailRequired) && (
           <div className={styles.formRow}>
             <div className={styles.formField}>
               <Controller
                 name="email"
                 control={control}
                 rules={{
-                  required: "Email is required",
+                  required: isEmailRequired ? "Email is required" : false,
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                     message: "Invalid email address",
