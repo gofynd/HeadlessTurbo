@@ -136,23 +136,26 @@ function OrderShipment({
                 <div className={styles.productDetails}>
                   <p className={styles.brandName}>{brandName}</p>
                   <p className={styles.shipmentId}>
-                    {t("resource.order.shipment_label", {
-                      defaultValue: "Shipment",
-                    })}
-                    : {shipment.shipment_id}
+                    {t("resource.common.shipment")}: {shipment.shipment_id}
                   </p>
 
                   <div className={styles.productMeta}>
                     <span className={styles.metaText}>
                       {totalItems}{" "}
-                      {t("resource.common.item_simple_text", {
-                        defaultValue: "Item",
-                      })}
+                      {t(
+                        totalItems === 1
+                          ? "resource.common.item_simple_text"
+                          : "resource.common.item_simple_text_plural"
+                      )}
                     </span>
                     <span className={styles.metaDivider}>|</span>
                     <span className={styles.metaText}>
                       {totalQuantity}{" "}
-                      {t("resource.common.piece", { defaultValue: "Piece" })}
+                      {t(
+                        totalQuantity === 1
+                          ? "resource.common.single_piece"
+                          : "resource.common.multiple_piece"
+                      )}
                     </span>
                   </div>
 

@@ -13,7 +13,11 @@ function ProfileDetailsPage({ fpi }) {
   const [isFetchingUser, setIsFetchingUser] = useState(false);
   const userDataStore = useGlobalStore(fpi.getters.USER_DATA);
   const customUserData = useGlobalStore(fpi.getters.CUSTOM_VALUE)?.user_Data;
+  const platformData = useGlobalStore(fpi.getters.PLATFORM_DATA);
   const rawStore = userDataStore || customUserData || {};
+
+  const isEmailRequired =
+    platformData?.required_fields?.email?.is_required === true;
 
   const userInfo = useMemo(
     () => rawStore?.logged_in_user ?? rawStore?.user ?? rawStore,
@@ -223,6 +227,7 @@ function ProfileDetailsPage({ fpi }) {
       userData={userData}
       onSave={handleSave}
       isLoading={isLoading}
+      isEmailRequired={isEmailRequired}
     />
   );
 }
